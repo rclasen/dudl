@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.8 2002-04-28 11:55:02 bj Exp $
+# $Id: File.pm,v 1.9 2002-07-25 10:36:46 bj Exp $
 
 package Dudl::File;
 
@@ -304,9 +304,9 @@ sub acquire {
 			$tag = {};
 		}
 
-		$self->{id_title}	= $$tag{"TITLE"};
-		$self->{id_artist}	= $$tag{"ARTIST"};
-		$self->{id_album}	= $$tag{"ALBUM"};
+		$self->{id_title}	= substr $$tag{"TITLE"}||"",0,30;
+		$self->{id_artist}	= substr $$tag{"ARTIST"}||"",0,30;
+		$self->{id_album}	= substr $$tag{"ALBUM"}||"",0,30;
 		$self->{id_tracknum}	= $$tag{"TRACKNUM"};
 		if( ! $self->{id_tracknum} ){
 			$self->{id_tracknum} = 0;
@@ -317,8 +317,8 @@ sub acquire {
 		if( ! $self->{id_year} ){
 			$self->{id_year} = 0;
 		}
-		$self->{id_comment}	= $$tag{"COMMENT"};
-		$self->{id_genre}	= $$tag{"GENRE"};
+		$self->{id_comment}	= substr $$tag{"COMMENT"}||"",0,30;
+		$self->{id_genre}	= substr $$tag{"GENRE"}||"", 0, 10;
 	}
 
 	if( $self->{WANTGET}->{sum} ){
@@ -409,7 +409,7 @@ sub get_path {
 
 	my $sql = $self->mksql( [qw{ unit_id dir fname }] );
 
-	my $q = "unit_id = ". $sql->{unitid} ." AND ".
+	my $q = "unit_id = ". $sql->{unit_id} ." AND ".
 		"fname = ".  $sql->{fname} ." AND ".
 		"dir = ". $sql->{dir};
 
