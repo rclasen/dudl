@@ -55,6 +55,8 @@ SELECT
 	ta.id			AS title_artist_id,
 	ta.nname		AS title_artist,
 	t.genres,
+	t.random,
+	t.cmnt,
 	u.collection,
 	u.colnum,
 	f.dir,
