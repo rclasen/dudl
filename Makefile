@@ -19,6 +19,9 @@ bins	:= \
 
 all:
 
+dist:
+	tar -cf ../dudl.tar Makefile $(libs) $(bins)
+
 install: install-bin install-lib
 
 install-bin:

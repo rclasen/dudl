@@ -1,0 +1,11 @@
+
+needed perl libs:
+
+basic
+ MP3::Tag	from tagged-0.40.tar.gz
+ Digest::MD5	
+
+for database
+ MP3::Info
+ DBI
+ DBD::Pg

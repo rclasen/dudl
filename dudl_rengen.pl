@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
-# TODO: optionally suggest based on manually specified regexp
+# TODO: get rid of Database dependency (Dudl.pm)
+# TODO: suggest album, too
+# TODO: get suggestions from freedb
 
 use strict;
 use Getopt::Long;
