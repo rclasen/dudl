@@ -46,9 +46,9 @@ if( ! $res ){
 my( $dir, $titles, $files );
 $sth->bind_columns( \( $dir, $titles, $files ) );
 
-printf "%4s %4s %7s %s\n", "tit", "fil", "unit", "dir";
+printf "%4s %4s %2s %7s %s\n", "tit", "fil", "x", "unit", "dir";
 while( defined $sth->fetch ){
-	printf "%4s %4d %7d %s\n", $titles, $files, $unit->id(), $dir;
+	printf "%4s %4d %2s %7d %s\n", $titles, $files, "-", $unit->id(), $dir;
 }	
 $sth->finish;
 
