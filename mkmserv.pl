@@ -198,7 +198,7 @@ while( defined $sth->fetch ){
 			mkdir "$dir_sym/$basepath", 0777 ||
 				die "mkdir('$dir_sym/$basepath'): $!";
 		}
-		if( $want_sym ){
+		if( $want_nfo ){
 			delete $nfo{$basepath};
 			delete $nfo{"$basepath/album"};
 			mkdir "$dir_nfo/$basepath", 0777 ||
