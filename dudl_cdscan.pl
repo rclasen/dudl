@@ -26,6 +26,7 @@ sub usage {
 	print "  --unit    do not scan files\n";
 	print "  --mp3     scan mp3 information\n";
 	print "  --sum     calculate md5 sum\n";
+	print "  --add     add missing files although CD is already in DB\n";
 	print " if none is specified, --mp3 --sum is assumed.\n";
 }
 
@@ -34,12 +35,14 @@ my $opt_eject;
 my $opt_mp3;
 my $opt_sum;
 my $opt_unit;
+my $opt_add;
 
 my $result = GetOptions(
 	"eject"		=> \$opt_eject,
 	"mp3!"		=> \$opt_mp3,
 	"sum!"		=> \$opt_sum,
 	"unit!"		=> \$opt_unit,
+	"add|a"		=> \$opt_add;
 	);
 if( ! $result ){
 	&usage();
@@ -139,10 +142,12 @@ sub scan {
 	}
 
 	my $id;
+	my $add_files = 0;
 	if( $unit->id  ){
 		$id = $unit->update;
 	} else {
 		$id = $unit->insert;
+		$add_files ++;
 	}
 
 	if( ! $id ){
@@ -151,6 +156,7 @@ sub scan {
 	print "unit id: ". $id ."\n";
 	
 
+	$add_file ++ if $opt_add;
 
 	if( $dofiles ){
 		my $dlen = length($dir);
@@ -161,7 +167,7 @@ sub scan {
 		print "searching for mp3s in \"$dir\"\n";
 		#@files = ();
 		#&finddepth(\&want_file, $dir );
-		@files = `find $dir -type f `;
+		@files = `find $dir -type f -iname "*.mp3"`;
 
 
 		# TODO: scan for filenames not ending in .mp3
@@ -182,6 +188,9 @@ sub scan {
 				print " updating";
 				$id = $file->update;
 			} else {
+				die "not adding file to existing unit" 
+					unless $add_file;
+
 				print " adding";
 				$id = $file->insert;
 			}
