@@ -11,7 +11,7 @@
 #  wav		-	+	-	-	-
 #  mp3		-	-	+	+	-
 #  id		-	-	-	-	+
-#  encoder	-	-	?	?	?
+#  encoder	?	?	?	?	?
 #  cmt		?	?	?	?	?
 #
 # title
@@ -435,7 +435,11 @@ sub file_key {
 
 	my $cur = $self->{file};
 
-	if( $key eq "cmt" ){
+	if( $key eq "encoder" ){
+		$cur->{$key} = $val;
+		return 1;
+	
+	} elsif( $key eq "cmt" ){
 		$cur->{$key} = $val;
 		return 1;
 	
@@ -553,6 +557,7 @@ sub write_file {
 	my $fh = shift;
 	my $fil = shift;
 
+	print $fh "file_encoder	". ($fil->{encoder} || "") ."\n";
 	print $fh "file_cmt	". ($fil->{cmt} || "") ."\n";
 }
 
