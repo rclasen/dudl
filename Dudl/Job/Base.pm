@@ -191,7 +191,10 @@ sub add_album {
 		$ent = { @_ };
 	}
 
+	delete $ent->{files};
+
 	push @{$self->{all}}, { %$ent };
+	$self->{calb} = $#{$self->{all}};
 }
 
 sub add_file {
@@ -203,8 +206,11 @@ sub add_file {
 		$ent = { @_ };
 	}
 
-	my $albs = $#{$self->{all}};
-	push @{$self->{all}[$albs]->{files}}, { %$ent };
+	delete $ent->{titles};
+
+	my $alb = $self->album;
+	push @{$alb->{files}}, { %$ent };
+	$self->{cfil} = $#{$alb->{files}};
 }
 
 sub add_title {
@@ -216,9 +222,9 @@ sub add_title {
 		$ent = { @_ };
 	}
 
-	my $albs = $#{$self->{all}};
-	my $fils = $#{$self->{all}[$albs]{files}};
-	push @{$self->{all}[$albs]->{files}[$fils]->{titles}}, { %$ent };
+	my $fil = $self->file;
+	push @{$fil->{titles}}, { %$ent };
+	$self->{ctit} = $#{$fil->{titles}};
 }
 
 
