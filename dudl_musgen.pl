@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# TODO: use Job::Archive for reading Job file
-
 # generate mus template for editing an adding
 
 # edit
@@ -14,6 +12,7 @@ use strict;
 use Dudl;
 use Dudl::Suggester;
 use Dudl::Job::Music;
+use Dudl::Job::Archive;
 
 my $dudl = new Dudl;
 
@@ -31,16 +30,21 @@ my $genre = shift || "";
 
 my $opt_max = 1;
 my $opt_id = 1;
-
-my %lastsug = (
-	title	=> "",
-	tnum	=> "",
-	genres	=> "",
-	artist	=> "",
-	);
-
+my $opt_archive = 1;
+my $opt_afile = "TRACKS.dudl_archive";
 
 my $db = $dudl->db;
+
+my $arch;
+if( $opt_archive ){
+	my $unit = new Dudl::Unit( $dudl );
+	$unit->get_id( $unitid );
+	my $path = $unit->path ."/";
+	$path .= $dir ."/" if $dir;
+	$path .= $opt_afile;
+	$arch = new Dudl::Job::Archive( $path );
+}
+
 my $exp = new Dudl::Suggester( $dudl );
 my $job = new Dudl::Job::Music;
 $job->add_album();
@@ -100,8 +104,23 @@ while( defined $sth->fetch ){
 			);
 	}
 
-	# TODO: try to find a match in mus_title
-
+	if( $arch ){
+		$arch->rewind;
+		while( my($alb,$fil,$tit) = $arch->next ){
+			my $n = $fil->{mp3};
+			if( $path =~ /(^|\/)\Q$n\E$/i ){
+				$exp->add(
+				artist		=> $tit->{artist},
+				titlenum	=> $tit->{num} || $nr,
+				title		=> $tit->{name},
+				album		=> $alb->{name},
+				source		=> "archive",
+				preference	=> 3,
+				);
+				last;
+			}
+		}
+	}
 
 
 	# suggest at least an empty one
@@ -128,7 +147,8 @@ while( defined $sth->fetch ){
 	    defined ($sug = $exp->get) ){
 	    	$job->add_title(
 			id	=> $sug->{titleid} || undef,
-			source	=> $sug->{source},
+			source	=> $sug->{source} ." score: ".
+				$sug->{sug_quality},
 			name	=> $sug->{title},
 			artist	=> $sug->{artist}, 
 			num	=> $sug->{titlenum} || $nr, 
