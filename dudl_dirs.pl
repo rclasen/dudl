@@ -3,7 +3,7 @@
 # list directories of a unit
 
 # show number of files
-# OPT: show if all/some files in directory have links in mus_
+# show if all/some files in directory have links in mus_
 
 use strict;
 use Dudl;
@@ -19,10 +19,12 @@ if( ! $unit ){
 	exit 1;
 }
 
+# TODO: move database access to module
 my $query = 
 	"SELECT ".
 		"dir, ".
-		"COUNT(dir) as num ".
+		"COUNT(titleid) as titles, ".
+		"COUNT(dir) as files ".
 	"FROM stor_file ".
 	"WHERE ".
 		"unitid = ". $unit->id() ." ".
@@ -41,12 +43,12 @@ if( ! $res ){
 	die $sth->errstr ."\nquery: $query\n";
 }
 
-my( $dir, $num );
-$sth->bind_columns( \( $dir, $num ) );
+my( $dir, $titles, $files );
+$sth->bind_columns( \( $dir, $titles, $files ) );
 
-printf "%4s %7s %s\n", "cnt", "unit", "dir";
+printf "%4s %4s %7s %s\n", "tit", "fil", "unit", "dir";
 while( defined $sth->fetch ){
-	printf "%4d %7d '%s'\n", $num, $unit->id(), $dir;
+	printf "%4s %4d %7d '%s'\n", $titles, $files, $unit->id(), $dir;
 }	
 $sth->finish;
 
