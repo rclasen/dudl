@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rename.pl,v 1.7 2001-12-18 18:12:29 bj Exp $
+# $Id: dudl_rename.pl,v 1.8 2001-12-20 14:31:25 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -77,7 +77,9 @@ if( $needhelp ){
 
 
 
-my $job = new Dudl::Job::Rename;
+
+# TODO: album_types => [qw( album sampler single maxi soundtrack )] );
+my $job = new Dudl::Job::Rename( album_types => [qw( album sampler )] );
 foreach my $f ( @ARGV ){
 	$job->read( $f ) || die "error: $!";
 }
@@ -175,7 +177,7 @@ sub copy {
 	my $err = 0;
 	while( my($alb,$fil,$tit) = $in->next ){
 		if( !defined($oalb) || $oalb != $alb ){
-			print STDERR "copying album ", $alb->{name}, " ...\n";
+			print STDERR "copying ", $alb->{type}," '", $alb->{name}, "' ...\n";
 			$oalb = $alb;
 			$onum = 0;
 		}
@@ -291,38 +293,37 @@ sub write_v2 {
 	my $t = new MP3::Tag( $fname ) || return; 
 	my $v2 = $t->new_tag( 'ID3v2' ) || return;
 
-	$v2->add_frame( qw( TIT2 TPE1 TALB COMM TYER TCON TRCK ) );
-	$v2->change_frame( "TIT2", $title->{name} );
-	$v2->change_frame( "TPE1", $title->{artist} );
-	$v2->change_frame( "TALB", $album->{name} );
-	$v2->change_frame( "COMM", $title->{cmt} );
-	$v2->change_frame( "TYER", $album->{year} );
-	$v2->change_frame( "TCON", $album->{genres} );
-	$v2->change_frame( "TRCK", $album->{num} );
+	#$v2->add_frame( qw( TIT2 TPE1 TALB COMM TYER TCON TRCK ) );
+	$v2->add_frame( "TIT2", $title->{name} );
+	$v2->add_frame( "TPE1", $title->{artist} );
+	$v2->add_frame( "TALB", $album->{name} );
+	$v2->add_frame( "COMM", $title->{cmt} );
+	$v2->add_frame( "TYER", $album->{year} );
+	$v2->add_frame( "TCON", $album->{genres} );
+	$v2->add_frame( "TRCK", $album->{num} );
 
 	$v2->write_tag() || return;
 	$t->close();
 	return 1;
 }
 
-sub is_sampler {
-	my $album = shift;
-
-	return $album->{artist} =~ /^VARIOUS$/i;
-}
 
 
 sub gen_dirname {
 	my $album = shift;
 
 	my $name;
-	if( &is_sampler( $album ) ){
+	if( $album->{type} eq "sampler" ){
 		$name = $album->{name};
-	} else {
+		die "album_artst for sampler is not VARIOUS" unless $album->{artist} =~ /^VARIOUS$/i;
+	} elsif( $album->{type} eq "album" ){
 		$name = sprintf( "%s.--.%s", 
 			$album->{artist}, 
 			$album->{name});
+	} else {
+		die "unknown album type";
 	}
+
 
 	return &fn_normalize( $name );
 }
@@ -332,7 +333,7 @@ sub gen_fname {
 	my $title = shift;
 
 	my $name;
-	if( &is_sampler( $album ) ) {
+	if( $album->{type} eq "sampler" ) {
 		# - a sampler, name it 
 		# <album>/<nr>_<group>.--.<title> or 
 		# <album>/<nr>_<title>
@@ -347,13 +348,16 @@ sub gen_fname {
 				$title->{name} );
 		}
 
-	} else {
+	} elsif( $album->{type} eq "album" ){
 		# - no sampler, name it 
 		# <group>.--.<album>/<group>.--.<nr>_<title>
 		$name = sprintf( "%s.--.%02d_%s.mp3", 
 				$title->{artist}, 
 				$title->{num}, 
 				$title->{name} );
+
+	} else {
+		die "unknown album type";
 	}
 
 	return &fn_normalize( $name );
