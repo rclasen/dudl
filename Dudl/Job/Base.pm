@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.16 2001-12-20 16:38:30 bj Exp $
+# $Id: Base.pm,v 1.17 2001-12-25 10:36:24 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
@@ -99,7 +99,7 @@ sub new {
 	}
 
 	if( $arg{file} ){
-		return $self->read( $arg{fname} );
+		return $self->read( $arg{file} );
 	}
 	return $self;
 }
