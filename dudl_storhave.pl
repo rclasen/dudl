@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_storhave.pl,v 1.4 2002-04-12 17:53:52 bj Exp $
+# $Id: dudl_storhave.pl,v 1.5 2002-04-28 11:54:59 bj Exp $
 
 use strict;
 use Dudl;
@@ -57,7 +57,7 @@ my $query =
 "FROM ".
 	"stor_file f INNER JOIN ".
 		"stor_unit u ".
-		"ON u.id = f.unitid ".
+		"ON u.id = f.unit_id ".
 "WHERE ".
 	"NOT broken AND ".
 	"( $where ) ".

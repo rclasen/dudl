@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: mkmserv.pl,v 1.9 2002-04-18 19:28:09 bj Exp $
+# $Id: mkmserv.pl,v 1.10 2002-04-28 11:54:59 bj Exp $
 
 # generate directory trees for mserv
 # - symlinks
@@ -97,31 +97,33 @@ my $query = "
 SELECT 
 	ala.nname, 
 	al.album, 
-	ti.id, 
-	ti.nr, 
-	ti.title, 
+	fi.id, 
+	fi.album_pos, 
+	fi.title, 
 	tia.nname, 
-	mserv_tags(ti.id) AS tags,
+	mserv_tags(fi.id) AS tags,
 	stor_filename(su.collection, su.colnum, fi.dir, fi.fname) as file,
-	date_part('epoch',fi.duration) AS dur
+	time2unix(fi.duration) AS dur
 FROM 
-	mus_album al,
-	mus_artist ala, 
-	mus_title ti, 
-	mus_artist tia, 
-	stor_file fi, 
-	stor_unit su
+	mus_album al 
+		INNER JOIN mus_artist ala
+		ON al.artist_id = ala.id 
+
+		INNER JOIN stor_file fi
+		ON al.id = fi.album_id 
+
+		INNER JOIN mus_artist tia
+		ON fi.artist_id = tia.id 
+
+		INNER JOIN stor_unit su
+		ON fi.unit_id = su.id 
 WHERE 
-	al.artist_id = ala.id AND 
-	al.id = ti.album_id AND 
-	ti.artist_id = tia.id AND 
-	ti.id = fi.titleid AND 
-	fi.unitid = su.id AND 
-	NOT fi.broken
+	NOT fi.broken AND
+	fi.title NOTNULL
 ORDER by 
 	ala.nname, 
 	al.album,
-	ti.nr;
+	fi.album_pos;
 ";
 
 my $sth = $db->prepare( $query );
@@ -137,22 +139,22 @@ if( ! $res ){
 my (
 	$al_artist, 
 	$al_album, 
-	$ti_id, 
-	$ti_nr, 
-	$ti_title, 
-	$ti_artist, 
-	$ti_tags,
+	$fi_id, 
+	$fi_pos, 
+	$fi_title, 
+	$fi_artist, 
+	$fi_tags,
 	$fi_name, 
 	$fi_dur,
 );
 $sth->bind_columns( \( 
 	$al_artist, 
 	$al_album, 
-	$ti_id, 
-	$ti_nr, 
-	$ti_title, 
-	$ti_artist, 
-	$ti_tags,
+	$fi_id, 
+	$fi_pos, 
+	$fi_title, 
+	$fi_artist, 
+	$fi_tags,
 	$fi_name,
 	$fi_dur,
 ) );
@@ -199,16 +201,16 @@ while( defined $sth->fetch ){
 		}
 		$old_basepath = $basepath;
 
-	} elsif( $old_id == $ti_id ){
+	} elsif( $old_id == $fi_id ){
 		# skip duplicate files for titles
 		next;
 
 	}
-	$old_id = $ti_id;
+	$old_id = $fi_id;
 
-	$ti_nr = sprintf "%02d", $ti_nr;
+	$fi_pos = sprintf "%02d", $fi_pos;
 
-	my $relpath = "$ti_nr.$ti_artist.$ti_title.mp3";
+	my $relpath = "$fi_pos.$fi_artist.$fi_title.mp3";
 	$relpath =~ s/\W+/./g;
 	$relpath = $basepath ."/". $relpath;
 
@@ -220,8 +222,8 @@ while( defined $sth->fetch ){
 
 	if( $want_nfo ){
 		delete $nfo{"$relpath.trk"};
-		&title( "$dir_nfo/$relpath.trk", $ti_artist, $ti_title,
-			$ti_tags, $fi_dur );
+		&title( "$dir_nfo/$relpath.trk", $fi_artist, $fi_title,
+			$fi_tags, $fi_dur );
 	}
 
 }	

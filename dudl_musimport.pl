@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.7 2002-04-26 12:14:02 bj Exp $
+# $Id: dudl_musimport.pl,v 1.8 2002-04-28 11:54:59 bj Exp $
 
 
 # add music entries from template file
@@ -156,49 +156,22 @@ sub save_title {
 	my $title = $db->quote( $hr->{name}, DBI::SQL_CHAR );
 	# TODO: move default for random to SQL server
 
-	# first get a new id
-	my $query = "SELECT nextval('mus_title_id_seq')";
-	my ( $tid ) = $db->selectrow_array($query );
-	if( ! $tid ){
-		die $db->errstr ."\nquery: $query\n";
-	}
-
-	print STDERR "adding title $tid: $albid,$nr";
+	print STDERR "updating title $filid: $albid,$nr";
 
 	# add new title with this id
-	$query =
-		"INSERT INTO mus_title ( ".
-			"id, ".
-			"album_id, ".
-			"nr, ".
-			"title, ".
-			"artist_id ".
-		") VALUES ( ".
-			"$tid, ".
-			"$albid, ".
-			"$nr, ".
-			"$title, ".
-			"$aid ".
-		") ";
+	my $query = "UPDATE stor_file SET ".
+			"album_id = $albid, ".
+			"album_pos = $nr, ".
+			"title = $title, ".
+			"artist_id = $aid ".
+		"WHERE id = $filid";
 	#print STDERR "save_title: ", $query, "\n";
 	my $res = $db->do( $query );
 	if( $res != 1 ){
 		die $db->errstr ."\nquery: $query\n";
 	}
 
-	&save_genres( $dudl, $tid, $hr->{genres} );
-
-	# update file
-	$query =
-		"UPDATE stor_file ".
-		"SET titleid = $tid ".
-		"WHERE ".
-			"titleid ISNULL AND ".
-			"id = $filid ";
-	$res = $db->do( $query );
-	if( $res != 1 ){
-		die $db->errstr ."\nquery: $query\n";
-	}
+	&save_genres( $dudl, $filid, $hr->{genres} );
 
 	print STDERR ".\n";
 }
@@ -241,8 +214,8 @@ sub save_genres {
 
 	$sth->finish;
 
-	$query = "INSERT INTO mserv_titletag ".
-		"(title_id, tag_id ) ".
+	$query = "INSERT INTO mserv_filetag ".
+		"(file_id, tag_id ) ".
 		"VALUES ($tid,?)";
 	$sth = $db->prepare( $query );
 	if( ! $sth ){

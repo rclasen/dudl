@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_dupes.pl,v 1.5 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_dupes.pl,v 1.6 2002-04-28 11:54:59 bj Exp $
 
 # find duplicate files using their stored md5sums
 
@@ -44,7 +44,7 @@ sub run {
 			"stor_unit ".
 		"WHERE ".
 			"(tmp_$field.$field = stor_file.$field) AND ".
-			"(stor_file.unitid = stor_unit.id ) ".
+			"(stor_file.unit_id = stor_unit.id ) ".
 		"ORDER BY ".
 			"tmp_$field.$field";
 	$sth = $db->prepare( $query );

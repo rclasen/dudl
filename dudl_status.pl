@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_status.pl,v 1.3 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_status.pl,v 1.4 2002-04-28 11:54:59 bj Exp $
 
 # list directories of a unit
 
@@ -19,13 +19,13 @@ my $query =
 		"trim(collection), ".
 		"colnum, ".
 		"dir, ".
-		"COUNT(titleid) as titles, ".
+		"COUNT(title) as titles, ".
 		"COUNT(dir) as files ".
 	"FROM ".
 		"stor_file f, ".
 		"stor_unit u ".
 	"WHERE ".
-		"f.unitid = u.id ".
+		"f.unit_id = u.id ".
 	"GROUP BY ".
 		"dir ".
 	"ORDER BY ".

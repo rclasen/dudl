@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.7 2001-12-13 14:44:50 bj Exp $
+# $Id: File.pm,v 1.8 2002-04-28 11:55:02 bj Exp $
 
 package Dudl::File;
 
@@ -46,7 +46,7 @@ my %table = (
 		type	=> DBI::SQL_INTEGER,
 		acq	=> 'base',
 		},
-	unitid		=> {
+	unit_id		=> {
 		type	=> DBI::SQL_INTEGER,
 		acq	=> 'base',
 		},
@@ -157,7 +157,7 @@ sub new {
 	my $class	= ref($proto) || $proto;
 	my $self = {
 		BASE		=> shift,
-		unitid		=> shift,	
+		unit_id		=> shift,	
 		WANTUPD		=> [],	# arrayref
 		WANTGET		=> {},	# hashref
 		};
@@ -206,7 +206,7 @@ sub want {
 	# duplicates don't matter because mksql puts them in a hash
 	foreach( @$want ){
 		next unless exists $table{$_};
-		next if $_ eq "unitid";
+		next if $_ eq "unit_id";
 		next if $_ eq "id";
 
 		push @{$self->{WANTUPD}}, $_;
@@ -225,7 +225,7 @@ sub clean {
 	my $self	= shift;
 
 	foreach( keys %table ){
-		if( $_ ne "unitid" ){
+		if( $_ ne "unit_id" ){
 			$self->{$_} = undef;
 		}
 	}
@@ -404,12 +404,12 @@ sub get_path {
 	}
 
 	if( defined $unitid ){
-		$self->{unitid} = $unitid;
+		$self->{unit_id} = $unitid;
 	}
 
-	my $sql = $self->mksql( [qw{ unitid dir fname }] );
+	my $sql = $self->mksql( [qw{ unit_id dir fname }] );
 
-	my $q = "unitid = ". $sql->{unitid} ." AND ".
+	my $q = "unit_id = ". $sql->{unitid} ." AND ".
 		"fname = ".  $sql->{fname} ." AND ".
 		"dir = ". $sql->{dir};
 
@@ -452,7 +452,7 @@ sub insert {
 		return undef;
 	}
 
-	my $sql = $self->mksql( [ "id", "unitid", @{$self->{WANTUPD}} ] );
+	my $sql = $self->mksql( [ "id", "unit_id", @{$self->{WANTUPD}} ] );
 	my @cols = keys %$sql;
 	my @vals;
 	foreach(@cols){

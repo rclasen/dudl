@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_mushave.pl,v 1.5 2002-04-18 19:42:19 bj Exp $
+# $Id: dudl_mushave.pl,v 1.6 2002-04-28 11:54:59 bj Exp $
 
 # search database
 
@@ -119,7 +119,7 @@ if( $want_artist ){
 	";
 
 	$query .= ", mus_album al " if $opt_album;
-	$query .= ", mus_title t " if $opt_title;
+	$query .= ", stor_file t " if $opt_title;
 
 	my @w;
 	push @w, "a.id = t.artist_id", 
@@ -142,7 +142,7 @@ if( $want_genre ){
 	$query = "SELECT
 		count(*), mserv_tags(t.id) as ". join( ", ", @s ) ."
 	FROM
-		mus_title t 
+		stor_file t 
 	";
 
 	$query .= ", mus_artist a " if $opt_artist;
@@ -170,7 +170,7 @@ if( $want_album ){
 		mus_artist a
 	";
 
-	$query .= ", mus_title t " if $opt_title;
+	$query .= ", stor_file t " if $opt_title;
 
 	my @w;
 	push @w, "al.artist_id = a.id";
@@ -192,7 +192,7 @@ if( $want_title ){
 		t.title,
 		a.nname
 	FROM
-		mus_title t,
+		stor_file t,
 		mus_artist a
 	";
 

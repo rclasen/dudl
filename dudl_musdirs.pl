@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musdirs.pl,v 1.4 2001-12-20 13:10:14 bj Exp $
+# $Id: dudl_musdirs.pl,v 1.5 2002-04-28 11:54:59 bj Exp $
 
 # list directories of a unit
 
@@ -25,11 +25,11 @@ if( ! $unit ){
 my $query = 
 	"SELECT ".
 		"dir, ".
-		"COUNT(titleid) as titles, ".
+		"COUNT(title) as titles, ".
 		"COUNT(dir) as files ".
 	"FROM stor_file ".
 	"WHERE ".
-		"unitid = ". $unit->id() ." ".
+		"unit_id = ". $unit->id() ." ".
 	"GROUP BY ".
 		"dir ".
 	"ORDER BY ".

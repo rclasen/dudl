@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.13 2002-04-18 19:53:58 bj Exp $
+# $Id: dudl_musgen.pl,v 1.14 2002-04-28 11:54:59 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -121,10 +121,10 @@ my $query =
 		"id_artist, ".
 		"id_album, ".
 		"id_tracknum, ".
-		"titleid ".
+		"title ".
 	"FROM stor_file ".
 	"WHERE ".
-		"unitid = $unitid AND ".
+		"unit_id = $unitid AND ".
 		"dir = ". $db->quote( $dir, DBI::SQL_CHAR ) ." ".
 	"ORDER BY ".
 		"fname";
@@ -142,10 +142,10 @@ print STDERR "found $res files\n";
 
 my( $id, $fname, 
 	$id_title, $id_artist, $id_album, $id_tracknum, 
-	$titleid );
+	$title );
 $sth->bind_columns( \( $id, $fname, 
 	$id_title, $id_artist, $id_album, $id_tracknum,
-	$titleid ) );
+	$title ) );
 
 my %album;
 my $nr = 0;
@@ -160,10 +160,10 @@ while( defined $sth->fetch ){
 		id	=> $id, 
 		);
 
-	if( $titleid ){
-		# TODO: fetch data from mus_title
+	if( defined $title ){
+		# TODO: fetch music data from stor_file
 		$exp->add_asis( 
-			titleid => $titleid,
+			titleid => $id,
 		#	...
 			);
 	}
