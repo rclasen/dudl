@@ -23,10 +23,11 @@ CREATE TABLE mus_title (
 			NOT NULL
 			REFERENCES mus_artist(id),
 
+	duration	TIME,			-- really needed?
 	cmnt		TEXT,			-- Comment
 	lyrics		TEXT,
 
-	lastplay	TIME,			-- mserv: last play time
+	lastplay	DATE,			-- mserv: last start of play
 	random		BOOLEAN			-- mserv: include in random play
 			NOT NULL
 			DEFAULT 'true',
