@@ -1,0 +1,256 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{german}
+\usepackage[latin1]{inputenc}
+
+
+\begin{document}
+
+\section{überblick}
+
+\subsection{Datenbank}
+
+die Datenbank soll enthalten:
+\begin{description}
+\item[User]
+	Wer hat welchen login und Passwort. Welche Rechte gehören zu einem
+	login.
+\item[Musik] 
+	Welche Titel gehören zu welchem Album eines Künstlers.
+\item[Rating] 
+	In welches Genre sortiert ein User einen Titel. Wie gerne hört er
+	einen Titel. Zusammenstellung von Programmen.
+\item[Storage] 
+	Auf Welchem Medium (CD, MC, MP3, \ldots) ist ein Titel oder Album
+	zu finden - bzw. Welche Alben sind auf einem Medium.
+\item[Player] 
+	Auswählen und abspielen von tracks.
+\item[Video] 
+	Was ist auf Video Kassetten.
+\item[Verleih] 
+	Wer hat welches Video oder Musik Träger wann ausgeliehen.
+\end{description}
+
+Die Datenbank soll mindestens über ein Web Interface abfrag- und
+editierbar sein. 
+
+\subsection{Player}
+
+Der Player soll Modular aufgebaut sein. Die einzelnen Teile müssen direkt
+miteinander kommunizieren. Im Idealfall greift nur ein Teil auf die
+Datenbank zu und stellt allen anderen komponeneten des Players die Daten
+zur verfügung. Zu Begin ist aber denkbar, daß die anderen Komponenten noch
+lesend zugriff auf die User-, Musik- und Storage Datenbank erhalten. Der
+Player Spezifische Teil sollte auch schon zu Anfang direkt ausgetauscht
+werden um ereignisgesteuert vorgehen zu können.
+
+Der Player wird in folgende Einheiten zerteilt:
+
+\begin{description}
+\item[Frontend]
+	Ein Frontend ist für das User interface zuständig. Es kann 
+	über ein eigenes Protokoll mit dem Backend kommunizieren. 
+
+\item[Player]
+	Der eigentlich Player ist ein Teil des Backends. Er kümmert sich
+	dadrum, den richtigen Track zu spielen. Er reagiert auf die
+	frontends und nimmt sich die nötigen Daten aus der Datenbank. Der
+	Player bereitet Die Daten für den Playback Client auf. Nur ein
+	einziger Playback Client kann mit einem Player verbunden sein. Es
+	sollen mehrere Player laufen können.
+
+\item[Playback Client]
+	Verbindet sich zu einem Player des Backends. Er nimmt die Daten
+	in allen für ihn verwertbaren formaten entgegen und sorgt dafür,
+	daß sie abgespielt werden können - zB. auf /dev/dsp, über ESD oder
+	über einen schoutcast server.
+
+	Playback client und Player handeln zu begin aus, welche Formate
+	vom client unterstützt werden.
+
+	Später sollen auch die Musikdaten vom Player zum Playback Client
+	geschickt werden. Im Anfangsstadium ist auch direkter Access via
+	NFS + AMD denkbar.
+
+\item[Backend] 
+	Das Backend kapselt die Datanbank. Frontends und Playback Clients
+	verbinden sich mit dem Backend und erhalten über das Backend
+	Daten. Im Idealfall ist das Backend der einzige mit zugriff auf
+	die Datenbank.
+
+\end{description}
+
+
+
+\subsubsection{Frontends}
+
+geplant sind Frontends für:
+
+\begin{itemize}
+\item cmdline/readline
+\item LCDproc (und LIRC)
+\item WWW
+\item GTK
+\item curses/dialog
+\item Windows *würg*
+\end{itemize}
+
+
+
+
+
+\section{Die Musikdatenbank}
+\begin{itemize}
+\item neues Album
+\item track(s) an Album anfügen
+\item wer hat wann in welcher Band gespielt
+\item Suche von
+	\begin{itemize}
+	\item Interpret
+	\item track
+	\item album
+	\end{itemize}
+nach 
+	\begin{itemize}
+	\item track 
+	\item Interpret
+	\item Album
+	\item Release Datum
+	\item publisher
+	\end{itemize}
+\end{itemize}
+
+
+
+
+\section{Die Storage Datenbank}
+
+\begin{itemize}
+\item welche tracks/alben sind auf welchem Medium
+\item Wann aufgenommen
+\item von wo aufgnommen
+\item aufnahmequalität
+\item wann gekauft
+\item meine eigene CD - sprich in meinem Schrank, oder nur mal geliehen
+gewesen und für CDDB/kopieren eingelesen?
+\item für Hüllen (Kassette) Inlays erzeugen
+\item Listen mit alben erzeugen
+\item vorkommen eines/des besten Titels/Albums aus Musikdb suchen (auf bestimmten
+medien)
+\item alternativen zu einem Track auf anderem Medium finden
+\item erweiterbar für neue Medien
+\item suche von CD Text nach CDDB ID - ggf. export an CDDB Daemon
+\item suche nach CDROM anhand von Volume ID - ggf. export an vold oder so
+\item automatisches einlesen (cddb) von CDs
+\item automatisches scannen von CDROMs nach bekannten filetypen
+\item sonst bei neuen medien auswahl aus musikdb anbieten - am besten
+eines albums, das dann automatisch übernommen wird.
+\item ist ein File mit gegebener MD5 Summe schon in Datenbank?
+\end{itemize}
+
+
+
+
+\section{Video}
+\begin{itemize}
+\item Welche Filme sind auf welcher Kassette
+\item Wer hat bei dem film als was mitgewirkt
+\item Welche Musiktitel sind abgespielt worden
+\item Wann aufgenommen
+\item von wo aufgnommen
+\item aufnahmequalität
+\end{itemize}
+
+
+
+
+\section{User}
+\begin{itemize}
+\item Wer hat mit welchem login welches passwort?
+\item Zu welchen Gruppen gehört er?
+\end{itemize}
+
+
+
+
+\section{Verleih}
+\begin{itemize}
+\item verleih aller Medien an oben stehende Medien (Musik, Video)
+\item Wer hatte wan was ausgeliehen
+\end{itemize}
+
+
+
+
+\section{Rating}
+\begin{itemize}
+\item zu welchem genre gehört ein track?
+\item wie gefällt mir der track
+\item wie gefällt mir ein genre?
+\item zusammenstellen von programmen aus storage
+\item Programme aufbrechen in happen bestimmter Spielzeit
+\item Programm für Medium speichern
+\end{itemize}
+
+
+
+
+
+\section{Der Player}
+
+\begin{itemize}
+\item zugriff je nach Benutzer regeln
+\item tracks aus einer queue spielen
+\item queue aus programmen füllen
+\item Trackweise in queue vor- und in history rückwärts springen
+\item Random play gemäß filter und rating der lauschenden user/History
+\end{itemize}
+
+\subsection{Zusammenspiel queue und History}
+
+Diese Sprünge in der queue\ldots
+\\
+\begin{tabular}{r|ccccccc}
+queue	& 	&	&	&	&	&	&	\\
+\hline
+10	& 1	&	& 	& 	&	&	& 	\\
+11	& 2	& 6	& 6	& 	&	&	& 	\\
+12	& 3	& 5	& 7	& 	&	& 15	& 15	\\
+13	& 4	& 4	& 8	& 12	& 12	& 14	& 16	\\
+14	&	&	& 9	& 11	& 13	& 13	& 17	\\
+15	&	&	& 10	& 10	&	&	& 18	\\
+\end{tabular}
+\\
+\ldots ergeben diese history/queue
+\\
+\begin{tabular}{rrr|l}
+history	&	&	& queue \\
+id	& prev	& track & tracks \\
+\hline
+1	& -	& 10	& 11, 12, 13, 14, 15 \\
+2	& 1	& 11	& 12, 13, 14, 15 \\
+3	& 2	& 12	& 13, 14, 15 \\
+4	& 3	& 13	& 14, 15 \\
+\hline
+5	& 2	& 12	& 13, 14, 15 \\
+6	& 1	& 11	& 12, 13, 14, 15 \\
+\hline
+7	& 6	& 12	& 13, 14, 15 \\
+8	& 7	& 13	& 14, 15 \\
+9	& 8	& 14	& 15 \\
+10	& 9	& 15	& \\
+\hline
+11	& 8	& 14	& 15 \\
+12	& 7	& 13	& 14, 15 \\
+\hline
+13	& 12	& 14	& 15 \\
+\hline
+14	& 6	& 13	& 14, 15 \\
+15	& 1	& 12	& 13, 14, 15 \\
+\hline
+16	& 15	& 13	& 14, 15 \\
+17	& 16	& 14	& 15 \\
+18	& 17	& 15	& \\
+\end{tabular}
+
+\end{document}

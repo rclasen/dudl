@@ -1,0 +1,3 @@
+use stor_filename instead of Dudl::mkpath
+use new mserv_tags instead of genres
+use new mserv_tags instead of random
