@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_mushave.pl,v 1.4 2002-04-12 17:53:52 bj Exp $
+# $Id: dudl_mushave.pl,v 1.5 2002-04-18 19:42:19 bj Exp $
 
 # search database
 
@@ -136,11 +136,11 @@ if( $want_artist ){
 }
 
 if( $want_genre ){
-	my @s =( "t.genres" );
+	my @s =( "genres" );
 	push @s, "a.nname", "a.id" if $opt_artist;
 
 	$query = "SELECT
-		count(*), ". join( ", ", @s ) ."
+		count(*), mserv_tags(t.id) as ". join( ", ", @s ) ."
 	FROM
 		mus_title t 
 	";
