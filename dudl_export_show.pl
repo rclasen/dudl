@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 
+print STDERR "this program is obsolete\n";
+exit 0;
+
 use strict;
 use Dudl;
 use Getopt::Long;

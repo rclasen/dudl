@@ -2,6 +2,9 @@
 
 # set stor_file.export to the matching stor_export.id
 
+print STDERR "this program is obsolete\n";
+exit 0;
+
 use strict;
 use Dudl;
 

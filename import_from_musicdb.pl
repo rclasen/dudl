@@ -4,7 +4,7 @@ use strict;
 use Dudl;
 
 print STDERR "this script shouldn't be needed anymore\n";
-#exit 0;
+exit 0;
 
 my @want = ( qw{ UNITID DIR FNAME } );
 my $dudl = Dudl->new;
