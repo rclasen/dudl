@@ -1,5 +1,7 @@
 #! /usr/bin/perl -w
 
+# $Id: test_mdsum.pl,v 1.5 2001-12-13 11:41:48 bj Exp $
+
 
 use strict;
 use MP3::Offset;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: dudl_rename.pl,v 1.5 2001-12-13 11:41:48 bj Exp $
+
 use strict;
 use Getopt::Long;
 use MP3::Tag;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: Base.pm,v 1.11 2001-12-13 11:41:49 bj Exp $
+
 # job:		base	encode	rename	archive	music
 #
 # album

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: dudl_status.pl,v 1.3 2001-12-13 11:41:48 bj Exp $
+
 # list directories of a unit
 
 # show number of files

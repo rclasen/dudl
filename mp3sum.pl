@@ -1,5 +1,7 @@
 #! /usr/bin/perl -w
 
+# $Id: mp3sum.pl,v 1.2 2001-12-13 11:41:48 bj Exp $
+
 # tiny script to generate md5sums for mp3data (skipping their header)
 
 use strict;

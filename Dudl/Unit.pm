@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: Unit.pm,v 1.5 2001-12-13 11:41:48 bj Exp $
+
 package Dudl::Unit;
 
 use strict;

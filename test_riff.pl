@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: test_riff.pl,v 1.2 2001-12-13 11:41:48 bj Exp $
+
 use strict;
 
 open F, "/vol/cd/MP3/jk0001/James Brown - Sex Machine The Very Best of James Brown/01 - Please Please Please!.mp3" or die "open failed: $!";

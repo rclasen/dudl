@@ -1,4 +1,6 @@
 
+# $Id: Makefile,v 1.7 2001-12-13 11:41:48 bj Exp $
+
 prefix		:= /usr/local
 perllib		:= $(prefix)/lib/site_perl
 bindir		:= $(prefix)/bin

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: dudl_dupes.pl,v 1.5 2001-12-13 11:41:48 bj Exp $
+
 # find duplicate files using their stored md5sums
 
 # TODO: move database access to module

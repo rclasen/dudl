@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: Music.pm,v 1.5 2001-12-13 11:41:49 bj Exp $
+
 package Dudl::Job::Music;
 
 use strict;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: import_from_musicdb.pl,v 1.3 2001-12-13 11:41:48 bj Exp $
+
 use strict;
 use Dudl;
 

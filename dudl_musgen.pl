@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: dudl_musgen.pl,v 1.8 2001-12-13 11:41:48 bj Exp $
+
 # generate mus template for editing an adding
 
 # edit

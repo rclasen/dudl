@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: Offset.pm,v 1.3 2001-12-13 11:41:49 bj Exp $
+
 package MP3::Offset;
 
 use strict;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: Digest.pm,v 1.2 2001-12-13 11:41:49 bj Exp $
+
 package MP3::Digest;
 
 use strict;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: dudl_musimport.pl,v 1.4 2001-12-13 11:41:48 bj Exp $
+
 
 # add music entries from template file
 # TODO: modify

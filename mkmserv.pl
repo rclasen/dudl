@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: mkmserv.pl,v 1.6 2001-12-13 11:41:48 bj Exp $
+
 # generate directory trees for mserv
 # - symlinks
 # - .trk info files

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: Suggester.pm,v 1.11 2001-12-13 11:41:48 bj Exp $
+
 package Dudl::Suggester;
 
 use strict;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# $Id: dudl_rengen.pl,v 1.7 2001-12-13 11:41:48 bj Exp $
+
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
 

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# $Id: dudl_musbatch.sh,v 1.4 2001-12-13 11:41:48 bj Exp $
+
 set -e 
 
 : ${BINDIR:=/usr/local/bin}
