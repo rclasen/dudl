@@ -30,7 +30,9 @@ CREATE TABLE mus_title (
 	cmnt		TEXT,			-- Comment
 	lyrics		TEXT,
 
-	lastplay	TIMESTAMP NOT NULL	-- mserv: last start of play
+	-- lastplay is updated automatically on update/insert in
+	-- mserv_hist. There is no need to update this column manually.
+	lastplay	TIMESTAMP NOT NULL	-- mserv: last time of play
 			DEFAULT '1970-1-1 0:0:0+0'
 );
 
