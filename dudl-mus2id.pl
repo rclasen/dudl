@@ -1,4 +1,4 @@
-# . "/". $fi_name;!/usr/bin/perl -w
+#!/usr/bin/perl -w
 
 # TODO: set ID tags according to data from music database
 
