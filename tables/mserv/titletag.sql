@@ -14,6 +14,10 @@ GRANT all ON mserv_titletag TO GROUP dudl;
 
 CREATE UNIQUE INDEX mserv_titletag__tag_title 
 	ON mserv_titletag(tag_id, title_id);
+CREATE INDEX mserv_titletag__mserv_tag
+	ON mserv_titletag(tag_id);
+CREATE INDEX mserv_titletag__mus_title
+	ON mserv_titletag(title_id);
 
 -- refererential integrity
 
