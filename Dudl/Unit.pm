@@ -1,13 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: Unit.pm,v 1.7 2002-07-26 17:49:28 bj Exp $
+# $Id: Unit.pm,v 1.8 2002-07-30 15:57:44 bj Exp $
 
 package Dudl::Unit;
 
 use strict;
 use Carp qw{ :DEFAULT cluck };
 use DBI;
-use Dudl::File;
 
 
 BEGIN {
@@ -48,11 +47,13 @@ sub new {
 	my $class	= ref($proto) || $proto;
 	my $self	= {
 		BASE		=> shift,
-		id		=> undef,
-		collection	=> "",
-		colnum		=> 0,
-		volname		=> undef,
-		size		=> undef,
+		data		=> {
+			id		=> undef,
+			collection	=> "",
+			colnum		=> 0,
+			volname		=> undef,
+			size		=> undef,
+			},
 		};
 
 	bless $self, $class;
@@ -65,15 +66,28 @@ sub db {
 	return $self->{BASE}->db;
 }
 
+sub qval {
+	my $self = shift;
+	my $col = shift;
+
+	return $self->db->qval( "stor_unit", $col, $self->{data}{$col} );
+}
+
+sub qdata {
+	my $self = shift;
+
+	return $self->db->qvals( "stor_unit", $self->{data} );
+}
+
 sub clear {
 	my $self	= shift;
 
-	$self->{id}		= undef; 
-	$self->{collection}	= "";
-	$self->{colnum}		= 0;
-	$self->{volname}	= undef;
-	$self->{size}		= undef;
-};
+	$self->{data}{id}		= undef; 
+	$self->{data}{collection}	= "";
+	$self->{data}{colnum}		= 0;
+	$self->{data}{volname}		= undef;
+	$self->{data}{size}		= undef;
+}
 
 
 sub collection {
@@ -81,9 +95,9 @@ sub collection {
 	my $collection	= shift;
 
 	if( $collection ){
-		$self->{collection} = $collection;
+		$self->{data}{collection} = $collection;
 	}
-	return $self->{collection};
+	return $self->{data}{collection};
 }
 
 sub colnum {
@@ -91,9 +105,9 @@ sub colnum {
 	my $colnum	= shift;
 
 	if( $colnum ){
-		$self->{colnum} = $colnum;
+		$self->{data}{colnum} = $colnum;
 	}
-	return $self->{colnum};
+	return $self->{data}{colnum};
 }
 
 sub volname {
@@ -101,9 +115,9 @@ sub volname {
 	my $volname	= shift;
 
 	if( $volname ){
-		$self->{volname} = $volname;
+		$self->{data}{volname} = $volname;
 	}
-	return $self->{volname};
+	return $self->{data}{volname};
 }
 
 sub size {
@@ -111,15 +125,15 @@ sub size {
 	my $size	= shift;
 
 	if( $size ){
-		$self->{size} = $size;
+		$self->{data}{size} = $size;
 	}
-	return $self->{size};
+	return $self->{data}{size};
 }
 
 sub id {
 	my $self	= shift;
 
-	return $self->{id};
+	return $self->{data}{id};
 }
 
 
@@ -130,27 +144,30 @@ sub path {
 	if( $path ){
 		my @sp = &splitpath( $path ) || return undef;
 
-		$self->{collection} = $sp[1];
-		$self->{colnum} = $sp[2];
+		$self->{data}{collection} = $sp[1];
+		$self->{data}{colnum} = $sp[2];
 
 		return 1;
 
 	} else {
 		return &mkpath( 
 			$self->{BASE}->{CDPATH},
-			$self->{collection}, 
-			$self->{colnum} );
+			$self->{data}{collection}, 
+			$self->{data}{colnum} );
 	}
 }
 
 # create a new file object attached to this unit
 sub newfile {
 	my $self	= shift;
+	my $fname = shift;
 
 	if( ! $self->id ){
 		return undef;
 	}
 
+	require "Dudl::File";
+	# TODO: pass fname
 	return Dudl::File->new( $self->{BASE}, $self->id );
 }
 
@@ -176,7 +193,6 @@ sub acquire {
 	return $found;
 }
 
-
 # get unit data from database by ID
 # returns ID on success
 # otherwise undef
@@ -184,48 +200,24 @@ sub get_id {
 	my $self	= shift;
 	my $id		= shift;
 
-	my $query = qq{
-		SELECT 
-			trim(collection),
+	my $sel = $self->db->select( qq{
+			collection,
 			colnum,
 			volname,
 			size
 		FROM stor_unit
 		WHERE
 			id = $id
-		};
-	my $prep = $self->db->prepare( $query );
-	if( ! $prep ) {
-		cluck $self->db->errstr ."\nquery: $query\n";
-		return undef;
-	}
-	
-	my $ex = $prep->execute;
-	if( ! $ex ){
-		cluck $prep->errstr ."\nquery: $query\n";
-		return undef;
-	}
+		}) or return;
 
-	if( $prep->rows > 1 ){
-		$prep->finish;
-		confess "more than one unit found ".
-			"- this should never happen.\n".
-			"Query: ". $query;
-		return undef;
+	$sel->rows == 1 or return;
 
-	} elsif( $prep->rows == 0 ){
-		$prep->finish;
-		return undef;
-
-	}
-
-	( $self->{collection}, 
-		$self->{colnum}, 
-		$self->{volname},
-		$self->{size},
-		) = $prep->fetchrow_array;
-	$prep->finish;
-	$self->{id} = $id;
+	( $self->{data}{collection}, 
+		$self->{data}{colnum}, 
+		$self->{data}{volname},
+		$self->{data}{size},
+		) = $sel->fetchrow_array;
+	$self->{data}{id} = $id;
 
 	return $id;
 }
@@ -247,49 +239,22 @@ sub get_collection {
 		$self->colnum( $colnum );
 	}
 	
-	my $query = 
-		"SELECT 
+	my $sel = $self->db->select( "
 			id,
 			volname,
 			size
 		FROM stor_unit
-		WHERE ".
-			"trim(collection) = ". 
-				$self->db->quote($self->collection, 
-					DBI::SQL_CHAR).
-				" AND ".
-			"colnum = ". 
-				$self->db->quote($self->colnum, 
-					DBI::SQL_SMALLINT)
-		;
-	my $prep = $self->db->prepare( $query );
-	if( ! $prep ) {
-		cluck $self->db->errstr ."\nquery: $query\n";
-		return undef;
-	}
-	
-	my $ex = $prep->execute;
-	if( ! $ex ){
-		cluck $prep->errstr ."\nquery: $query\n";
-		return undef;
-	}
+		WHERE 
+			collection = ". $self->qval("collection"). " AND 
+			colnum = ". $self->qval("colnum") )
+			or return;
 
-	if( $prep->rows > 1 ){
-		$prep->finish;
-		confess "more than one unit found ".
-			"- this should never happen.\n".
-			"Query: ". $query;
-		return undef;
+	$sel->rows == 1 or return;
 
-	} elsif( $prep->rows == 0 ){
-		$prep->finish;
-		return undef;
-
-	}
-
-	( $self->{id}, $self->{volname}, $self->{size} ) = 
-		$prep->fetchrow_array;
-	$prep->finish;
+	( $self->{data}{id}, 
+		$self->{data}{volname}, 
+		$self->{data}{size},
+		) = $sel->fetchrow_array;
 
 	return $self->id;
 }
@@ -306,40 +271,14 @@ sub insert {
 		return undef;
 	}
 
-	my $collection	= $self->db->quote($self->collection, DBI::SQL_CHAR);
-	my $colnum	= $self->db->quote($self->colnum, DBI::SQL_SMALLINT);
-	my $volname	= $self->db->quote($self->volname, DBI::SQL_CHAR);
-	my $size	= $self->db->quote($self->size, DBI::SQL_INTEGER);
+	my $q = $self->qdata;
+	$q->{id} = $self->db->nextval( 'stor_unit_id_seq');
 
-	my( $id ) = $self->db->selectrow_array( 
-		"SELECT nextval('stor_unit_id_seq')" );
-	if( ! $id ){
-		cluck $self->db->errstr;
-		return undef;
-	}
+	$self->db->insert( "stor_unit", $q )
+		or return;
 
-	my $query = qq{
-		INSERT INTO stor_unit (
-			id,
-			collection, 
-			colnum, 
-			volname,
-			size
-			) 
-		VALUES (
-			$id,
-			$collection,
-			$colnum,
-			$volname )
-		};
-	my $res = $self->db->do( $query );
-	if( $res != 1 ){
-		cluck $self->db->errstr ."\nquery: $query\n";
-		return undef;
-	}
-
-	$self->{id} = $id;
-	return $id;
+	$self->{data}{id} = $q->{id};
+	return $q->{id};
 }
 
 
@@ -354,24 +293,11 @@ sub update {
 		return undef;
 	}
 
-	my $collection	= $self->db->quote($self->collection, DBI::SQL_CHAR);
-	my $colnum	= $self->db->quote($self->colnum, DBI::SQL_SMALLINT);
-	my $volname	= $self->db->quote($self->volname, DBI::SQL_CHAR);
-	my $size	= $self->db->quote($self->size, DBI::SQL_INTEGER);
+	my $q = $self->qdata;
+	delete $q->{id};
 
-	my $query = qq{
-		UPDATE stor_unit SET
-			collection = $collection,
-			colnum = $colnum, 
-			volname = $volname,
-			size = $size
-		WHERE id = $id
-		};
-	my $res = $self->db->do( $query );
-	if( $res != 1 ){
-		cluck $self->db->errstr ."\nquery: $query\n";
-		return undef;
-	}
+	$self->db->update( "stor_unit", $q, "id = $id" )
+		or return;
 
 	return $id;
 }
