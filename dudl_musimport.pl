@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.4 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_musimport.pl,v 1.5 2001-12-18 12:28:13 bj Exp $
 
 
 # add music entries from template file
@@ -13,10 +13,15 @@ use Dudl::Job::Music;
 my $dudl = new Dudl;
 my $job = new Dudl::Job::Music;
 
+if( 0 == scalar @ARGV ){
+	die "need at least one input file";
+}
+
 foreach my $f ( @ARGV ){
 	$job->read( $f ) || die "$!";
 }
 
+$job->rewind;
 while( my( $alb, $fil, $tit ) = $job->next ){
 	if( ! $alb->{id} ){
 		$alb->{id} = &save_album( $dudl, $alb );
