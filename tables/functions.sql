@@ -31,7 +31,7 @@ CREATE FUNCTION unix2time(INTEGER)
 RETURNS TIMESTAMP
 AS '
 BEGIN
-	return timestamp ''epoch'' + ($1 || '' seconds'');
+	return timestamp ''epoch'' + cast($1 || ''seconds'' as interval);
 END;
 ' LANGUAGE 'plpgsql';
 
