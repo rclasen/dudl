@@ -41,7 +41,7 @@ CREATE FUNCTION time2unix(TIMESTAMP)
 RETURNS INTEGER
 AS '
 BEGIN
-	return date_part(''epoch'', $1);
+	return trunc(date_part(''epoch'', $1));
 END;
 ' LANGUAGE 'plpgsql';
 
@@ -51,6 +51,6 @@ CREATE FUNCTION time2unix(TIME)
 RETURNS INTEGER
 AS '
 BEGIN
-	return date_part(''epoch'', $1);
+	return trunc(date_part(''epoch'', $1));
 END;
 ' LANGUAGE 'plpgsql';
