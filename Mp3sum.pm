@@ -46,6 +46,8 @@ sub new {
 		RIFF		=> 0,
 		ID3V1		=> 0,
 		ID3V2		=> 0,
+		OFFSET		=> 0,	# where does data start
+		SIZE		=> 0,	# data length
 		};
 
 	bless $self, $class;
@@ -77,6 +79,18 @@ sub id3v2 {
 sub riff {
 	my $self	= shift;
 	return $self->{RIFF};
+}
+
+
+sub offset {
+	my $self	= shift;
+	return $self->{OFFSET};
+}
+
+
+sub size {
+	my $self	= shift;
+	return $self->{SIZE};
 }
 
 
@@ -260,6 +274,7 @@ sub scan {
 	} while( $skip != 0 );
 
 	@old = ();
+	$self->{OFFSET} = $self->{ID3V2} + $self->{RIFF};
 	$dsum->add( $buf );
 
 
@@ -299,6 +314,8 @@ sub scan {
 		$buf = substr( $buf, 0, - $skip );
 	}
 	$dsum->add( $buf );
+
+	$self->{SIZE} = $total - $self->{OFFSET} - $skip;
 
 	return 1;
 }
