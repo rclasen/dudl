@@ -14,7 +14,9 @@ foreach (@ARGV){
 	print "id3v1:  ". $sum->id3v1 ."\n";
 	print "id3v2:  ". $sum->id3v2 ."\n";
 	print "riff:   ". $sum->riff ."\n";
+	print "fsize:  ". $sum->fsize ."\n";
 	print "offset: ". $sum->offset ."\n";
-	print "size:   ". $sum->size ."\n";
+	print "dsize:  ". $sum->dsize ."\n";
+	print "tail:   ". $sum->tail ."\n";
 }
 

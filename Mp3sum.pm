@@ -41,13 +41,15 @@ sub new {
 
 	my $class	= ref($proto) || $proto;
 	my $self	= {
-		FILEDIGEST	=> Digest::MD5->new,
-		DATADIGEST	=> Digest::MD5->new,
-		RIFF		=> 0,
-		ID3V1		=> 0,
-		ID3V2		=> 0,
+		FILEDIGEST	=> '',
+		DATADIGEST	=> '',
+		RIFF		=> 0,	# riff header length
+		ID3V1		=> 0,	# id3v1 header length 
+		ID3V2		=> 0,	# id3v2 header length 
+		FSIZE		=> 0,	# File size
 		OFFSET		=> 0,	# where does data start
-		SIZE		=> 0,	# data length
+		DSIZE		=> 0,	# data size without headers
+		TAIL		=> 0,	# tail size
 		};
 
 	bless $self, $class;
@@ -56,12 +58,12 @@ sub new {
 
 sub filedigest {
 	my $self	= shift;
-	return $self->{FILEDIGEST}->hexdigest;
+	return $self->{FILEDIGEST};
 }
 
 sub datadigest {
 	my $self	= shift;
-	return $self->{DATADIGEST}->hexdigest;
+	return $self->{DATADIGEST};
 }
 
 sub id3v1 {
@@ -88,91 +90,112 @@ sub offset {
 }
 
 
-sub size {
+sub fsize {
 	my $self	= shift;
-	return $self->{SIZE};
+	return $self->{FSIZE};
 }
 
+
+sub dsize {
+	my $self	= shift;
+	return $self->{DSIZE};
+}
+
+
+sub tail {
+	my $self	= shift;
+	return $self->{TAIL};
+}
 
 
 
 
 sub head_id3v2 {
-	my $len		= shift;
-	my $skip	= shift;
-	my $rbuf	= shift;
+	my $fh = shift;
 
-	$len -= $skip;
-	# start header is 10 byte long ...
-	if( $len < 10 ){
-		# not enough to detect
-		return -1;
-	}
+	my $pos = tell( $fh );
 
-	# is this an ID3v2 Tag?
-	if (substr ($$rbuf,$skip,3) eq "ID3") {
-		# get the tag size
+	my $buf;
+	my $hlen = 10;
+	my $r = read( $fh, $buf, $hlen );
+	return 0 unless $r;
+
+	if( $r == $hlen && substr($buf,0,3) eq "ID3" ){
+		# get the total header size
 		my $size=0;
-		foreach ( unpack("x6C4", substr($$rbuf, $skip)) ) {
+		foreach( unpack("x6C4", $buf) ){
 			$size = ($size << 7) + $_;
 		}
-		return $size + 10;
+
+		# and skip all header data
+		seek( $fh, $size, 1 );
+		return $size + $hlen;
+	} 
+
+	seek( $fh, $pos, 0 );
+	return 0;
+}
+	
+
+sub head_riff {
+	my $fh = shift;
+
+	my $pos = tell( $fh );
+
+	my $buf;
+	my $hlen = 12;
+	my $r = read( $fh, $buf, $hlen );
+	return 0 unless $r;
+
+	if( $r == $hlen ){
+		my( $head, $len ) = unpack( "A4lx4", $buf );
+
+		if( $head eq "RIFF" ){
+
+			while(1) {
+				# read next subheader
+				$r = read( $fh, $buf, 8 );
+				if( ! $r || $r != 8 ){
+					last;
+				}
+				$hlen += 8;
+
+				( $head, $len ) = unpack( "A4l", $buf );
+				if( $head eq "data" ){
+					last;
+				}
+				
+				# skip data of last subheader
+				seek( $fh, $len, 1 ) || last;
+				$hlen += $len;
+			};
+		
+			return $hlen;
+		}
 	}
 
+	seek( $fh, $pos, 0 );
 	return 0;
 }
 
-sub head_riff {
-	my $len		= shift;
-	my $skip	= shift;
-	my $rbuf	= shift;
-
-	$len -= $skip;
-	if( $len < 12 ){
-		return -1;
-	}
-
-	my $headlen = 12;
-	my $buf;
-	
-	$buf = substr( $$rbuf, $skip, 12 );
-	my( $head, $hlen, $subhead ) = unpack( "A4lA4", $buf );
-	if( $head ne "RIFF" ){
-		return 0;
-	}
-
-	$hlen = 0;
-	while( $head ne "data" ){
-		$headlen += $hlen;
-
-		if( $len < ($skip + $headlen) ){
-			return -1;
-		}
-
-		$buf = substr( $$rbuf, $skip + $headlen, 8 );
-		$headlen += 8;
-
-		($head, $hlen ) = unpack( "A4l", $buf );
-	}
-
-	return $headlen;
-}
 
 sub tail_id3v1 {
-	my $len		= shift;
-	my $skip	= shift;
-	my $rbuf	= shift;
+	my $fh = shift;
 
-	if( $len - $skip  < 128 ){
-		return -1;
+	my $pos = tell( $fh );
 
-	} 
+	seek( $fh, -128, 1 ) || return 0;
 	
-	if( substr( $$rbuf, -$skip -128, 3 ) eq "TAG" ){
-		return 128
+	my $hlen = 3;
+	my $buf;
+	my $r = read( $fh, $buf, $hlen );
+	return 0 unless $r;
 
+	if( $r == $hlen && $buf eq "TAG" ){
+		return 128;
 	}
 
+	seek( $fh, $pos, 0 );
 	return 0;
 }
 
@@ -181,141 +204,127 @@ sub scan {
 	my $self	= shift;
 	my $file	= shift;
 
-	$self->{ID3V1}	= 0;
-	$self->{ID3V2}	= 0;
-	$self->{RIFF}	= 0;
-
-	my $fsum = $self->{FILEDIGEST};
-	my $dsum = $self->{DATADIGEST};
-	$fsum->reset;
-	$dsum->reset;
-
-	my $chunk	= 4096;	# try to read that much
-	my $bufhist	= 3;	# how many buffers to keep
-
-	my $buf;		# buffer to read into
-	my @old;		# 2 last buffers
-	my $got;		# read got that many bytes
-
-	my $skip	= 0;	# still need to skip that many
-
-	my $total	= 0;	# totaly processed that much data
-
-
-
-
+	local *F;
 	unless( open( F, $file ) ){
 		cluck "cannot open $file: $!";
 		return 0;
 	}
 
-	# skip junk at beginning ...
+	$self->analyze( \*F );
+	$self->digest( \*F );
+
+	close( F );
+
+}
+
+sub analyze {
+	my $self	= shift;
+	my $fh	= shift;
+
+	$self->{ID3V1}	= 0;
+	$self->{ID3V2}	= 0;
+	$self->{RIFF}	= 0;
+
+	$self->{OFFSET} = 0;
+	$self->{DSIZE} = 0;
+	$self->{FSIZE} = 0;
+	$self->{TAIL} = 0;
+
+	my $skipped;
+
+	# count junk at beginning ...
 	do {
-		$got = read( F, $buf, $chunk );
-		$total += $got;
+		my $skip;
 
-		$fsum->add( $buf );
+		$skipped = 0;
 
-		push @old, $buf;
-		if( $#old >= $bufhist ){
-			shift @old;
+		$skip = &head_id3v2( $fh );
+		if( $skip ){
+			$self->{ID3V2} += $skip;
 		}
+		$skipped += $skip;
 
-		
-		if( $got == 0 ){
-			# EOF
-			$skip = 0;
-
-		} elsif( $skip > $got ){
-			# there is more to skip
-			$skip -= $got;
-
-		} else {
-			if( $skip > 0 ){
-				# enough data for skipping
-				$buf = substr($buf, $skip);
-				$got -= $skip;
-				$skip = 0;
-
-			} elsif( $skip < 0 ){
-				# prepend kept data from previos buffer
-				$buf = substr( $old[$#old], 
-					length($old[$#old]) + $skip ) . $buf;
-				$got = length($buf);
-				$skip = 0;
-			}
-
-			my $r;
-			my $keep	= 0;
-
-			# skip ID3v2
-			if( 0 > ( $r = &head_id3v2( $got, $skip, \$buf ))){
-				$keep++;
-			} else {
-				$skip += $r;
-				$self->{ID3V2}	+= $r;
-			}
-			
-			# skip RIFF
-			if( 0 > ( $r = &head_riff( $got, $skip, \$buf ))){
-				$keep++;
-			} else {
-				$skip += $r;
-				$self->{RIFF}	+= $r;
-			}
-
-
-			# no header found and too few data to find one
-			if( ! $skip && $keep ){
-				$skip = - $got;
-			}
+		$skip = &head_riff( $fh );
+		if( $skip ){
+			$self->{RIFF} += $skip;
 		}
+		$skipped += $skip;
 
-	} while( $skip != 0 );
+		$self->{OFFSET} += $skipped;
 
-	@old = ();
-	$self->{OFFSET} = $self->{ID3V2} + $self->{RIFF};
-	$dsum->add( $buf );
+	} while( $skipped );
 
+	
+	# go to tail
+	seek( $fh, 0, 2 );
+	$self->{FSIZE} = tell( $fh );
 
+	# count junk at tail
+	do {
+		my $skip;
 
+		$skipped = 0;
 
-	# read main data ...
-	while( $got && ($got = read( F, $buf, $chunk )) ){
-		$total += $got;
-
-		$fsum->add( $buf );
-
-		push @old, $buf;
-		if( $#old >= $bufhist  ){
-			$dsum->add( shift @old );
+		$skip = &tail_id3v1( $fh );
+		if( $skip ){
+			$self->{ID3V1} += $skip;
 		}
-	}
-	close F;
+		$skipped += $skip;
+
+		$self->{TAIL} += $skipped;
+
+	} while( $skipped );
+
+	$self->{DSIZE} = $self->{FSIZE} - $self->{OFFSET} - $self->{TAIL};
+}
 
 
+sub digest {
+	my $self	= shift;
+	my $fh	= shift;
 
-	# skip junk at end
-	$buf = join('', @old );
-	$got = length($buf);
-	$skip = 0;
+	my $fsum = new Digest::MD5;
+	my $dsum = new Digest::MD5;
 
+	# go back to start, read all headers and feed them to fsum
+	seek( $fh, 0, 0 ) || croak "seek failed";
+
+	my $buf;
 	my $r;
+	if( $self->{OFFSET} ){
+		$r = read( $fh, $buf, $self->{OFFSET} );
+		if( $self->{OFFSET} != $r ){
+			croak "whoops cannot read as much as I wanted!";
+		}
 
-	# skip ID3v1
-	if( 0 > ( $r = &tail_id3v1( $got, $skip, \$buf ))){
-		cluck "not enough data - increase \$bufhist"
-	} else {
-		$skip += $r;
-		$self->{ID3V1}	+= $r;
+		$fsum->add( $buf );
 	}
 
-	if( $skip ){
-		$buf = substr( $buf, 0, - $skip );
-	}
-	$dsum->add( $buf );
 
-	$self->{SIZE} = $total - $self->{OFFSET} - $skip;
+	# read everything (except of tail to ignore) and feed to fsum and
+	# dsum
+	my $size = 8192;
+	while( $size < $self->{TAIL} ){
+		$size *= 2;
+	}
+
+	while( $r = read( $fh, $buf, $size ) ){
+		$fsum->add( $buf );
+
+		# chop off tail
+		if( $self->{TAIL} ){
+			if( eof( $fh ) || $r < $size  ){
+				$buf = substr( $buf, 0, $r - $self->{TAIL} );
+			}
+
+			$dsum->add( $buf );
+		}
+	} 
+	
+	$self->{FILEDIGEST} = $fsum->hexdigest;
+	$self->{DATADIGEST} = ( $self->{FSIZE} == $self->{DSIZE} ) ?
+		$self->{FILEDIGEST} :
+		$dsum->hexdigest;
 
 	return 1;
 }
