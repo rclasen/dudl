@@ -15,6 +15,7 @@
 # track_name		Track name
 # track_artist		Artist
 # track_genres		genres (temporary till rating works)
+# track_random		include in random play?
 # 
 
 use strict;
@@ -40,6 +41,7 @@ my %title = (
 	artist	=> undef,
 	name	=> undef,
 	genres	=> undef,
+	random	=> undef,
 	);
 my $file_id;
 my $album_id;
@@ -69,7 +71,7 @@ LINE: while(<>){
 		}
 
 
-		if( $title{$gkey} ){
+		if( defined $title{$gkey} ){
 			die "$ARGV($.): duplicate entry for $key";
 		}
 
@@ -108,7 +110,7 @@ LINE: while(<>){
 			die "$ARGV($.): another album? the last one was empty!";
 		}
 
-		if( $album{$gkey} ){
+		if( defined $album{$gkey} ){
 			die "$ARGV($.): duplicate entry for $key";
 		}
 
@@ -250,6 +252,13 @@ sub save_title {
 	my $nr = $db->quote( $hr->{num}, DBI::SQL_INTEGER );
 	my $title = $db->quote( $hr->{name}, DBI::SQL_CHAR );
 	my $genres = $db->quote( $hr->{genres}, DBI::SQL_CHAR );
+	# TODO: move default for random to SQL server
+	my $random;
+	if( defined $hr->{random} ){
+		$random = $hr->{random} ? "true" : "false";
+	}else {
+		$random = "true";
+	}
 
 	# first get a new id
 	my $query = "SELECT nextval('mus_title_id_seq')";
@@ -268,14 +277,16 @@ sub save_title {
 			"nr, ".
 			"title, ".
 			"artist_id, ".
-			"genres ".
+			"genres, ".
+			"random ".
 		") VALUES ( ".
 			"$tid, ".
 			"$albid, ".
 			"$nr, ".
 			"$title, ".
 			"$aid, ".
-			"$genres ".
+			"$genres, ".
+			"$random ".
 		") ";
 	#print STDERR "save_title: ", $query, "\n";
 	my $res = $db->do( $query );
