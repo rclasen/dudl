@@ -243,7 +243,7 @@ sub path {
 		$self->{fname} = $3;
 	}
 
-	return join("/", $self->{dir}, $self->{fname} );
+	return (defined($self->{dir}) ? ($self->{dir}."/") : "" ). $self->{fname};
 }
 
 # fill in wanted information from specified file
@@ -263,6 +263,7 @@ sub acquire {
 
 	$path = $top ."/". $path;
 	if( ! -f $path ){
+		warn "does not exist";
 		return 0;
 	}
 
@@ -274,7 +275,8 @@ sub acquire {
 	if( $self->{WANTGET}->{info} ){
 		my $info = get_mp3info( $path );
 		if( ! $info ){
-			return 0;
+			warn "no info";
+			#return 0;
 		}
 
 		$self->{duration}	= (int($$info{"MM"} / 60) .":". 
@@ -314,6 +316,7 @@ sub acquire {
 	if( $self->{WANTGET}->{sum} ){
 		my $sum = Mp3sum->new;
 		if( ! $sum->scan( $path ) ){
+			warn "no sum";
 			return 0;
 		}
 
@@ -490,4 +493,5 @@ sub update {
 
 }
 
+1;
 
