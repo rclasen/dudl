@@ -5,6 +5,8 @@ package Dudl::StorExport;
 # suggest fields for Musik database from filenames
 # based on stor_export table containing regular expressions
 
+# TODO: migrate rgexps from stor_export table to this file
+
 use strict;
 use Carp qw{ :DEFAULT cluck };
 use DBI;
