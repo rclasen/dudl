@@ -30,7 +30,8 @@ CREATE TABLE mus_title (
 	cmnt		TEXT,			-- Comment
 	lyrics		TEXT,
 
-	lastplay	DATE			-- mserv: last start of play
+	lastplay	TIMESTAMP NOT NULL	-- mserv: last start of play
+			DEFAULT '1970-1-1 0:0:0+0'
 );
 
 GRANT SELECT ON mus_title TO PUBLIC;
