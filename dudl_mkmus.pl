@@ -25,7 +25,7 @@
 
 use strict;
 use Dudl;
-use Dudl::StorExport;
+use Dudl::Suggester;
 
 my $dudl = new Dudl;
 
@@ -41,7 +41,7 @@ my $genre = shift || "";
 # TODO: use default genre
 
 
-my $opt_max = 1;
+my $opt_max = 10;
 my $opt_id = 1;
 
 my %lastsug = (
@@ -53,7 +53,7 @@ my %lastsug = (
 
 
 my $db = $dudl->db;
-my $exp = new Dudl::StorExport( $dudl );
+my $exp = new Dudl::Suggester( $dudl );
 my $tpf = &tpl_open() || die "cannot open tempfile: $!";
 
 # TODO: move database access to module
@@ -106,31 +106,38 @@ while( defined $sth->fetch ){
 
 	# TODO: current settings from mus_title
 
-	my $sugs = 0;
+
+	$exp->clear();
+
+	# suggest at least an empty one
+	$exp->add( source => "empty" );
 
 	# suggest idtag
 	if( $opt_id ){
-		$sugs += &tpl_sug( $tpf, \%lastsug, "IDtag", 
-			$id_artist, $id_tracknum || $nr, $id_title, $genre );
+		$exp->add(
+			artist		=> $id_artist,
+			titlenum	=> $id_tracknum || $nr,
+			title		=> $id_title,
+			album		=> $id_album,
+			source		=> "ID3",
+			);
 	}
 
-	# suggest each regexp
-	$exp->rewind();
+	# suggest with stored regexps
+	$exp->add_stor( $path );
+
+	$exp->order;
 	my $sug;
-	while( ( ! $opt_max || $sugs < $opt_max ) && 
-	    defined ($sug = $exp->suggest( $dir, $fname )) ){
-		$sugs += &tpl_sug( $tpf, \%lastsug, 
-			"export id=". $exp->id , 
+	my $sugnum = 0;
+	while( ( ! $opt_max || $sugnum < $opt_max ) && 
+	    defined ($sug = $exp->get) ){
+		&tpl_sug( $tpf, \%lastsug, 
+			$sug->{source} , 
 			$sug->{artist}, 
 			$sug->{titlenum} || $nr, 
 			$sug->{title},
 			$genre);
-	}
-	if( ! $sugs ){
-		$lastsug{genre} = $genre;
-		$lastsug{title} = $fname;
-		$lastsug{tnum} = $nr;
-		&tpl_print( $tpf, "", \%lastsug );
+		$sugnum ++;
 	}
 }	
 $sth->finish;
@@ -201,41 +208,15 @@ sub tpl_sug {
 	my $fh = shift;
 	my $l = shift;
 	my $cmt = shift;
-	my $artist = lc shift || "";
-	my $tnum = shift || 0;
-	my $title = lc shift || "";
+	my $artist = shift;
+	my $tnum = shift;
+	my $title = shift;
 	my $genre = shift || "";
 
-	return unless $title;
-	$title =~ s/\bi\b/I/g;
-
-	# suppress duplicate suggestions
-	if( ($l->{artist} ne $artist) ||
-		($l->{tnum} != $tnum) ||
-		($l->{title} ne $title) ||
-		($l->{genre} ne $genre) ){
-
-		$l->{artist} = $artist;
-		$l->{tnum} = $tnum;
-		$l->{title} = $title;
-		$l->{genre} = $genre;
-
-		&tpl_print( $fh, $cmt, $l );
-
-		return 1;
-	}
-	return 0;
-}
-
-sub tpl_print {
-	my $fh = shift;
-	my $cmt = shift;
-	my $l = shift;
-
 	print $fh "# sug: $cmt\n";
-	print $fh "title_num	$l->{tnum}\n";
-	print $fh "title_name	$l->{title}\n";
-	print $fh "title_artist	$l->{artist}\n";
-	print $fh "title_genres	$l->{genre}\n";
+	print $fh "title_num	$tnum\n";
+	print $fh "title_name	$title\n";
+	print $fh "title_artist	$artist\n";
+	print $fh "title_genres	$genre\n";
 	print $fh "\n";
 }
