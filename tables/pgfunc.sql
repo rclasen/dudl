@@ -10,7 +10,11 @@ CREATE VIEW pgx_trigger AS
 SELECT
 	r1.relname		AS table_name,
 	t.tgtype		AS trigger_type,
-	t.tgname		AS trigger_name,
+	t.tgisconstraint	AS is_constr,
+	CASE 
+		WHEN t.tgisconstraint THEN t.tgconstrname
+		ELSE t.tgname	
+		END		AS func_or_constr,
 	t.tgenabled		AS enabled,
 	f.proname		AS trigger_function
 FROM   
@@ -19,48 +23,24 @@ FROM
 	pg_proc		f
 WHERE  
 	r1.oid = t.tgrelid AND
-	t.tgfoid = f.oid AND
-	NOT t.tgisconstraint;
+	t.tgfoid = f.oid;
 
 
 ------------------------------------------------------------
 --
--- pgx_constraint_triggers
+-- pgx_refint
 --
--- lists all stored constraint triggers
+-- lists declared referential integrity
 --
 ------------------------------------------------------------
 
--- hrm, when loading a pg_dump, tgconstrrelid isn't set
--- therefore this join doesn't work
---
--- CREATE VIEW pgx_constraint_trigger AS
--- SELECT
--- 	r1.relname		AS table_name,
--- 	t.tgtype		AS trigger_type,
--- 	t.tgname		AS trigger_name,
--- 	t.tgenabled		AS enabled,
--- 	f.proname		AS trigger_function,
--- 	t.tgconstrname		AS constrain_name,
--- 	r2.relname		AS foreign_table
--- FROM   
--- 	pg_class	r1, 
--- 	pg_class	r2, 
--- 	pg_trigger	t, 
--- 	pg_proc		f
--- WHERE  
--- 	r1.oid = t.tgrelid AND
--- 	t.tgfoid = f.oid AND
--- 	r2.oid = t.tgconstrrelid;
-
-CREATE VIEW pgx_constraint_trigger AS
+CREATE VIEW pgx_refint AS
 SELECT
 	r1.relname		AS table_name,
 	t.tgtype		AS trigger_type,
-	t.tgname		AS trigger_name,
 	t.tgenabled		AS enabled,
 	f.proname		AS trigger_function,
-	t.tgconstrname		AS constrain_name
+	t.tgargs		AS trigger_args
 FROM   
 	pg_class	r1, 
 	pg_trigger	t, 
@@ -86,3 +66,7 @@ FROM
 	pg_proc
 WHERE
 	oid > 9000; -- bis zu welcher OID macht sich postgresql breit?
+
+
+
+
