@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_mushave.pl,v 1.2 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_mushave.pl,v 1.3 2001-12-18 12:27:39 bj Exp $
 
 # search database
 
@@ -46,6 +46,10 @@ if( ! GetOptions(
 }
 
 my $want = 0;
+if( ! @ARGV ){
+	push @ARGV, "most";
+}
+
 foreach my $a ( @ARGV ){
 	if( $a =~ /^artist$/i ){
 		$want_artist++;
@@ -60,6 +64,19 @@ foreach my $a ( @ARGV ){
 		$want++;
 
 	} elsif( $a =~ /^genre$/i ){
+		$want_genre++;
+		$want++;
+
+	} elsif( $a =~ /^most$/i ){
+		$want_artist++;
+		$want_album++;
+		$want_genre++;
+		$want++;
+
+	} elsif( $a =~ /^all$/i ){
+		$want_artist++;
+		$want_album++;
+		$want_title++;
 		$want_genre++;
 		$want++;
 
