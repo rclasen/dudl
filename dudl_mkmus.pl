@@ -31,6 +31,8 @@ my $dudl = new Dudl;
 
 my $unitid = shift;
 my $dir = shift;
+my $genre = shift || "";
+
 # TODO: check arguments
 # TODO: let user specify a mus_album
 # TODO: merge with an existing mus_album
@@ -60,7 +62,6 @@ my $query =
 		"id_artist, ".
 		"id_album, ".
 		"id_tracknum, ".
-		"id_genre, ".
 		"titleid ".
 	"FROM stor_file ".
 	"WHERE ".
@@ -79,10 +80,10 @@ if( ! $res ){
 print STDERR "found $res files\n";
 
 my( $id, $fname, 
-	$id_title, $id_artist, $id_album, $id_tracknum, $id_genre,
+	$id_title, $id_artist, $id_album, $id_tracknum, 
 	$titleid );
 $sth->bind_columns( \( $id, $fname, 
-	$id_title, $id_artist, $id_album, $id_tracknum, $id_genre,
+	$id_title, $id_artist, $id_album, $id_tracknum,
 	$titleid ) );
 
 while( defined $sth->fetch ){
@@ -99,7 +100,7 @@ while( defined $sth->fetch ){
 
 	# suggest idtag
 	&tpl_sug( $tpf, \%lastsug, "IDtag", 
-		$id_artist, $id_tracknum, $id_title, $id_genre );
+		$id_artist, $id_tracknum, $id_title, $genre );
 
 	# suggest each regexp
 	$exp->rewind();
@@ -109,7 +110,7 @@ while( defined $sth->fetch ){
 			$sug->{artist}, 
 			$sug->{titlenum}, 
 			$sug->{title},
-			"");
+			$genre);
 	}
 }	
 $sth->finish;
@@ -183,7 +184,7 @@ sub tpl_sug {
 	my $artist = lc shift || "";
 	my $tnum = shift || 0;
 	my $title = lc shift || "";
-	my $genre = lc shift || "";
+	my $genre = shift || "";
 
 	return unless $title;
 	$title =~ s/\bi\b/I/g;
