@@ -28,6 +28,7 @@ CREATE TABLE mus_title (
 	lyrics		TEXT,
 
 	random		BOOLEAN			-- include in random play
+			NOT NULL
 			DEFAULT 'true',
 
 	genres		VARCHAR(255),		-- temporary, for mserv

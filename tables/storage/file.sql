@@ -72,20 +72,19 @@ CREATE TABLE stor_file (
 
 
 	------------------------------
+	-- status
+
+	broken		BOOLEAN		-- is this file damaged?
+			NOT NULL 
+			DEFAULT 'false',
+	cmnt		TEXT,		-- Comment
+
+	------------------------------
 	-- linkage to music part of DB
 
-	export		INTEGER
-			REFERENCES stor_export(id)
-			ON DELETE SET NULL,
-			-- what information to use to generate usable 
-			-- track names
-			--  NULL	to be determined
-			--  0		don't (duplicate)
-			--  1		don't (manual)
-			--  2		ID3 Tag
-			--  3..		with matching regexp from stor_regexp
+	-- export	INTEGER,	-- TODO: delete column
 	titleid		INTEGER
-			REFERENCES music_title(id)
+			REFERENCES mus_title(id)
 			ON DELETE SET NULL,
 
 	UNIQUE( unitid, dir, fname ),
