@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl_cdscan.pl,v 1.6 2001-12-13 14:45:13 bj Exp $
+# $Id: dudl_cdscan.pl,v 1.7 2001-12-18 18:11:23 bj Exp $
 
 
 use strict;
@@ -20,16 +20,19 @@ my $disc;
 my @files;
 
 sub usage {
-	print "usage: ". $0 ." [opts] <cdpath> \"<collection><discid>\" ...\n";
-	print " scan one CD mounted at <topdir> for mp3s\n";
- 	print " get IDtag and add infos to database\n";
-	print " options:\n";
-	print "  --eject   open tray when done with CD\n";
-	print "  --unit    do not scan files\n";
-	print "  --mp3     scan mp3 information\n";
-	print "  --sum     calculate md5 sum\n";
-	print "  --add     add missing files although CD is already in DB\n";
-	print " if none is specified, --mp3 --sum is assumed.\n";
+	print "usage: ", $0,
+		" [opts] <cdpath> [\"<collection><discid>\"] ...\n",
+		" scan one CD mounted at <topdir> for mp3s\n",
+ 		" get IDtag and add infos to database\n",
+		"options:\n",
+		"  --eject   open tray when done with CD\n",
+		"  --unit    do not scan files\n",
+		"  --mp3     scan mp3 information\n",
+		"  --sum     calculate md5 sum\n",
+		"  --add     add missing files although CD is already in DB\n",
+		" if none is specified, --mp3 --sum is assumed.\n",
+		"\n",
+		"uses cdpath' basename when no discname is specified\n";
 }
 
 
@@ -68,14 +71,19 @@ if( $opt_sum ){
 }
 
 
-$cd = shift;
+$cd = shift || '';
+$cd =~ s:/+$::;
 if( ! $cd ){
 	print STDERR "missing device/cdpath\n";
 	&usage();
 	exit 1;
 }
 
-if( $#ARGV < 0 ){
+if( ! @ARGV && ($cd =~ /([^\/]+)$/) ){
+	push @ARGV, $1;
+}
+
+if( ! @ARGV ){
 	print STDERR "missing collection name(s)\n";
 	&usage();
 	exit 1;
@@ -105,6 +113,7 @@ print "going to scan ". ($#ARGV +1) ." CDs in \"". $dir ."\"\n";
 &cd_umount( $dev, 0 );
 
 foreach $disc ( @ARGV ){
+	print "scaning unit: ", $disc,"\n";
 	&cd_mount( $dev, $disc );
 
 	&scan( $dev, $dir, $disc, ! $opt_unit );
