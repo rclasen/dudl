@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.9 2001-12-13 16:38:21 bj Exp $
+# $Id: dudl_musgen.pl,v 1.10 2001-12-18 12:27:10 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -66,7 +66,7 @@ if( !GetOptions(
 }
 
 $unitid = shift;
-if( ! $unitid || $unitid =~ /^\d+$/ ){
+if( ! $unitid || ! $unitid =~ /^\d+$/ ){
 	print STDERR "need numeric unit ID\n";
 	$needhelp ++;
 }
