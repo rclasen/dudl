@@ -1,12 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rename.pl,v 1.8 2001-12-20 14:31:25 bj Exp $
+# $Id: dudl_rename.pl,v 1.9 2001-12-20 16:38:28 bj Exp $
 
 use strict;
 use Getopt::Long;
 use MP3::Tag;
 use MP3::Offset;
 use Dudl;
+use Dudl::Naming;
 use Dudl::Job::Rename;
 use Dudl::Job::Archive;
 
@@ -36,6 +37,7 @@ Notes:
 }
 
 my $dudl = new Dudl;
+my $nam = new Dudl::Naming;
 
 my $opt_copy = 1;
 my $opt_v1 = $dudl->write_v1;
@@ -78,8 +80,7 @@ if( $needhelp ){
 
 
 
-# TODO: album_types => [qw( album sampler single maxi soundtrack )] );
-my $job = new Dudl::Job::Rename( album_types => [qw( album sampler )] );
+my $job = new Dudl::Job::Rename( naming	 => $nam );
 foreach my $f ( @ARGV ){
 	$job->read( $f ) || die "error: $!";
 }
@@ -121,7 +122,7 @@ sub write_info {
 	my $out = shift;
 
 	if( $out->album ){
-		my $dir = &gen_dirname( $out->album );
+		my $dir = $nam->dir( $out->album );
 		print STDERR "generate archive jobfile in $dir ...\n";
 
 		&make_dir( $dir ) || die "cannot mkdir: $!";
@@ -140,14 +141,14 @@ sub gen_info {
 
 	$in->rewind;
 
-	my $out = new Dudl::Job::Archive;
+	my $out = new Dudl::Job::Archive( naming => $nam );
 	while( my($alb,$fil,$tit) = $in->next ){
 		if( ! exists $alb->{gen_info} ){
 			$alb->{gen_info} = 1;
 
 			&write_info( $out ) || return;
 
-			$out = new Dudl::Job::Archive;
+			$out = new Dudl::Job::Archive( naming => $nam );
 			$out->add_album( %$alb );
 		}
 
@@ -156,7 +157,7 @@ sub gen_info {
 
 			$out->add_file( %$fil );
 
-			my $fname = &gen_fname( $alb, $tit );
+			my $fname = $nam->fname( $alb, $tit );
 			$out->file->{mp3} = $fname
 		}
 
@@ -212,10 +213,10 @@ sub copy_file {
 
 	printf STDERR " %2d ". $ifile, $title->{num};
 
-	my $dir = &gen_dirname( $album );
+	my $dir = $nam->dir( $album );
 	&make_dir( $dir ) || die "mkdir failed: $!";
 
-	my $fname = &gen_fname( $album, $title );
+	my $fname = $nam->fname( $album, $title );
 	my $mp = new MP3::Offset( $ifile );
 	
 	# file anlegen
@@ -307,73 +308,4 @@ sub write_v2 {
 	return 1;
 }
 
-
-
-sub gen_dirname {
-	my $album = shift;
-
-	my $name;
-	if( $album->{type} eq "sampler" ){
-		$name = $album->{name};
-		die "album_artst for sampler is not VARIOUS" unless $album->{artist} =~ /^VARIOUS$/i;
-	} elsif( $album->{type} eq "album" ){
-		$name = sprintf( "%s.--.%s", 
-			$album->{artist}, 
-			$album->{name});
-	} else {
-		die "unknown album type";
-	}
-
-
-	return &fn_normalize( $name );
-}
-
-sub gen_fname {
-	my $album = shift;
-	my $title = shift;
-
-	my $name;
-	if( $album->{type} eq "sampler" ) {
-		# - a sampler, name it 
-		# <album>/<nr>_<group>.--.<title> or 
-		# <album>/<nr>_<title>
-		if( $title->{artist}){
-			$name = sprintf( "%02d_%s.--.%s.mp3", 
-				$title->{num}, 
-				$title->{artist}, 
-				$title->{name} );
-		} else {
-			$name = sprintf( "%02d_%s.mp3", 
-				$title->{num}, 
-				$title->{name} );
-		}
-
-	} elsif( $album->{type} eq "album" ){
-		# - no sampler, name it 
-		# <group>.--.<album>/<group>.--.<nr>_<title>
-		$name = sprintf( "%s.--.%02d_%s.mp3", 
-				$title->{artist}, 
-				$title->{num}, 
-				$title->{name} );
-
-	} else {
-		die "unknown album type";
-	}
-
-	return &fn_normalize( $name );
-}
-
-
-sub fn_normalize {
-	my $foo = shift;
-
-        $foo =~ s/[^a-zäöüßA-ZÖÄÜ0-9_\$()=+-]+/./g;
-	$foo =~ s/^\.*(.*)\.*$/$1/;
-
-	if( length( $foo ) > 64 ){
-		print "WARINING: \"$foo\" exceeds 64 chars\n";
-	}
-
-	return $foo;
-}
 

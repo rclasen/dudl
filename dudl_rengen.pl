@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rengen.pl,v 1.12 2001-12-20 14:11:48 bj Exp $
+# $Id: dudl_rengen.pl,v 1.13 2001-12-20 16:38:28 bj Exp $
 
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
@@ -84,7 +84,7 @@ if( $needhelp ){
 my @files = $dudl->arg_files( \@ARGV );
 
 my %album;
-my $job = new Dudl::Job::Rename( album_types => [qw( album sampler )] );
+my $job = new Dudl::Job::Rename;
 
 
 $job->add_album(

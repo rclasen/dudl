@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Archive.pm,v 1.2 2001-12-13 11:41:49 bj Exp $
+# $Id: Archive.pm,v 1.3 2001-12-20 16:38:30 bj Exp $
 
 package Dudl::Job::Archive;
 
@@ -35,17 +35,7 @@ use vars	@EXPORT_VAR;
 
 # initialize package globals, first exported ones
 
-sub new {
-	my $proto	= shift;
-	if( !defined $proto ){
-		carp "must be called as method";
-	}
-	my $class	= ref($proto) || $proto;
-	return $class->SUPER::new( @_ );
-}
-
-
-sub file_check {
+sub file_valid {
 	my $self = shift;
 	
 	my $cur = $self->{file};
@@ -56,7 +46,7 @@ sub file_check {
 		
 	}
 
-	$self->SUPER::file_check || $err++;
+	$self->SUPER::file_valid || $err++;
 
 	return !$err;
 }

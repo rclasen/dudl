@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Rename.pm,v 1.4 2001-12-20 14:12:52 bj Exp $
+# $Id: Rename.pm,v 1.5 2001-12-20 16:38:30 bj Exp $
 
 package Dudl::Job::Rename;
 
@@ -35,17 +35,7 @@ use vars	@EXPORT_VAR;
 
 # initialize package globals, first exported ones
 
-sub new {
-	my $proto	= shift;
-	if( !defined $proto ){
-		carp "must be called as method";
-	}
-	my $class	= ref($proto) || $proto;
-	return $class->SUPER::new( @_ );
-}
-
-
-sub album_check {
+sub album_valid {
 	my $self = shift;
 	
 	my $cur = $self->{album};
@@ -56,12 +46,13 @@ sub album_check {
 		
 	}
 
-	$self->SUPER::album_check || $err++;
+	$self->{naming}->album_valid( $cur ) || $err++;
+	$self->SUPER::album_valid || $err++;
 
 	return !$err;
 }
 
-sub file_check {
+sub file_valid {
 	my $self = shift;
 	
 	my $cur = $self->{file};
@@ -72,7 +63,7 @@ sub file_check {
 		
 	}
 
-	$self->SUPER::file_check || $err++;
+	$self->SUPER::file_valid || $err++;
 
 	return !$err;
 }
@@ -91,6 +82,18 @@ sub file_key {
 	}
 
 	return $self->SUPER::file_key( $key, $val );
+}
+
+sub title_valid {
+	my $self = shift;
+	
+	my $cur = $self->{title};
+	my $err = 0;
+
+	$self->{naming}->title_valid( $self->album, $cur ) || $err++;
+	$self->SUPER::title_valid || $err++;
+
+	return !$err;
 }
 
 sub write_file {

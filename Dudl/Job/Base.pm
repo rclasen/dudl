@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.15 2001-12-20 14:31:55 bj Exp $
+# $Id: Base.pm,v 1.16 2001-12-20 16:38:30 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
@@ -39,6 +39,7 @@ package Dudl::Job::Base;
 
 use strict;
 use Carp qw( :DEFAULT cluck);
+use Dudl::Naming;
 
 BEGIN {
 	use Exporter ();
@@ -76,7 +77,7 @@ sub new {
 	my $self	= {
 		fname	=> undef,
 		debug	=> 0,
-		atypes	=> {},	# keys are allowed album types
+		naming	=> undef,	# ref to naming policy object
 		album	=> {},	# currently parsed album
 		file	=> {},	# currently parsed file
 		title	=> {},	# currently parsed title
@@ -90,13 +91,15 @@ sub new {
 	
 	my %arg = @_;
 	
-	if( exists $arg{album_types} && ("ARRAY" eq ref $arg{album_types}) ){
-		$self->{atype} = { map { lc($_) => 1 } @{$arg{album_types}} };
+	if( $arg{naming} ){
+		$self->{naming} = $arg{naming};
+	}
+	if( ! $self->{naming} ){
+		$self->{naming} = new Dudl::Naming;
 	}
 
-	my $fname = $arg{file};
-	if( $fname ){
-		return $self->read( $fname );
+	if( $arg{file} ){
+		return $self->read( $arg{fname} );
 	}
 	return $self;
 }
@@ -377,7 +380,7 @@ sub album_group {
 	}
 
 	my $err = 0;
-	$self->album_check || $err++;
+	$self->album_valid || $err++;
 
 	$self->add_album( $cur );
 	$self->{album} = {};
@@ -394,7 +397,7 @@ sub file_group {
 	}
 
 	my $errs = 0;
-	$self->file_check || $errs ++;
+	$self->file_valid || $errs ++;
 
 	$self->add_file( $cur );
 	$self->{file} = {};
@@ -411,7 +414,7 @@ sub title_group {
 	}
 
 	my $err = 0;
-	$self->title_check || $err ++;
+	$self->title_valid || $err ++;
 
 	$self->add_title( $cur );
 	$self->{title} = {};
@@ -421,7 +424,7 @@ sub title_group {
 
 # overloadable:
 
-sub album_check {
+sub album_valid {
 	my $self = shift;
 
 	my $cur = $self->{album};
@@ -456,10 +459,9 @@ sub album_key {
 
 	} elsif( $key eq "type" ){
 		$val = lc $val;
-		if( ! exists $self->{atype}->{$val} ){
+		if( ! $self->{naming}->album_type_valid( $val ) ){
 			$self->bother( "unknown album type" );
 		}
-
 		$cur->{$key} = $val;
 		return 1;
 	}
@@ -469,7 +471,7 @@ sub album_key {
 }
 
 
-sub file_check {
+sub file_valid {
 	return 1;
 }
 
@@ -498,7 +500,7 @@ sub file_key {
 	return;
 }
 
-sub title_check {
+sub title_valid {
 	my $self = shift;
 
 	my $cur = $self->{title};
@@ -610,7 +612,8 @@ sub write_album {
 		"album_artist	", ($alb->{artist} || "") ,"\n",
 		"album_name	", ($alb->{name} || "") ,"\n",
 		"album_type	", ($alb->{type} || "") ,"\n", 
-		"#album_type	", join( " ", keys %{$self->{atype}} ),"\n";
+		"#album_type	", join( " ", 
+			$self->{naming}->album_types ),"\n";
 }
 
 sub write_file {
