@@ -84,9 +84,9 @@ CREATE TABLE stor_file (
 			--  1		don't (manual)
 			--  2		ID3 Tag
 			--  3..		with matching regexp from stor_regexp
---	titleid		INTEGER
---			REFERENCES music_title(id)
---			ON DELETE SET NULL,
+	titleid		INTEGER
+			REFERENCES music_title(id)
+			ON DELETE SET NULL,
 
 	UNIQUE( unitid, dir, fname ),
 	PRIMARY KEY( id )
