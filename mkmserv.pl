@@ -4,6 +4,8 @@
 # - symlinks
 # - .trk info files
 
+# TODO: move database access to unit
+
 use strict;
 use Getopt::Long;
 use Dudl;
@@ -68,13 +70,25 @@ if( $needhelp ){
 my $dudl = Dudl->new;
 my $db = $dudl->db;
 
-if( ! -d $dir_sym ){
-	mkdir $dir_sym, 0777 || die "mkdir('$dir_sym'): $!";
+my %sym;
+if( $want_sym ){
+	if( ! -d $dir_sym ){
+		mkdir $dir_sym, 0777 || die "mkdir('$dir_sym'): $!";
+	} else {
+		&find( $dir_sym, \%sym );
+	}
 }
 
-if( ! -d $dir_nfo ){
-	mkdir $dir_nfo, 0777 || die "mkdir('$dir_nfo'): $!";
+my %nfo;
+if( $want_nfo ){
+	if( ! -d $dir_nfo ){
+		mkdir $dir_nfo, 0777 || die "mkdir('$dir_nfo'): $!";
+	} else {
+		&find( $dir_nfo, \%nfo );
+	}
 }
+
+print STDERR "making trees ...\n";
 
 my $query = "
 SELECT 
@@ -154,6 +168,7 @@ $sth->bind_columns( \(
 
 my $old_apath = "";
 my $old_basepath = ""; 
+my $old_id = 0;
 
 while( defined $sth->fetch ){
 	my $apath = $al_artist;
@@ -161,10 +176,12 @@ while( defined $sth->fetch ){
 
 	if( $old_apath ne $apath ){
 		if( $want_sym ){
+			delete $sym{$apath};
 			mkdir "$dir_sym/$apath", 0777 ||
 				die "mkdir('$dir_sym/$apath'): $!";
 		}
 		if( $want_nfo ){
+			delete $nfo{$apath};
 			mkdir "$dir_nfo/$apath", 0777 ||
 				die "mkdir('$dir_nfo/$apath'): $!";
 		}
@@ -177,17 +194,17 @@ while( defined $sth->fetch ){
 
 	if( $old_basepath ne $basepath ){
 		if( $want_sym ){
+			delete $sym{$basepath};
 			mkdir "$dir_sym/$basepath", 0777 ||
 				die "mkdir('$dir_sym/$basepath'): $!";
 		}
 		if( $want_sym ){
+			delete $nfo{$basepath};
+			delete $nfo{"$basepath/album"};
 			mkdir "$dir_nfo/$basepath", 0777 ||
 				die "mkdir('$dir_nfo/$basepath'): $!";
-			open( A, ">$dir_nfo/$basepath/album" ) ||
-				die "open('$dir_nfo/$basepath/album'): $!";
-			print A "_author=$al_artist\n";
-			print A "_name=$al_album\n";
-			close A;
+			&album( "$dir_nfo/$basepath/album", 
+				$al_artist, $al_album );
 		}
 		$old_basepath = $basepath;
 
@@ -210,6 +227,7 @@ while( defined $sth->fetch ){
 		$file .= "/$fi_dir" if $fi_dir;
 		$file .= "/$fi_fname";
 
+		delete $sym{$relpath};
 		symlink $file, "$dir_sym/$relpath";
 	}
 
@@ -219,9 +237,109 @@ while( defined $sth->fetch ){
 			$ti_genres .= "random";
 		}
 
-		# TODO: update, not overwrite
-		open( T, ">$dir_nfo/$relpath.trk" )||
-			die "open('$dir_nfo/$relpath.trk'): $!";
+		delete $nfo{"$relpath.trk"};
+		&title( "$dir_nfo/$relpath.trk", $ti_artist, $ti_title,
+			$ti_genres );
+	}
+
+}	
+
+$sth->finish;
+$dudl->done();
+
+print STDERR "cleaning old stuff ...\n";
+
+if( $want_sym ){
+	&cleanup( $dir_sym, \%sym );
+}
+
+if( $want_nfo ){
+	&cleanup( $dir_nfo, \%nfo );
+}
+
+exit 0;
+
+
+sub find {
+	my $dir = shift;
+	my $h = shift;
+
+	local *F;
+
+	%$h = ();
+
+	print STDERR "scanning $dir...\n";
+	open( F, "cd \"$dir\" && find . |" ) || die "find failed: $!";
+	while( <F> ){
+		chomp;
+		s/^\.\///;
+		$h->{$_} = 1;
+	}
+	close F;
+}
+
+sub cleanup {
+	my $dir = shift;
+	my $h = shift;
+
+	foreach my $k ( sort { $a cmp $b } keys %$h ){
+		my $p = $dir ."/". $k;
+		if( -d $p ){
+			rmdir( $p );
+		} else {
+			unlink( $p );
+		}
+	}
+}
+
+
+sub album {
+	my $fn = shift;
+	my $author = shift;
+	my $album = shift;
+
+	local *A;
+	open( A, ">$fn" ) ||
+		die "open('$fn'): $!";
+	print A "_author=$author\n";
+	print A "_name=$album\n";
+	close A;
+}
+
+sub title {
+	my $fn = shift;
+	my $artist = shift;
+	my $title = shift;
+	my $genres = shift;
+
+	if( -e $fn ){
+		local *F;
+		open( F, "<$fn" ) ||
+			die "open('$fn'): $!";
+
+		local *T;
+		open( T, ">$fn.tmp" )||
+			die "open('$fn.tmp'): $!";
+
+		while(<F>){
+			s/^(_author=).*/$1$artist/;
+			s/^(_name=).*/$1$title/;
+			s/^(_genres=).*/$1$genres/;
+			
+			print T $_;
+		}
+
+		close F;
+		close T;
+		unlink( $fn ) || die "unlink '$fn': $!";
+		rename( "$fn.tmp", $fn ) || die "rename '$fn.tmp': $!";
+	
+	} else {
+
+		local *T;
+		open( T, ">$fn" )||
+			die "open('$fn'): $!";
+
 		print T "_author=$ti_artist\n";
 		print T "_name=$ti_title\n";
 		print T "_year=0\n";
@@ -232,11 +350,4 @@ while( defined $sth->fetch ){
 		close T;
 	}
 
-}	
-
-$sth->finish;
-
-# TODO: delete obsolete files
-
-$dudl->done();
-
+}
