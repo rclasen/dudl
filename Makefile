@@ -1,5 +1,5 @@
 
-# $Id: Makefile,v 1.8 2001-12-13 14:44:06 bj Exp $
+# $Id: Makefile,v 1.9 2001-12-20 13:09:48 bj Exp $
 
 prefix		:= /usr/local
 perllib		:= $(prefix)/lib/site_perl
@@ -26,6 +26,9 @@ all:
 
 dist:
 	tar -czf ../Dudl.tgz Makefile $(other) $(libs) $(bins)
+
+todo:
+	find -type f | xargs grep -i todo 
 
 install: install-bin install-lib
 
