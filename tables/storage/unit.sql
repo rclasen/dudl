@@ -5,28 +5,36 @@ BEGIN;
 --
 ------------------------------------------------------------
 
-CREATE TABLE stor_unit (
-	id		SERIAL,
+CREATE SEQUENCE stor_unit_id_seq;
+GRANT SELECT ON stor_unit_id_seq TO PUBLIC;
+GRANT all ON stor_unit_id_seq TO GROUP dudl;
 
-	collection	CHAR(8),	-- sl, kr, mm, ...
+CREATE TABLE stor_unit (
+	id		INTEGER NOT NULL
+			DEFAULT nextval('stor_unit_id_seq'),
+
+	collection	VARCHAR(8),	-- sl, kr, mm, ...
 	colnum		SMALLINT	-- 1, 2, 3, ...
 			NOT NULL
 			DEFAULT 0,
 
-	volname		CHAR(12),	-- Volume name
-	size		INTEGER,	-- disk size - in bytes
+	volname		VARCHAR(12),	-- Volume name
+	size		INTEGER		-- disk size - in bytes
 
-	UNIQUE( collection, colnum ),
-	PRIMARY KEY( id )
 );
 
 GRANT SELECT ON stor_unit TO PUBLIC;
-GRANT SELECT ON stor_unit_id_seq TO PUBLIC;
-
 GRANT all ON stor_unit TO GROUP dudl;
-GRANT all ON stor_unit_id_seq TO GROUP dudl;
 
--- sample data:
+-- indices
+
+CREATE UNIQUE INDEX stor_unit__id
+	ON stor_unit(id);
+CREATE UNIQUE INDEX stor_unit__col_num
+	ON stor_unit( collection, colnum );
+
+-- data:
+
 INSERT INTO stor_unit (collection, colnum )
 	VALUES( 'local', 0 );
 

@@ -6,31 +6,32 @@ BEGIN;
 --
 ------------------------------------------------------------
 
+CREATE SEQUENCE mus_artist_id_seq;
+GRANT SELECT ON mus_artist_id_seq TO PUBLIC;
+GRANT all ON mus_artist_id_seq TO GROUP dudl;
+
 CREATE TABLE mus_artist (
-	id		SERIAL,
+	id		INTEGER NOT NULL
+			DEFAULT nextval( 'mus_artist_id_seq' ),
 
 	vname		VARCHAR(255),
 	nname		VARCHAR(255)
 			NOT NULL
-			CHECK( nname <> '' ),
+			CHECK( nname <> '' )
 
-	UNIQUE( vname, nname ),
-	PRIMARY KEY( id )
 );
 
 GRANT SELECT ON mus_artist TO PUBLIC;
-GRANT SELECT ON mus_artist_id_seq TO PUBLIC;
-
 GRANT all ON mus_artist TO GROUP dudl;
-GRANT all ON mus_artist_id_seq TO GROUP dudl;
 
+-- indices
 
+CREATE UNIQUE INDEX mus_artist__id 
+	ON mus_artist(id);
+CREATE UNIQUE INDEX mus_artist__names
+	ON mus_artist(vname, nname);
 
-------------------------------------------------------------
---
 -- DATA
---
-------------------------------------------------------------
 
 INSERT INTO mus_artist (id, nname) 
 	VALUES( 0, 'UNKNOWN');

@@ -6,16 +6,20 @@ BEGIN;
 --
 ------------------------------------------------------------
 
+CREATE SEQUENCE stor_file_id_seq;
+GRANT SELECT ON stor_file_id_seq TO PUBLIC;
+GRANT all ON stor_file_id_seq TO GROUP dudl;
+
 CREATE TABLE stor_file (
-	id		SERIAL,
+	id		INTEGER NOT NULL
+			DEFAULT nextval('stor_file_id_seq'),
 	modified	TIMESTAMP,
 
 	------------------------------
 	-- information related to each file
 
-	unitid		INTEGER
-			NOT NULL
-			REFERENCES stor_unit(id),
+	unitid		INTEGER		-- -> ref
+			NOT NULL,
 
 	dir		VARCHAR(255)	-- directory on this unit
 			NOT NULL
@@ -84,28 +88,36 @@ CREATE TABLE stor_file (
 	------------------------------
 	-- linkage to music part of DB
 
-	-- export	INTEGER,	-- TODO: delete column
-	titleid		INTEGER
-			REFERENCES mus_title(id)
-			ON DELETE SET NULL,
+	titleid		INTEGER		-- -> ref
 
-	UNIQUE( unitid, dir, fname ),
-	PRIMARY KEY( id )
 );
 
 GRANT SELECT ON stor_file TO PUBLIC;
-GRANT SELECT ON stor_file_id_seq TO PUBLIC;
-
 GRANT all ON stor_file TO GROUP dudl;
-GRANT all ON stor_file_id_seq TO GROUP dudl;
 
+-- indices
 
+CREATE UNIQUE INDEX stor_file__id
+	ON stor_file(id);
+CREATE UNIQUE INDEX stor_file__unit_file
+	ON stor_file( unitid, dir, fname );
 
-------------------------------------------------------------
---
--- stor_file
---
-------------------------------------------------------------
+-- referential integrity
+
+ALTER TABLE stor_file
+	ADD CONSTRAINT ri__stor_file__stor_unit
+		FOREIGN KEY ( unitid )
+		REFERENCES stor_unit(id)
+			DEFERRABLE;
+
+ALTER TABLE stor_file
+	ADD CONSTRAINT ri__stor_file__mus_title
+		FOREIGN KEY ( titleid )
+		REFERENCES mus_title(id)
+			ON DELETE SET NULL
+			DEFERRABLE;
+
+-- other trigger
 
 CREATE TRIGGER trigger_stor_file_modified
 BEFORE INSERT OR UPDATE 
@@ -113,24 +125,6 @@ ON stor_file
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_update_modified();
 
-
-CREATE VIEW stor_xfile AS
-SELECT
-	f.id,
-	f.unitid,
-	u.collection		as col,
-	u.colnum,
-	f.dir,
-	f.fname,
-	f.broken,
-	f.cmnt,
-	f.titleid,
-	f.freq
-FROM
-	stor_unit u,
-	stor_file f
-WHERE
-	u.id = f.unitid;
 
 
 COMMIT;

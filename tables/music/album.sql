@@ -6,32 +6,46 @@ BEGIN;
 --
 ------------------------------------------------------------
 
+CREATE SEQUENCE mus_album_id_seq;
+GRANT SELECT ON mus_album_id_seq TO PUBLIC;
+GRANT all ON mus_album_id_seq TO GROUP dudl;
+
 CREATE TABLE mus_album (
-	id		SERIAL,
+	id		INTEGER NOT NULL
+			DEFAULT nextval('mus_album_id_seq'),
 
 	album		VARCHAR(255)
 			NOT NULL
-			CHECK( album <> '' ),
-	artist_id	int
-			DEFAULT NULL
-			REFERENCES mus_artist(id),
--- 	publish_id	int
--- 			DEFAULT 0
--- 			NOT NULL
--- 			REFERENCES mus_publisher(id),
-	publish_date	DATE,
-
-	UNIQUE( artist_id, album ),
-	PRIMARY KEY( id )
+			CONSTRAINT mus_album__album
+				CHECK( album <> '' ),
+	artist_id	INTEGER
+			DEFAULT NULL,
+-- 	publish_id	INTEGER
+-- 			DEFAULT NULL,
+	publish_date	DATE
 );
 
-
 GRANT SELECT ON mus_album TO PUBLIC;
-GRANT SELECT ON mus_album_id_seq TO PUBLIC;
-
 GRANT all ON mus_album TO GROUP dudl;
-GRANT all ON mus_album_id_seq TO GROUP dudl;
 
+-- indices
+
+CREATE UNIQUE INDEX mus_album__id ON mus_album(id);
+CREATE UNIQUE INDEX mus_album__artist_album ON mus_album(artist_id, album);
+
+-- referential integrity
+
+ALTER TABLE mus_album
+	ADD CONSTRAINT ri__mus_album__mus_artist
+		FOREIGN KEY ( artist_id )
+		REFERENCES mus_artist(id)
+			DEFERRABLE;
+
+--ALTER TABLE mus_album
+--	ADD CONSTRAINT ri__mus_album__mus_publisher
+--		FOREIGN KEY ( artist_id )
+-- 		REFERENCES mus_publisher(id),
+--		DEFERRABLE;
 
 COMMIT;
 

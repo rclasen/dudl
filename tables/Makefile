@@ -1,44 +1,75 @@
 
 db		:= dudl
+pass		:=
 
-files_base	:= \
-	user.sql \
-	functions.sql \
-	pgfunc.sql
+all: x-all
+create:=
 
-files_music	:= \
-	publisher.sql \
-	artist.sql \
-	album.sql \
-	title.sql
+############################################################
 
-files_storage	:= \
-	unit.sql \
-	export.sql \
-	file.sql
+create+=user
 
-parts		:= base music storage
+create+=functions
 
-path_base	:= $(files_base)
-path_music	:= $(patsubst %,music/%,$(files_music))
-path_storage	:= $(patsubst %,storage/%,$(files_storage))
+create+=pgfunc
 
 
 
+############################################################
 
-dummy:
+create+=music/publisher
 
-all:		$(parts)
+create+=music/artist
 
-base:		$(path_base)
-music:		$(path_music)
-storage:	$(path_storage)
+create+=music/album
+music/album.create: music/artist.create
 
-.PHONY: $(parts)
-$(parts):
-	for f in $^ ; do \
-		echo $$f ; \
-		psql $(db) < $$f || exit 1 ; \
-	done
+create+=music/title
+music/title.create: music/album.create music/artist.create
 
-	
+create+=music/xtitle
+music/xtitle.create: storage/file.create storage/unit.create \
+	music/album.create music/artist.create music/title.create
+
+
+
+############################################################
+
+create+=storage/unit
+
+create+=storage/file
+storage/file.create: storage/unit.create music/title.create
+
+create+=storage/xfile
+storage/xfile.create: storage/unit.create storage/file.create
+
+
+
+
+############################################################
+
+create+=mserv/tag
+
+create+=mserv/titletag
+mserv/titletaf.create: mserv/tag_create music/title.create
+
+
+
+
+
+############################################################
+
+all:=$(patsubst %,%.create,$(create))
+
+x-all: $(all)
+
+%.create: %.sql
+#	( echo $(pass); cat $< ) | psql $(db)
+	echo $<
+	echo enter y when done
+	read r; [ "$$r"x = yx ] 
+	@touch $@
+
+clean:
+	rm -f $(all)
+
