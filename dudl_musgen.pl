@@ -16,11 +16,9 @@ use Dudl::Job::Music;
 use Dudl::Job::Archive;
 
 
-# TODO: check arguments
 # TODO: let user specify a mus_album
 # TODO: merge with an existing mus_album
 # TODO: edit an existing mus_album
-# TODO: use default genre
 
 
 my $opt_max = 1;

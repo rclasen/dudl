@@ -165,6 +165,8 @@ sub add_regexp {
 	$re .= "\\.(?:mp3|wav)\$";
 	my @match = $path =~ m:$re:i;
 
+	return unless @match;
+
 	# return hashref on match
 	$self->add(
 		artist	=> &sugitem( "artist", \@match, $fields ),
@@ -271,9 +273,9 @@ sub get_regexps {
 
 		my @f = split /\s*,\s*/, $fields;
 		foreach( 0..$#f ){
-			if( defined $f[$_] && $f[$_] ){
-				$self->{regexps}[$i]{fields}{$f[$_]} = $_;
-			}
+			next unless ( defined $f[$_] && $f[$_] );
+
+			$self->{regexps}[$i]{fields}{$f[$_]} = $_;
 		}
 
 		$i++;
