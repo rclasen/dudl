@@ -12,6 +12,7 @@
 #  mp3		-	-	+	+	-
 #  id		-	-	-	-	+
 #  encoder	?	?	?	?	?
+#  broken	?	?	?	?	?
 #  cmt		?	?	?	?	?
 #
 # title
@@ -439,6 +440,10 @@ sub file_key {
 		$cur->{$key} = $val;
 		return 1;
 	
+	} elsif( $key eq "broken" ){
+		$cur->{$key} = $val;
+		return 1;
+	
 	} elsif( $key eq "cmt" ){
 		$cur->{$key} = $val;
 		return 1;
@@ -558,6 +563,7 @@ sub write_file {
 	my $fil = shift;
 
 	print $fh "file_encoder	". ($fil->{encoder} || "") ."\n";
+	print $fh "file_broken	". ($fil->{broken} || 0) ."\n";
 	print $fh "file_cmt	". ($fil->{cmt} || "") ."\n";
 }
 
