@@ -33,7 +33,10 @@ CREATE TABLE mus_title (
 	-- lastplay is updated automatically on update/insert in
 	-- mserv_hist. There is no need to update this column manually.
 	lastplay	TIMESTAMP NOT NULL	-- mserv: last time of play
-			DEFAULT '1970-1-1 0:0:0+0'
+			DEFAULT '1970-1-1 0:0:0+0';
+	-- to be precise, this belongs to stor_file, but for performance
+	-- reasons, it MUST be here
+	available	BOOLEAN
 );
 
 GRANT SELECT ON mus_title TO PUBLIC;
