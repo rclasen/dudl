@@ -161,9 +161,10 @@ sub scan {
 		print "searching for mp3s in \"$dir\"\n";
 		#@files = ();
 		#&finddepth(\&want_file, $dir );
-		@files = `find $dir -type f -iname \*.mp3`;
+		@files = `find $dir -type f `;
 
 
+		# TODO: scan for filenames not ending in .mp3
 
 		print "analyzing mp3s\n";
 		foreach (@files){
