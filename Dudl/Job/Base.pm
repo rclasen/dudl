@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.14 2001-12-20 14:19:01 bj Exp $
+# $Id: Base.pm,v 1.15 2001-12-20 14:31:55 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
@@ -455,11 +455,12 @@ sub album_key {
 		return 1;
 
 	} elsif( $key eq "type" ){
+		$val = lc $val;
 		if( ! exists $self->{atype}->{$val} ){
 			$self->bother( "unknown album type" );
 		}
 
-		$cur->{$key} = lc $val;
+		$cur->{$key} = $val;
 		return 1;
 	}
 
