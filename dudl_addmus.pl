@@ -140,7 +140,7 @@ sub get_artist {
 			"id ".
 		"FROM mus_artist ".
 		"WHERE ".
-			"nname = $artist ".
+			"LOWER(nname) = LOWER($artist) ".
 		"ORDER BY ".
 			"id DESC";
 	my $sth = $db->prepare( $query );
@@ -206,6 +206,8 @@ sub save_album {
 		die $db->errstr ."\nquery: $query\n";
 	}
 
+	print STDERR "adding album $aid\n";
+
 	# add new artist with this id
 	my $album = $db->quote( $hr->{name}, DBI::SQL_CHAR );
 	$query =
@@ -241,6 +243,10 @@ sub save_title {
 	my $aid = &get_artist( $dudl, $hr->{artist} );
 	my $db = $dudl->db;
 
+	my $nr = $db->quote( $hr->{num}, DBI::SQL_INTEGER );
+	my $title = $db->quote( $hr->{name}, DBI::SQL_CHAR );
+	my $genres = $db->quote( $hr->{genres}, DBI::SQL_CHAR );
+
 	# first get a new id
 	my $query = "SELECT nextval('mus_title_id_seq')";
 	my ( $tid ) = $db->selectrow_array($query );
@@ -248,10 +254,9 @@ sub save_title {
 		die $db->errstr ."\nquery: $query\n";
 	}
 
+	print STDERR "adding title $tid: $albid,$nr\n";
+
 	# add new title with this id
-	my $nr = $db->quote( $hr->{num}, DBI::SQL_INTEGER );
-	my $title = $db->quote( $hr->{name}, DBI::SQL_CHAR );
-	my $genres = $db->quote( $hr->{genres}, DBI::SQL_CHAR );
 	$query =
 		"INSERT INTO mus_title ( ".
 			"id, ".
@@ -268,6 +273,7 @@ sub save_title {
 			"$aid, ".
 			"$genres ".
 		") ";
+	#print STDERR "save_title: ", $query, "\n";
 	my $res = $db->do( $query );
 	if( $res != 1 ){
 		die $db->errstr ."\nquery: $query\n";
