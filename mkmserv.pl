@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: mkmserv.pl,v 1.6 2001-12-13 11:41:48 bj Exp $
+# $Id: mkmserv.pl,v 1.7 2001-12-18 12:29:03 bj Exp $
 
 # generate directory trees for mserv
 # - symlinks
@@ -241,7 +241,7 @@ while( defined $sth->fetch ){
 
 		delete $nfo{"$relpath.trk"};
 		&title( "$dir_nfo/$relpath.trk", $ti_artist, $ti_title,
-			$ti_genres );
+			$ti_genres, $fi_dur );
 	}
 
 }	
@@ -313,6 +313,7 @@ sub title {
 	my $artist = shift;
 	my $title = shift;
 	my $genres = shift;
+	my $dur = shift || 0;
 
 	if( -e $fn ){
 		local *F;
@@ -327,6 +328,7 @@ sub title {
 			s/^(_author=).*/$1$artist/;
 			s/^(_name=).*/$1$title/;
 			s/^(_genres=).*/$1$genres/;
+			s/^(_duration=).*/$1$dur/;
 			
 			print T $_;
 		}
@@ -342,12 +344,12 @@ sub title {
 		open( T, ">$fn" )||
 			die "open('$fn'): $!";
 
-		print T "_author=$ti_artist\n";
-		print T "_name=$ti_title\n";
+		print T "_author=$artist\n";
+		print T "_name=$title\n";
 		print T "_year=0\n";
-		print T "_genres=$ti_genres\n";
+		print T "_genres=$genres\n";
 		print T "_lastplay=0\n";
-		print T "_duration=0\n";
+		print T "_duration=$dur\n";
 		print T "_miscinfo=128kbps\n";
 		close T;
 	}
