@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.6 2002-04-18 21:28:19 bj Exp $
+# $Id: dudl_musimport.pl,v 1.7 2002-04-26 12:14:02 bj Exp $
 
 
 # add music entries from template file
@@ -212,7 +212,7 @@ sub save_genres {
 	my $db = $dudl->db;
 	my %genre;
 	my $num = 0;
-	foreach( split /\s*,\*/, $genres ){
+	foreach( split /\s*,\s*/, $genres ){
 		$genre{lc $_} = 0;
 		$num++;
 	}
