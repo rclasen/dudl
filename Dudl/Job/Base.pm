@@ -1,6 +1,37 @@
 #!/usr/bin/perl -w
 
+# job:		encode	rename	archive	music
+#
+# album
+#  name		+	+	+	+
+#  artist	+	+	+	+
+#  id		-	-	-	*
+#
+# file
+#  wav		+	-	-	-
+#  mp3		-	+	+	-
+#  id		-	-	-	+
+#  encoder	-	?	?	?
+#  cmt		?	?	?	?
+#
+# title
+#  num		+	+	+	+
+#  name		+	+	+	+
+#  artist	+	+	+	+
+#  genres	?	?	?	?
+#  random	?	?	?	?
+#  cmt		?	?	?	?
+#  year		?	?	?	?
+#  id		-	-	-	*
+
+# legend:
+# - must not exist
+# + must exist
+# ? may exist
+# * special meaning
+
 package Dudl::Job::Base;
+# base class for jobfile parser
 
 use strict;
 use Carp qw( :DEFAULT cluck);
@@ -40,6 +71,7 @@ sub new {
 	my $class	= ref($proto) || $proto;
 	my $self	= {
 		fname	=> undef,
+		debug	=> 0,
 		album	=> {},	# currently parsed album
 		file	=> {},	# currently parsed file
 		title	=> {},	# currently parsed title
@@ -80,18 +112,23 @@ sub read {
 		$group = lc $group;
 		$key = lc $key;
 
-		if( $group ne $last_group && $last_group ){
-			if( ! $self->group_add( $last_group ) ){
-				$errors++;
-				next;
+		if( $group ne $last_group ){
+			if( $last_group ){
+				$self->group_add( $last_group ) || 
+					$errors++;
 			}
 			$last_group = $group;
 		}
 
+		#print STDERR "DEBUG: got: group=$group key=$key val=$val\n";
 		$self->group_key( $group, $key, $val ) ||
 			$errors++;
 	}
 	close( FH );
+
+	$self->album_group || $errors++;
+	$self->file_group || $errors++;
+	$self->title_group || $errors++;
 
 	return $errors ? undef : $self;
 }
@@ -133,7 +170,9 @@ sub group_key {
 		return $self->file_key( $key, $val );
 
 	} elsif( $group eq "title" ){
-		return if $self->duplicate( $group, $key );
+		if( $key ne "num" && $self->duplicate( $group, $key )) {
+			return;
+		}
 		return $self->title_key( $key, $val );
 
 	} 
@@ -159,25 +198,26 @@ sub album_group {
 	my $self = shift;
 	
 	my $cur = $self->{album};
+	if( ! keys %$cur ){
+		return 1;
+	}
 
-	if( $#{$cur->{files}} < 0 ){
-		$self->bother( "no files for album");
-		return;
-		
-	} elsif( ! $cur->{name} ){
+	my $err = 0;
+
+	if( ! $cur->{name} ){
 		$self->bother( "missing album name");
-		return;
+		$err++;
 	
 	} elsif( ! $cur->{artist} ){
 		$self->bother( "missing album artist");
-		return;
+		$err++;
 
 	}
 
 	push @{$self->{all}}, { %$cur };
-	$cur = {};
+	$self->{album} = {};
 
-	return 1;
+	return !$err;
 }
 
 sub album_key {
@@ -206,15 +246,13 @@ sub file_group {
 	my $self = shift;
 	
 	my $cur = $self->{file};
-
-	if( $#{$cur->{titles}} < 0 ){
-		$self->bother( "no titles for file");
-		return;
-		
+	if( ! keys %$cur ){
+		return 1;
 	}
 
-	push @{$self->{album}->{files}}, { %$cur };
-	$cur = {};
+	my $albs = $#{$self->{all}};
+	push @{$self->{all}[$albs]->{files}}, { %$cur };
+	$self->{file} = {};
 
 	return 1;
 }
@@ -224,6 +262,14 @@ sub file_key {
 	my $key = shift;
 	my $val = shift;
 
+	my $cur = $self->{file};
+
+	if( $key eq "cmt" ){
+		$cur->{$key} = $val;
+		return 1;
+	
+	}
+
 	$self->bother( "invalid entry for file");
 	return;
 }
@@ -232,25 +278,32 @@ sub title_group {
 	my $self = shift;
 	
 	my $cur = $self->{title};
+	if( ! keys %$cur ){
+		return 1;
+	}
+
+	my $err = 0;
 
 	if( ! $cur->{num} ){
 		$self->bother( "missing title number");
-		return;
+		$err++;
 	
 	} elsif( ! $cur->{name} ){
 		$self->bother( "missing title name");
-		return;
+		$err++;
 
 	} elsif( ! $cur->{artist} ){
 		$self->bother( "missing title artist");
-		return;
+		$err++;
 
 	}
 
-	push @{$self->{file}->{titles}}, { %$cur };
-	$cur = {};
+	my $albs = $#{$self->{all}};
+	my $fils = $#{$self->{all}[$albs]{files}};
+	push @{$self->{all}[$albs]->{files}[$fils]->{titles}}, { %$cur };
+	$self->{title} = {};
 
-	return 1;
+	return ! $err;
 }
 
 sub title_key {
@@ -261,10 +314,11 @@ sub title_key {
 	my $cur = $self->{title};
 
 	if( $key eq "num" ){
-		return if ! $self->title_group;
+		my $err = 0;
+		$self->title_group || $err++;
 
 		$cur->{$key} = $val;
-		return 1;
+		return !$err;
 
 	} elsif( $key eq "name" ){
 		$cur->{$key} = $val;
@@ -283,6 +337,10 @@ sub title_key {
 		return 1;
 
 	} elsif( $key eq "cmt" ){
+		$cur->{$key} = $val;
+		return 1;
+
+	} elsif( $key eq "year" ){
 		$cur->{$key} = $val;
 		return 1;
 
