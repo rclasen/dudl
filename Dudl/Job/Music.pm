@@ -109,6 +109,33 @@ sub title_key {
 	return $self->SUPER::title_key( $key, $val );
 }
 
+sub write_album {
+	my $self = shift;
+	my $fh = shift;
+	my $alb = shift;
 
+	print $fh "album_id\t". $alb->{id} ."\n" if $alb->{id};
+	$self->SUPER::write_album( $fh, $alb );
+}
+
+sub write_file {
+	my $self = shift;
+	my $fh = shift;
+	my $fil = shift;
+
+	print $fh "# ". $fil->{mp3} ."\n" if $fil->{mp3};
+	print $fh "file_id\t". ($fil->{id} || 0) ."\n";
+	$self->SUPER::write_file( $fh, $fil );
+}
+
+sub write_title {
+	my $self = shift;
+	my $fh = shift;
+	my $tit = shift;
+
+	print $fh "# sug: ". $tit->{sug} ."\n" if $tit->{sug};
+	print $fh "title_id\t". $tit->{id} ."\n" if $tit->{id};
+	$self->SUPER::write_title( $fh, $tit );
+}
 
 1;

@@ -1,28 +1,28 @@
 #!/usr/bin/perl -w
 
-# job:		encode	rename	archive	music
+# job:		base	encode	rename	archive	music
 #
 # album
-#  name		+	+	+	+
-#  artist	+	+	+	+
-#  id		-	-	-	*
+#  name		+	+	+	+	+
+#  artist	+	+	+	+	+
+#  id		-	-	-	-	*
 #
 # file
-#  wav		+	-	-	-
-#  mp3		-	+	+	-
-#  id		-	-	-	+
-#  encoder	-	?	?	?
-#  cmt		?	?	?	?
+#  wav		-	+	-	-	-
+#  mp3		-	-	+	+	-
+#  id		-	-	-	-	+
+#  encoder	-	-	?	?	?
+#  cmt		?	?	?	?	?
 #
 # title
-#  num		+	+	+	+
-#  name		+	+	+	+
-#  artist	+	+	+	+
-#  genres	?	?	?	?
-#  random	?	?	?	?
-#  cmt		?	?	?	?
-#  year		?	?	?	?
-#  id		-	-	-	*
+#  num		+	+	+	+	+
+#  name		+	+	+	+	+
+#  artist	+	+	+	+	+
+#  genres	?	?	?	?	?
+#  random	?	?	?	?	?
+#  cmt		?	?	?	?	?
+#  year		?	?	?	?	?
+#  id		-	-	-	-	*
 
 # legend:
 # - must not exist
@@ -76,6 +76,9 @@ sub new {
 		file	=> {},	# currently parsed file
 		title	=> {},	# currently parsed title
 		all	=> [],
+		calb	=> 0,	# next album index to return
+		cfil	=> 0,	# next file index to return
+		ctit	=> 0,	# next title index to return
 		};
 
 	bless $self, $class;
@@ -87,6 +90,99 @@ sub new {
 	return $self;
 }
 
+
+sub rewind {
+	my $self = shift;
+
+	$self->{calb} = 0;
+	$self->{cfil} = 0;
+	$self->{ctit} = 0;
+}
+
+sub get {
+	my $self = shift;
+
+	my( $alb, $fil, $tit );
+
+	my $albs = $#{$self->{all}};
+	do {
+		if( $self->{calb} > $albs ){
+			return;
+		}
+		$alb = $self->{all}[$self->{calb}];
+
+		my $fils = $#{$alb->{files}};
+		if( $self->{cfil} > $fils ){
+			$self->{calb}++;
+			$self->{cfil}=0;
+			next;
+		}
+		$fil = $alb->{files}[$self->{cfil}];
+
+		my $tits = $#{$fil->{titles}};
+		if( $self->{ctit} > $tits ){
+			$self->{cfil}++;
+			$self->{ctit}=0;
+			next;
+		}
+
+		$tit = $fil->{titles}[$self->{ctit}];
+
+		$self->{ctit}++;
+
+	} unless( $tit );
+
+	return( $alb, $fil, $tit );
+}
+
+
+############################################################
+# add to config
+#
+
+sub add_album {
+	my $self = shift;
+	my $ent;
+	if( ref($_[0]) ){
+		$ent = shift;
+	} else {
+		$ent = { @_ };
+	}
+
+	push @{$self->{all}}, { %$ent };
+}
+
+sub add_file {
+	my $self = shift;
+	my $ent;
+	if( ref($_[0]) ){
+		$ent = shift;
+	} else {
+		$ent = { @_ };
+	}
+
+	my $albs = $#{$self->{all}};
+	push @{$self->{all}[$albs]->{files}}, { %$ent };
+}
+
+sub add_title {
+	my $self = shift;
+	my $ent;
+	if( ref($_[0]) ){
+		$ent = shift;
+	} else {
+		$ent = { @_ };
+	}
+
+	my $albs = $#{$self->{all}};
+	my $fils = $#{$self->{all}[$albs]{files}};
+	push @{$self->{all}[$albs]->{files}[$fils]->{titles}}, { %$ent };
+}
+
+
+############################################################
+# reading config
+#
 sub read {
 	my $self	= shift;
 	my $fname	= shift;
@@ -205,11 +301,47 @@ sub album_group {
 	my $err = 0;
 	$self->album_check || $err++;
 
-	push @{$self->{all}}, { %$cur };
+	$self->add_album( $cur );
 	$self->{album} = {};
 
 	return !$err;
 }
+
+sub file_group {
+	my $self = shift;
+	
+	my $cur = $self->{file};
+	if( ! keys %$cur ){
+		return 1;
+	}
+
+	my $errs = 0;
+	$self->file_check || $errs ++;
+
+	$self->add_file( $cur );
+	$self->{file} = {};
+
+	return 1;
+}
+
+sub title_group {
+	my $self = shift;
+	
+	my $cur = $self->{title};
+	if( ! keys %$cur ){
+		return 1;
+	}
+
+	my $err = 0;
+	$self->title_check || $err ++;
+
+	$self->add_title( $cur );
+	$self->{title} = {};
+
+	return ! $err;
+}
+
+# overloadable:
 
 sub album_check {
 	my $self = shift;
@@ -251,24 +383,6 @@ sub album_key {
 }
 
 
-sub file_group {
-	my $self = shift;
-	
-	my $cur = $self->{file};
-	if( ! keys %$cur ){
-		return 1;
-	}
-
-	my $errs = 0;
-	$self->file_check || $errs ++;
-
-	my $albs = $#{$self->{all}};
-	push @{$self->{all}[$albs]->{files}}, { %$cur };
-	$self->{file} = {};
-
-	return 1;
-}
-
 sub file_check {
 	return 1;
 }
@@ -288,25 +402,6 @@ sub file_key {
 
 	$self->bother( "invalid entry for file");
 	return;
-}
-
-sub title_group {
-	my $self = shift;
-	
-	my $cur = $self->{title};
-	if( ! keys %$cur ){
-		return 1;
-	}
-
-	my $err = 0;
-	$self->title_check || $err ++;
-
-	my $albs = $#{$self->{all}};
-	my $fils = $#{$self->{all}[$albs]{files}};
-	push @{$self->{all}[$albs]->{files}[$fils]->{titles}}, { %$cur };
-	$self->{title} = {};
-
-	return ! $err;
 }
 
 sub title_check {
@@ -376,55 +471,64 @@ sub title_key {
 }
 
 
+############################################################
+# writing config
+#
+sub write {
+	my $self = shift;
+	my $fh = shift;
 
-	
-#sub write {
-#	my $self	= shift;
-#	my $fh		= shift;
-#
-#	foreach my $alb ( $self->{alben} ){
-#		&write_album( $fh, $alb );
-#	}
-#}
-#
-#sub write_album {
-#	my $fh = shift;
-#	my $alb = shift;
-#
-#	print $fh, "album_artist	\n";
-#	print $fh, "album_name	\n";
-#
-#	foreach my $fil ( $alb->{files} ){
-#		&write_file( $fh, $fil );
-#	}
-#}
-#
-#sub write_file {
-#	my $fh = shift;
-#	my $fil = shift;
-#
-#	print $fh "# $path\n";
-#	print $fh "file_id		$storid\n";
-#	print $fh "\n";
-#}
-#
-#sub write_title {
-#	my $fh = shift;
-#	my $title = shift;
-#
-#	print $fh "# sug: $source\n";
-#	print $fh "title_num	$tnum\n";
-#	print $fh "title_name	$title\n";
-#	print $fh "title_artist	$artist\n";
-#	print $fh "title_genres	$genre\n";
-#	print $fh "title_random	$random\n";
-#	print $fh "title_cmt	$cmt\n";
-#	print $fh "\n";
-#
-#
-#}
-#
-#
-#
+	foreach my $alb ( @{$self->{all}} ){
+		$self->write_album( $fh, $alb );
+		print { $self->{fh} } "\n";
+
+		foreach my $fil ( @{$alb->{files}} ){
+			$self->write_file( $fh, $fil );
+			print { $self->{fh} } "\n";
+
+			foreach my $tit ( @{$fil->{titles}} ){
+				$self->write_title( $fh, $tit );
+				print { $self->{fh} } "\n";
+			}
+		}
+	}
+}
+
+# overloadable:
+
+sub write_album {
+	my $self = shift;
+	my $fh = shift;
+	my $alb = shift;
+
+	print $fh "album_name	". ($alb->{name} || "") ."\n";
+	print $fh "album_artist	". ($alb->{artist} || "") ."\n";
+}
+
+sub write_file {
+	my $self = shift;
+	my $fh = shift;
+	my $fil = shift;
+
+	print $fh "file_cmt	". ($fil->{cmt} || "") ."\n";
+}
+
+sub write_title {
+	my $self = shift;
+	my $fh = shift;
+	my $tit = shift;
+
+	my $random = exists( $tit->{random} ) ? $tit->{random} : 1;
+
+	print $fh "title_num	". ($tit->{num} || 0) ."\n";
+	print $fh "title_name	". ($tit->{name} || "") ."\n";
+	print $fh "title_artist	". ($tit->{artist} || "") ."\n";
+	print $fh "title_genres	". ($tit->{genre} || "") ."\n";
+	print $fh "title_random	". $random ."\n";
+	print $fh "title_cmt	". ($tit->{cmt} || "") ."\n";
+}
+
+
+
 
 1;
