@@ -9,7 +9,8 @@ GRANT all ON mserv_tag_id_seq TO GROUP dudl;
 CREATE TABLE mserv_tag (
 	id		INTEGER NOT NULL
 			DEFAULT nextval('mserv_tag_id_seq'),
-	name		VARCHAR(32)
+	name		VARCHAR(32),
+	cmnt		TEXT
 );
 
 GRANT SELECT ON mserv_tag TO PUBLIC;
