@@ -2,6 +2,8 @@
 
 # find duplicate files using their stored md5sums
 
+# TODO: move database access to module
+
 use strict;
 use Dudl;
 
