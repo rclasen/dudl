@@ -1,5 +1,5 @@
 
-# $Id: Makefile,v 1.7 2001-12-13 11:41:48 bj Exp $
+# $Id: Makefile,v 1.8 2001-12-13 14:44:06 bj Exp $
 
 prefix		:= /usr/local
 perllib		:= $(prefix)/lib/site_perl
@@ -16,6 +16,7 @@ bins	:= \
 	dudl_rename.pl \
 	dudl_rengen.pl \
 	dudl_status.pl \
+	dudl_storhave.pl \
 	mkmserv.pl \
 	mp3sum.pl
 other	:= \
