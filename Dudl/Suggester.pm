@@ -81,7 +81,7 @@ sub sugcmp {
 
 	return 1 unless defined $a;
 	return -1 unless defined $b;
-	foreach my $k (qw( title artist album )){
+	foreach my $k (qw( title artist )){
 		my $r = $b->{$k} cmp $a->{$k};
 		return $r if $r;
 	}
@@ -105,14 +105,14 @@ sub rate {
 	$dat->{sug_quality} +=3 if $dat->{titlenum};
 	$dat->{sug_quality} +=1 if $dat->{title};
 	$dat->{sug_quality} +=1 if $dat->{artist};
-	$dat->{sug_quality} +=2 if $dat->{album};
+	#$dat->{sug_quality} +=2 if $dat->{album};
 
 	# + הצ`´' enthalten
 	$dat->{sug_quality} +=1 if $dat->{title} =~ /[üצהÜײִ`´']/;
 
 	# - 0-9- enthalten
 	$dat->{sug_quality} -=1 if $dat->{title} =~ /[0-9-]/;
-	$dat->{sug_quality} -=2 if $dat->{album} =~ /--/;
+	#$dat->{sug_quality} -=2 if $dat->{album} =~ /--/;
 }
 
 sub order {
