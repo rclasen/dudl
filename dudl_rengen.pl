@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rengen.pl,v 1.11 2001-12-20 13:12:48 bj Exp $
+# $Id: dudl_rengen.pl,v 1.12 2001-12-20 14:11:48 bj Exp $
 
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
@@ -84,12 +84,13 @@ if( $needhelp ){
 my @files = $dudl->arg_files( \@ARGV );
 
 my %album;
-my $job = new Dudl::Job::Rename;
+my $job = new Dudl::Job::Rename( album_types => [qw( album sampler )] );
 
 
 $job->add_album(
 	name	=> "",
 	artist	=> "VARIOUS",
+	type	=> "sampler",
 	);
 
 foreach my $f ( @files ){
@@ -135,14 +136,15 @@ foreach my $f ( @files ){
 	}
 }
 
-@_ = sort { $b <=> $a } keys %{$album{name}};
+@_ = sort { $album{name}{$b} <=> $album{name}{$a} } keys %{$album{name}};
 if( @_ && 3* $album{name}{$_[0]} >= scalar @_ ){
 	$job->album->{name} = $_[0];
 }
 
-@_ = sort { $b <=> $a } keys %{$album{artist}};
+@_ = sort { $album{artist}{$b} <=> $album{artist}{$a} } keys %{$album{artist}};
 if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
 	$job->album->{artist} = $_[0];
+	$job->album->{type} = 'album';
 }
 
 
