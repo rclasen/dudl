@@ -3,7 +3,8 @@ db		:= dudl
 
 files_base	:= \
 	user.sql \
-	functions.sql
+	functions.sql \
+	pgfunc.sql
 
 files_music	:= \
 	publisher.sql \
@@ -14,8 +15,7 @@ files_music	:= \
 files_storage	:= \
 	unit.sql \
 	export.sql \
-	file.sql \
-	track.sql
+	file.sql
 
 parts		:= base music storage
 
