@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.11 2001-12-20 13:12:20 bj Exp $
+# $Id: dudl_musgen.pl,v 1.12 2001-12-20 14:10:28 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -105,7 +105,7 @@ if( $opt_archive ){
 	my $path = $unit->path ."/";
 	$path .= $dir ."/" if $dir;
 	$path .= $opt_afile;
-	$arch = new Dudl::Job::Archive( $path );
+	$arch = new Dudl::Job::Archive( file => $path );
 }
 
 my $exp = new Dudl::Suggester;
@@ -241,14 +241,15 @@ while( defined $sth->fetch ){
 }	
 $sth->finish;
 
-@_ = sort { $b <=> $a } keys %{$album{name}};
+@_ = sort { $album{name}{$b} <=> $album{name}{$a} } keys %{$album{name}};
 if( @_ && 3* $album{name}{$_[0]} >= scalar @_ ){
 	$job->album->{name} = $_[0];
 }
 
-@_ = sort { $b <=> $a } keys %{$album{artist}};
+@_ = sort { $album{artist}{$b} <=> $album{artist}{$a} } keys %{$album{artist}};
 if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
 	$job->album->{artist} = $_[0];
+	$job->album->{type} = 'album';
 }
 
 
