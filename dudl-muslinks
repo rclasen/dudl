@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-muslinks,v 1.1 2002-08-03 09:45:32 bj Exp $
+# $Id: dudl-muslinks,v 1.2 2003-07-11 19:19:42 bj Exp $
 
 # generate symlink farm with music information
 
@@ -120,9 +120,15 @@ my $old_apath = "";
 my $old_basepath = ""; 
 my $old_id = 0;
 
+sub normalize {
+	my( $fn ) = @_;
+	$fn =~ s/[^a-zäöüßA-ZÖÄÜ0-9_\$()=+-]+/./g;
+	$fn =~ s/^\.*//;
+	return $fn;
+}
+
 while( defined $sth->fetch ){
-	my $apath = $al_artist;
-	$apath =~ s/\W+/./g;
+	my $apath = &normalize( $al_artist );
 
 	if( $old_apath ne $apath ){
 		delete $sym{$apath};
@@ -131,8 +137,7 @@ while( defined $sth->fetch ){
 		$old_apath = $apath;
 	}
 
-	my $basepath = $al_album;
-	$basepath =~ s/\W+/./g;
+	my $basepath = &normalize( $al_album );
 	$basepath = $apath ."/". $basepath;
 
 	if( $old_basepath ne $basepath ){
@@ -150,8 +155,7 @@ while( defined $sth->fetch ){
 
 	$fi_pos = sprintf "%02d", $fi_pos;
 
-	my $relpath = "$fi_pos.$fi_artist.$fi_title.mp3";
-	$relpath =~ s/\W+/./g;
+	my $relpath = &normalize( "$fi_pos.$fi_artist.$fi_title.mp3" );
 	$relpath = $basepath ."/". $relpath;
 
 	my $file = $dudl->conf("cdpath") . "/". $fi_name;
