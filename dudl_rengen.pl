@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rengen.pl,v 1.10 2001-12-18 18:13:21 bj Exp $
+# $Id: dudl_rengen.pl,v 1.11 2001-12-20 13:12:48 bj Exp $
 
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
@@ -83,7 +83,9 @@ if( $needhelp ){
 
 my @files = $dudl->arg_files( \@ARGV );
 
+my %album;
 my $job = new Dudl::Job::Rename;
+
 
 $job->add_album(
 	name	=> "",
@@ -124,11 +126,25 @@ foreach my $f ( @files ){
 			name	=> $dat->{title},
 			artist	=> $dat->{artist},
 			genres	=> $opt_genres,
-			);
+		);
+
+		$album{name}{$dat->{album}}++ if $dat->{album};
+		$album{artist}{$dat->{artist}}++ if $dat->{artist};
 
 		$sugnum++;
 	}
 }
+
+@_ = sort { $b <=> $a } keys %{$album{name}};
+if( @_ && 3* $album{name}{$_[0]} >= scalar @_ ){
+	$job->album->{name} = $_[0];
+}
+
+@_ = sort { $b <=> $a } keys %{$album{artist}};
+if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
+	$job->album->{artist} = $_[0];
+}
+
 
 $job->write( \*STDOUT );
 
