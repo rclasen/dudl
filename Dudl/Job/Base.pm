@@ -237,7 +237,7 @@ sub read {
 
 	local *FH;
 	if( ! open( FH, $fname ) ){
-		print STDERR "cannot open file: $fname: $!";
+		print STDERR "cannot open file: $fname: $!\n";
 		return;
 	}
 	$self->{fname} = $fname;
