@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# find duplicate files using their stored md5sums
+
 use strict;
 use Dudl;
 

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# set stor_file.export to the matching stor_export.id
+
 use strict;
 use Dudl;
 
