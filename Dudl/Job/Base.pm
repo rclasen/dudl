@@ -559,8 +559,8 @@ sub write_album {
 	my $fh = shift;
 	my $alb = shift;
 
-	print $fh "album_name	". ($alb->{name} || "") ."\n";
 	print $fh "album_artist	". ($alb->{artist} || "") ."\n";
+	print $fh "album_name	". ($alb->{name} || "") ."\n";
 }
 
 sub write_file {
@@ -583,7 +583,7 @@ sub write_title {
 	print $fh "title_num	". ($tit->{num} || 0) ."\n";
 	print $fh "title_name	". ($tit->{name} || "") ."\n";
 	print $fh "title_artist	". ($tit->{artist} || "") ."\n";
-	print $fh "title_genres	". ($tit->{genre} || "") ."\n";
+	print $fh "title_genres	". ($tit->{genres} || "") ."\n";
 	print $fh "title_random	". $random ."\n";
 	print $fh "title_cmt	". ($tit->{cmt} || "") ."\n";
 }
