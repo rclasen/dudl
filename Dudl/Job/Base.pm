@@ -76,9 +76,9 @@ sub new {
 		file	=> {},	# currently parsed file
 		title	=> {},	# currently parsed title
 		all	=> [],
-		calb	=> 0,	# next album index to return
-		cfil	=> 0,	# next file index to return
-		ctit	=> 0,	# next title index to return
+		calb	=> 0,	# current album index to return
+		cfil	=> 0,	# current file index to return
+		ctit	=> -1,	# current title index to return
 		};
 
 	bless $self, $class;
@@ -96,16 +96,17 @@ sub rewind {
 
 	$self->{calb} = 0;
 	$self->{cfil} = 0;
-	$self->{ctit} = 0;
+	$self->{ctit} = -1;
 }
 
-sub get {
+sub next {
 	my $self = shift;
 
+	$self->{ctit}++;
 	my( $alb, $fil, $tit );
 
 	my $albs = $#{$self->{all}};
-	do {
+	while( ! $tit ) {
 		if( $self->{calb} > $albs ){
 			return;
 		}
@@ -127,13 +128,53 @@ sub get {
 		}
 
 		$tit = $fil->{titles}[$self->{ctit}];
-
-		$self->{ctit}++;
-
-	} unless( $tit );
+	};
 
 	return( $alb, $fil, $tit );
 }
+
+sub album {
+	my $self = shift;
+
+	my $albs = $#{$self->{all}};
+	if( $self->{calb} > $albs ){
+		return;
+	}
+	return $self->{all}[$self->{calb}];
+}
+
+sub file {
+	my $self = shift;
+
+	my $alb = $self->album;
+	return unless $alb;
+		
+	my $fils = $#{$alb->{files}};
+	if( $self->{cfil} > $fils ){
+		return;
+	}
+
+	return $alb->{files}[$self->{cfil}];
+}
+
+sub title {
+	my $self = shift;
+
+	my $fil = $self->file;
+	return unless $fil;
+		
+	my $tits = $#{$fil->{titles}};
+	if( $self->{ctit} > $tits ){
+		return;
+	}
+
+	return $fil->{titles}[$self->{ctit}];
+}
+
+
+
+
+
 
 
 ############################################################
@@ -480,18 +521,20 @@ sub write {
 
 	foreach my $alb ( @{$self->{all}} ){
 		$self->write_album( $fh, $alb );
-		print { $self->{fh} } "\n";
+		print $fh "\n";
 
 		foreach my $fil ( @{$alb->{files}} ){
 			$self->write_file( $fh, $fil );
-			print { $self->{fh} } "\n";
+			print $fh "\n";
 
 			foreach my $tit ( @{$fil->{titles}} ){
 				$self->write_title( $fh, $tit );
-				print { $self->{fh} } "\n";
+				print $fh "\n";
 			}
 		}
 	}
+
+	print $fh "# vi:syntax=dudlmus\n";
 }
 
 # overloadable:

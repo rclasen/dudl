@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 
 package Dudl::Job::Music;
-# base class for jobfile parser
 
 use strict;
 use Carp qw( :DEFAULT cluck);
@@ -124,7 +123,7 @@ sub write_file {
 	my $fil = shift;
 
 	print $fh "# ". $fil->{mp3} ."\n" if $fil->{mp3};
-	print $fh "file_id\t". ($fil->{id} || 0) ."\n";
+	print $fh "file_id \t". ($fil->{id} || 0) ."\n";
 	$self->SUPER::write_file( $fh, $fil );
 }
 
@@ -133,7 +132,7 @@ sub write_title {
 	my $fh = shift;
 	my $tit = shift;
 
-	print $fh "# sug: ". $tit->{sug} ."\n" if $tit->{sug};
+	print $fh "# sug: ". $tit->{source} ."\n" if $tit->{source};
 	print $fh "title_id\t". $tit->{id} ."\n" if $tit->{id};
 	$self->SUPER::write_title( $fh, $tit );
 }
