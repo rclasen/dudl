@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_storhave.pl,v 1.1 2001-12-13 14:44:06 bj Exp $
+# $Id: dudl_storhave.pl,v 1.2 2001-12-13 14:49:36 bj Exp $
 
 use strict;
 use Dudl;
@@ -55,7 +55,8 @@ my $query =
 		"stor_unit u ".
 		"ON u.id = f.unitid ".
 "WHERE ".
-	"$where ".
+	"NOT broken AND ".
+	"( $where ) ".
 "ORDER BY ".
 	"u.collection, ".
 	"u.colnum, ".
