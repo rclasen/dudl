@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.15 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl_musgen.pl,v 1.16 2002-07-30 16:04:34 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -13,6 +13,7 @@
 use strict;
 use Getopt::Long;
 use Dudl::DB;
+use Dudl::StorUnit;
 use Dudl::Suggester;
 use Dudl::Job::Music;
 use Dudl::Job::Archive;
@@ -100,9 +101,9 @@ my $db = $dudl->db;
 
 my $arch;
 if( $opt_archive ){
-	my $unit = new Dudl::Unit( $dudl );
-	$unit->get_id( $unitid );
-	my $path = $unit->path ."/";
+	my $unit = Dudl::StorUnit->load( dudl => $dudl, 
+		where => { id => $unitid } );
+	my $path = $unit->dir ."/";
 	$path .= $dir ."/" if $dir;
 	$path .= $opt_afile;
 	$arch = new Dudl::Job::Archive( naming => $dudl->naming, 

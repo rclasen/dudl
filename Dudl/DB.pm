@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: DB.pm,v 1.2 2002-07-30 15:10:26 bj Exp $
+# $Id: DB.pm,v 1.3 2002-07-30 16:04:37 bj Exp $
 
 package Dudl::DB;
 
@@ -8,7 +8,6 @@ use strict;
 use Carp;
 use EzDBI;
 use Dudl::Config;
-use Dudl::Unit;
 use Dudl::File;
 
 
@@ -105,30 +104,6 @@ sub commit {
 sub rollback {
 	my $self	= shift;
 	return $self->db->rollback;
-}
-
-
-
-sub newunit {
-	my $self	= shift;
-
-	return new Dudl::Unit( $self );
-}
-
-sub findunitpath {
-	my $self	= shift;
-	my $name	= shift;
-
-	my $unit = new Dudl::Unit( $self );
-	if( ! $unit ){
-		return undef;
-	}
-
-	if( $unit->get_collection( &Dudl::Unit::splitpath($name) )){
-		return $unit;
-	} else {
-		return undef;
-	}
 }
 
 1;

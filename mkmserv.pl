@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: mkmserv.pl,v 1.11 2002-07-26 17:49:25 bj Exp $
+# $Id: mkmserv.pl,v 1.12 2002-07-30 16:04:34 bj Exp $
 
 # generate directory trees for mserv
 # - symlinks
@@ -12,7 +12,6 @@
 use strict;
 use Getopt::Long;
 use Dudl::DB;
-use Dudl::Unit;
 
 my $opt_help = 0;
 my $opt_msdir = ".";

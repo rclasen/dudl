@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl_cdscan.pl,v 1.8 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl_cdscan.pl,v 1.9 2002-07-30 16:04:34 bj Exp $
 
 
 use strict;
@@ -8,6 +8,7 @@ use File::Find;
 use Getopt::Long;
 use Dudl::DB;
 use Dudl::Misc;
+use Dudl::StorUnit;
 
 # Dudl::File elements to update
 my @want;
@@ -144,35 +145,31 @@ sub scan {
 
 
 
-	my $unit = $dudl->newunit;
-	$unit->get_collection( $collection, $discid );
+	my $unit;
+	my $add_files = $opt_add ? 1 : 0;
+
+	eval { $unit = Dudl::StorUnit->load_path( dudl => $dudl, 
+		path => $disc ); };
+	if( $@ ){
+		print $@, "\n";
+		$add_files ++;
+		$unit = Dudl::StorUnit->new( dudl => $dudl );
+		$unit->val( "collection", $collection );
+		$unit->val( "colnum", $discid );
+	}
 
 	if( $dev ){
 		$unit->acquire( $dev );
 	}
 
-	my $id;
-	my $add_files = 0;
-	if( $unit->id  ){
-		$id = $unit->update;
-	} else {
-		$id = $unit->insert;
-		$add_files ++;
-	}
-
-	if( ! $id ){
-		die;
-	}
+	my $id = $unit->save;
 	print "unit id: ". $id ."\n";
 	
 
-	$add_files ++ if $opt_add;
 
 	if( $dofiles ){
 		my $dlen = length($dir);
-		my $file = $unit->newfile;
-		$file->want( \@want );
-
+		my $file = new Dudl::File( $dudl, $id, \@want );
 
 		print "searching for mp3s in \"$dir\"\n";
 		#@files = ();

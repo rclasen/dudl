@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musdirs.pl,v 1.6 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl_musdirs.pl,v 1.7 2002-07-30 16:04:34 bj Exp $
 
 # list directories of a unit
 
@@ -9,17 +9,19 @@
 
 use strict;
 use Dudl::DB;
+use Dudl::StorUnit;
 
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
 my $unitname = shift || die "need a unit name";
 
-my $unit = $dudl->findunitpath($unitname);
+my $unit = Dudl::StorUnit->load_path( dudl => $dudl, path => $unitname );
 if( ! $unit ){
 	print STDERR "no such unit found: $unitname\n";
 	exit 1;
 }
+my $id = $unit->val("id");
 
 # TODO: move database access to module
 my $query = 
@@ -29,7 +31,7 @@ my $query =
 		"COUNT(dir) as files ".
 	"FROM stor_file ".
 	"WHERE ".
-		"unit_id = ". $unit->id() ." ".
+		"unit_id = $id ".
 	"GROUP BY ".
 		"dir ".
 	"ORDER BY ".
@@ -50,7 +52,7 @@ $sth->bind_columns( \( $dir, $titles, $files ) );
 
 printf "%4s %4s %7s %s\n", "tit", "fil", "unit", "dir";
 while( defined $sth->fetch ){
-	printf "%4s %4d %7d %s\n", $titles, $files, $unit->id(), $dir;
+	printf "%4s %4d %7d %s\n", $titles, $files, $id, $dir;
 }	
 $sth->finish;
 
