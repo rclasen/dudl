@@ -82,7 +82,7 @@ shift
 
 
 
-${BINDIR}/dudl_musdirs.pl "$unit" > "$dtmp"
+${BINDIR}/dudl_dirs.pl "$unit" > "$dtmp"
 ${EDITOR} "$dtmp"
 
 
