@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.16 2002-07-30 16:04:34 bj Exp $
+# $Id: dudl_musgen.pl,v 1.17 2004-09-12 12:50:53 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -252,6 +252,11 @@ if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
 	$job->album->{type} = 'album';
 }
 
+if( $arch ){
+	foreach( qw(artist name type year)){
+		$job->album->{$_} = $arch->album->{$_};
+	}
+}
 
 $job->write( \*STDOUT );
 
