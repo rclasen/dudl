@@ -4,6 +4,7 @@ BEGIN;
 
 -- TODO: use INNER JOIN + NOTNULL optimizations for mus_xtitle
 
+-- DROP VIEW mus_xtitle;
 CREATE VIEW mus_xtitle AS
 SELECT
 	aa.id			AS album_artist_id,
@@ -18,10 +19,8 @@ SELECT
 	t.genres,
 	t.random,
 	t.cmnt,
-	u.collection,
-	u.colnum,
-	f.dir,
-	f.fname
+	stor_filename( u.collection, u.colnum, f.dir, f.fname )
+				AS filename
 FROM
 	mus_title		t,
 	mus_album		a,
