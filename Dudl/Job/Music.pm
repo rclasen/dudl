@@ -61,23 +61,18 @@ sub album_key {
 }
 
 
-sub file_group {
+sub file_check {
 	my $self = shift;
 	
 	my $cur = $self->{file};
-	if( ! keys %$cur ){
-		return 1;
-	}
-
 	my $err = 0;
-
 	if( ! $cur->{id} ){
 		$self->bother( "no id for file");
 		$err++;
 		
 	}
 
-	$self->SUPER::file_group || $err++;
+	$self->SUPER::file_check || $err++;
 
 	return !$err;
 }

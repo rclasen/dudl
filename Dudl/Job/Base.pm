@@ -203,7 +203,19 @@ sub album_group {
 	}
 
 	my $err = 0;
+	$self->album_check || $err++;
 
+	push @{$self->{all}}, { %$cur };
+	$self->{album} = {};
+
+	return !$err;
+}
+
+sub album_check {
+	my $self = shift;
+
+	my $cur = $self->{album};
+	my $err = 0;
 	if( ! $cur->{name} ){
 		$self->bother( "missing album name");
 		$err++;
@@ -213,9 +225,6 @@ sub album_group {
 		$err++;
 
 	}
-
-	push @{$self->{all}}, { %$cur };
-	$self->{album} = {};
 
 	return !$err;
 }
@@ -250,10 +259,17 @@ sub file_group {
 		return 1;
 	}
 
+	my $errs = 0;
+	$self->file_check || $errs ++;
+
 	my $albs = $#{$self->{all}};
 	push @{$self->{all}[$albs]->{files}}, { %$cur };
 	$self->{file} = {};
 
+	return 1;
+}
+
+sub file_check {
 	return 1;
 }
 
@@ -283,7 +299,21 @@ sub title_group {
 	}
 
 	my $err = 0;
+	$self->title_check || $err ++;
 
+	my $albs = $#{$self->{all}};
+	my $fils = $#{$self->{all}[$albs]{files}};
+	push @{$self->{all}[$albs]->{files}[$fils]->{titles}}, { %$cur };
+	$self->{title} = {};
+
+	return ! $err;
+}
+
+sub title_check {
+	my $self = shift;
+
+	my $cur = $self->{title};
+	my $err = 0;
 	if( ! $cur->{num} ){
 		$self->bother( "missing title number");
 		$err++;
@@ -297,11 +327,6 @@ sub title_group {
 		$err++;
 
 	}
-
-	my $albs = $#{$self->{all}};
-	my $fils = $#{$self->{all}[$albs]{files}};
-	push @{$self->{all}[$albs]->{files}[$fils]->{titles}}, { %$cur };
-	$self->{title} = {};
 
 	return ! $err;
 }
