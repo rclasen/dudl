@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Rename.pm,v 1.3 2001-12-13 11:41:49 bj Exp $
+# $Id: Rename.pm,v 1.4 2001-12-20 14:12:52 bj Exp $
 
 package Dudl::Job::Rename;
 
@@ -44,6 +44,22 @@ sub new {
 	return $class->SUPER::new( @_ );
 }
 
+
+sub album_check {
+	my $self = shift;
+	
+	my $cur = $self->{album};
+	my $err = 0;
+	if( ! $cur->{type} ){
+		$self->bother( "no album type set");
+		$err++;
+		
+	}
+
+	$self->SUPER::album_check || $err++;
+
+	return !$err;
+}
 
 sub file_check {
 	my $self = shift;

@@ -1,12 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.12 2001-12-18 18:14:29 bj Exp $
+# $Id: Base.pm,v 1.13 2001-12-20 14:12:52 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
 # album
 #  name		+	+	+	+	+
 #  artist	+	+	+	+	+
+#  type		?	?	+	?	?
 #  id		-	-	-	-	*
 #
 # file
@@ -75,6 +76,7 @@ sub new {
 	my $self	= {
 		fname	=> undef,
 		debug	=> 0,
+		atypes	=> {},	# keys are allowed album types
 		album	=> {},	# currently parsed album
 		file	=> {},	# currently parsed file
 		title	=> {},	# currently parsed title
@@ -86,7 +88,13 @@ sub new {
 
 	bless $self, $class;
 	
-	my $fname = shift;
+	my %arg = @_;
+	
+	if( exists $arg{album_types} && ("ARRAY" eq ref $arg{album_types}) ){
+		$self->{atype} = { map { lc($_) => 1 } @{$arg{album_types}} };
+	}
+
+	my $fname = $arg{file};
 	if( $fname ){
 		return $self->read( $fname );
 	}
@@ -446,6 +454,13 @@ sub album_key {
 		$cur->{$key} = $val;
 		return 1;
 
+	} elsif( $key eq "type" ){
+		if( ! exists $self->{atype}->{$val} ){
+			$self->bother( "unknown album type" );
+		}
+
+		$cur->{$key} = $val;
+		return 1;
 	}
 
 	$self->bother( "invalid entry for album");
@@ -590,8 +605,11 @@ sub write_album {
 	my $fh = shift;
 	my $alb = shift;
 
-	print $fh "album_artist	". ($alb->{artist} || "") ."\n";
-	print $fh "album_name	". ($alb->{name} || "") ."\n";
+	print $fh 
+		"album_artist	", ($alb->{artist} || "") ,"\n",
+		"album_name	", ($alb->{name} || "") ,"\n",
+		"album_type	", ($alb->{type} || "") ,"\n", 
+		"#album_type	", join( " ", keys %{$self->{atype}} ),"\n";
 }
 
 sub write_file {
@@ -599,9 +617,11 @@ sub write_file {
 	my $fh = shift;
 	my $fil = shift;
 
-	print $fh "file_encoder	". ($fil->{encoder} || "") ."\n";
-	print $fh "file_broken	". ($fil->{broken} || 0) ."\n";
-	print $fh "file_cmt	". ($fil->{cmt} || "") ."\n";
+	print $fh 
+		"file_encoder	", ($fil->{encoder} || "") ,"\n",
+		"file_broken	", ($fil->{broken} || 0) ,"\n",
+		"file_cmt	", ($fil->{cmt} || "") ,"\n",
+		;
 }
 
 sub write_title {
@@ -611,12 +631,14 @@ sub write_title {
 
 	my $random = exists( $tit->{random} ) ? $tit->{random} : 1;
 
-	print $fh "title_num	". ($tit->{num} || 0) ."\n";
-	print $fh "title_name	". ($tit->{name} || "") ."\n";
-	print $fh "title_artist	". ($tit->{artist} || "") ."\n";
-	print $fh "title_genres	". ($tit->{genres} || "") ."\n";
-	print $fh "title_random	". $random ."\n";
-	print $fh "title_cmt	". ($tit->{cmt} || "") ."\n";
+	print $fh 
+		"title_num	", ($tit->{num} || 0) ,"\n",
+		"title_name	", ($tit->{name} || "") ,"\n",
+		"title_artist	", ($tit->{artist} || "") ,"\n",
+		"title_genres	", ($tit->{genres} || "") ,"\n",
+		"title_random	", $random ,"\n",
+		"title_cmt	", ($tit->{cmt} || "") ,"\n",
+		;
 }
 
 
