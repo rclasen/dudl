@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: Suggester.pm,v 1.11 2001-12-13 11:41:48 bj Exp $
+# $Id: Suggester.pm,v 1.12 2001-12-18 12:31:53 bj Exp $
 
 package Dudl::Suggester;
 
 use strict;
 use Carp qw{ :DEFAULT cluck };
+use MP3::Tag;
 
 
 BEGIN {
@@ -93,6 +94,14 @@ use vars '@regexps';
 	{
 		re	=> '([^/]+)/([^/]+)[-_ .]+-[-_ .]+([^/]+)',
 		fields	=> &re_fields( qw( album artist title )),
+	},
+	{
+		re	=> '(\d+)[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( titlenum title )),
+	},
+	{
+		re	=> '([^/]+)[-_ .]+([^/]+)[-_ .]+(\d+)[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( artist album titlenum title )),
 	},
 );
 
@@ -196,6 +205,7 @@ sub rate {
 	#$dat->{sug_quality} -=2 if $dat->{album} =~ /--/;
 }
 
+# TODO: aus mehreren suggestions mergen
 sub order {
 	my $self = shift;
 
@@ -207,6 +217,10 @@ sub order {
 }
 
 # add a suggestion
+# add_asis( a => wert );
+# add_asis( { a => wert } );
+# $y = { a => wert };
+# add_asis( $y );
 sub add_asis {
 	my $self = shift;
 	my $dat;
@@ -220,7 +234,9 @@ sub add_asis {
 		$dat->{$k} = $dat->{$k} | "";
 	}
 
-	$dat->{titlenum} = int( $dat->{titlenum} );
+	$dat->{titlenum} =~ /^\s*(\d+)/;
+	$dat->{titlenum} = int( $1 || 0 );
+
 	$dat->{source} = $dat->{source} || '';
 
 	$self->rate( $dat );
@@ -257,7 +273,8 @@ sub add_regexp {
 	my $fields	= shift;
 	my $source	= shift;	# only comment
 
-	$re .= "\\.(?:mp3|wav)\$";
+	$path =~ s/\.(wav|mp3)$//i;
+	$re .= "\"" unless $re =~ /\$$/;
 	my @match = $path =~ m:$re:i;
 
 	return unless @match;
@@ -286,7 +303,7 @@ sub sugitem {
 		}
 	}
 
-	$val =~ s/\.+/ /g;
+	$val =~ s/[._]+/ /g;
 	return $val;
 }
 
@@ -311,6 +328,26 @@ sub add_stor {
 	
 	return $self->add_relist( $path, \@regexps );
 }
+
+sub add_id3 {
+	my $self = shift;
+	my $file = shift;
+
+	my $id3 = new MP3::Tag( $file );
+	return unless $id3;
+
+	foreach my $tag ( $id3->get_tags ){
+		# TODO: id3v2 title,... is bogus
+		$self->add( 
+		source		=> $tag,
+		artist		=> scalar $id3->{$tag}->artist,
+		album		=> scalar $id3->{$tag}->album,
+		title		=> scalar $id3->{$tag}->song,
+		titlenum	=> scalar $id3->{$tag}->track,
+		);
+	}
+}
+
 
 
 1;

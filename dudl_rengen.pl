@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rengen.pl,v 1.8 2001-12-13 16:38:21 bj Exp $
+# $Id: dudl_rengen.pl,v 1.9 2001-12-18 12:31:51 bj Exp $
 
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
@@ -10,7 +10,6 @@ use Getopt::Long;
 use Dudl;
 use Dudl::Suggester;
 use Dudl::Job::Rename;
-use MP3::Tag;
 
 my $dudl = new Dudl;
 
@@ -91,6 +90,8 @@ if( defined $ARGV[0] ){
 		# - readdir $ARGV[0]
 		opendir( DIR, $dir ) || die "cannot opendir \"$dir\": $! ";
 		while( defined( $_ = readdir( DIR )) ){
+			next if /^\.\.?$/;
+			next unless /\.(mp3|wav)$/i;
 			push @files, "$dir/$_";
 		}
 		closedir( DIR );
@@ -128,18 +129,7 @@ foreach my $f ( @files ){
 	}
 
 	if( $opt_id ){
-		my $id3 = new MP3::Tag( $f );
-		if( $id3 ){
-			foreach my $tag ( $id3->get_tags ){
-				$sug->add( 
-				source		=> $tag,
-				artist		=> $id3->{$tag}->artist,
-				album		=> $id3->{$tag}->album,
-				title		=> $id3->{$tag}->song,
-				titlenum	=> $id3->{$tag}->track,
-				);
-			}
-		}
+		$sug->add_id3( $f );
 	}
 
 	$sug->order;
