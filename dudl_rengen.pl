@@ -1,22 +1,25 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rengen.pl,v 1.7 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_rengen.pl,v 1.8 2001-12-13 16:38:21 bj Exp $
 
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
 
 use strict;
 use Getopt::Long;
+use Dudl;
 use Dudl::Suggester;
 use Dudl::Job::Rename;
 use MP3::Tag;
 
-my $opt_max = 2;
-my $opt_minscore = 6;
-my $opt_genres = "";
-my $opt_id = 1;
-my $opt_stored = 1;
+my $dudl = new Dudl;
+
+my $opt_max = $dudl->sug_max;
+my $opt_minscore = $dudl->sug_score;
+my $opt_id = $dudl->sug_id3;
+my $opt_stored = $dudl->sug_int;
 my $opt_regexp = "";
+my $opt_genres = "";
 
 my $opt_help = 0;
 my $needhelp = 0;
@@ -162,6 +165,9 @@ foreach my $f ( @files ){
 }
 
 $job->write( \*STDOUT );
+
+$dudl->done;
+
 
 sub get_regexp {
 	my $re = shift;

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.8 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_musgen.pl,v 1.9 2001-12-13 16:38:21 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -22,12 +22,15 @@ use Dudl::Job::Archive;
 # TODO: merge with an existing mus_album
 # TODO: edit an existing mus_album
 
+my $dudl = new Dudl;
 
-my $opt_max = 1;
-my $opt_minscore = 6;
-my $opt_id = 1;
+my $opt_max = $dudl->sug_max;
+my $opt_minscore = $dudl->sug_score;
+my $opt_id = $dudl->sug_id3;
+my $opt_stored = $dudl->sug_int;
+
 my $opt_archive = 1;
-my $opt_afile = "TRACKS.dudl_archive";
+my $opt_afile = $dudl->write_jname;
 
 my $opt_help = 0;
 my $needhelp = 0;
@@ -41,6 +44,7 @@ optons:
  --max <n>       maximum number of suggestions per file
  --minscore <n>  minimum score suggestions must have
  --[no]id        get suggestions from IDtags in storage tables
+ --[no]stored    use stored regexps for suggestions
  --[no]archive   try to get suggestions from an archive file
  --afile <f>     override archive jobfile
 
@@ -53,6 +57,7 @@ if( !GetOptions(
 	"max=i"		=> \$opt_max,
 	"minscore=i"	=> \$opt_minscore,
 	"id!"		=> \$opt_id,
+	"stored!"	=> \$opt_stored,
 	"archive!"	=> \$opt_archive,
 	"afile=s"	=> \$opt_afile,
 	"help|h!"	=> \$opt_help,
@@ -90,7 +95,6 @@ if( $needhelp ){
 }
 
 
-my $dudl = new Dudl;
 my $db = $dudl->db;
 
 my $arch;
@@ -196,7 +200,9 @@ while( defined $sth->fetch ){
 	}
 
 	# suggest with stored regexps
-	$exp->add_stor( $path );
+	if( $opt_stored ){
+		$exp->add_stor( $path );
+	}
 
 	$exp->order;
 	my $sug;

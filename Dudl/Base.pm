@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.3 2001-12-13 11:41:48 bj Exp $
+# $Id: Base.pm,v 1.4 2001-12-13 16:38:23 bj Exp $
 
 package Dudl::Base;
 
@@ -45,15 +45,32 @@ sub new {
 
 	my $class	= ref($proto) || $proto;
 	my $self	= {
+		# Database
 		DBHOST		=> "",
 		DBUSER		=> "reader",
 		DBPASS		=> "reader",
 		DBNAME		=> "dudl",
+
+		# files
 		CDPATH		=> "/vol/cd/MP3",
 		RCFILES		=> [ 
 			"/etc/dudl.rc", 
 			$ENV{'HOME'} ."/.dudlrc",
 			],
+
+		# preferences for suggestor
+		SUG_ID3		=> 1,
+		SUG_INT		=> 1,
+		SUG_MAX		=> 1,
+		SUG_SCORE	=> 6,
+
+		# mp3 generation/renaming
+		WRITE_JOB	=> 1,
+		WRITE_JNAME	=> "TRACKS.dudl_archive",
+		WRITE_V1	=> 1,
+		WRITE_V2	=> 0,
+
+		# runtime
 		DB		=> undef,
 		};
 
@@ -67,17 +84,70 @@ sub new {
 sub done {
 	my $self	= shift;
 
-	$self->db->disconnect;
+	$self->db->disconnect if defined $self->{DB};
 }
 
 sub cdpath {
-	my $self	= shift;
-
+	my $self = shift;
 	return $self->{CDPATH};
+}
+
+sub sug_id3 {
+	my $self = shift;
+	return $self->{SUG_ID3};
+}
+
+sub sug_int {
+	my $self = shift;
+	return $self->{SUG_INT};
+}
+
+sub sug_max {
+	my $self = shift;
+	return $self->{SUG_MAX};
+}
+
+sub sug_score {
+	my $self = shift;
+	return $self->{SUG_SCORE};
+}
+
+sub write_job {
+	my $self = shift;
+	return $self->{WRITE_JOB};
+}
+
+sub write_jname {
+	my $self = shift;
+	return $self->{WRITE_JNAME};
+}
+
+sub write_v1 {
+	my $self = shift;
+	return $self->{WRITE_V1};
+}
+
+sub write_v2 {
+	my $self = shift;
+	return $self->{WRITE_V2};
 }
 
 sub db {
 	my $self	= shift;
+
+	if( ! defined $self->{DB} ){
+		my $cmd = "dbi:Pg:".
+			"dbname=". $self->{DBNAME};
+		if( $self->{DBHOST} ){
+			$cmd .= ";host=". $self->{DBHOST};
+		}
+
+		$self->{DB} = DBI->connect( $cmd,
+			$self->{DBUSER}, 
+			$self->{DBPASS},
+			{ 'AutoCommit' => 0 }) ||
+			croak $DBI::errstr;
+	}
 
 	return $self->{DB};
 }
@@ -91,19 +161,6 @@ sub initialize {
 	foreach $rc (@{$self->{RCFILES}}){
 		$self->read_conf( $rc );
 	}
-
-	# open database
-	my $cmd = "dbi:Pg:".
-		"dbname=". $self->{DBNAME};
-	if( $self->{DBHOST} ){
-		$cmd .= ";host=". $self->{DBHOST};
-	}
-	$self->{DB} = DBI->connect( $cmd,
-		$self->{DBUSER}, 
-		$self->{DBPASS},
-		{ 'AutoCommit' => 0 }) ||
-		croak $DBI::errstr;
-
 }
 
 
@@ -150,6 +207,30 @@ sub read_conf {
 
 			} elsif( $k eq "cdpath" ){
 				$self->{CDPATH} = $v;
+
+			} elsif( $k eq "sug_id3" ){
+				$self->{SUG_ID3} = $v;
+
+			} elsif( $k eq "sug_int" ){
+				$self->{SUG_INT} = $v;
+
+			} elsif( $k eq "sug_max" ){
+				$self->{SUG_MAX} = $v;
+
+			} elsif( $k eq "sug_minscore" ){
+				$self->{SUG_SCORE} = $v;
+
+			} elsif( $k eq "write_jobfile" ){
+				$self->{WRITE_JOB} = $v;
+
+			} elsif( $k eq "write_jobname" ){
+				$self->{WRITE_JNAME} = $v;
+
+			} elsif( $k eq "write_id3v1" ){
+				$self->{WRITE_V1} = $v;
+
+			} elsif( $k eq "write_id3v2" ){
+				$self->{WRITE_V2} = $v;
 
 			} else {
 				print STDERR "$rc, line $.: Unknown keyword\n";

@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rename.pl,v 1.5 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_rename.pl,v 1.6 2001-12-13 16:38:21 bj Exp $
 
 use strict;
 use Getopt::Long;
 use MP3::Tag;
 use MP3::Offset;
+use Dudl;
 use Dudl::Job::Rename;
 use Dudl::Job::Archive;
 
@@ -34,13 +35,15 @@ Notes:
 ";
 }
 
+my $dudl = new Dudl;
+
 my $opt_copy = 1;
-my $opt_v1 = 1;
-my $opt_v2 = 0;
+my $opt_v1 = $dudl->write_v1;
+my $opt_v2 = $dudl->write_v2;
 my $opt_delete = 0;
 
-my $opt_info = 1;
-my $opt_ifile = "TRACKS.dudl_archive";
+my $opt_info = $dudl->write_job;
+my $opt_ifile = $dudl->write_jname;
 
 my $opt_help = 0;
 my $needhelp = 0;
@@ -87,6 +90,8 @@ if( $opt_info && ! &gen_info( $job ) ){
 if( $opt_copy && ! &copy( $job ) ){
 	die "rename failed";
 }
+
+$dudl->done;
 
 exit 0;
 
