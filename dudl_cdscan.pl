@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl_cdscan.pl,v 1.5 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_cdscan.pl,v 1.6 2001-12-13 14:45:13 bj Exp $
 
 
 use strict;
@@ -44,7 +44,7 @@ my $result = GetOptions(
 	"mp3!"		=> \$opt_mp3,
 	"sum!"		=> \$opt_sum,
 	"unit!"		=> \$opt_unit,
-	"add|a"		=> \$opt_add;
+	"add|a"		=> \$opt_add,
 	);
 if( ! $result ){
 	&usage();
@@ -158,7 +158,7 @@ sub scan {
 	print "unit id: ". $id ."\n";
 	
 
-	$add_file ++ if $opt_add;
+	$add_files ++ if $opt_add;
 
 	if( $dofiles ){
 		my $dlen = length($dir);
@@ -191,7 +191,7 @@ sub scan {
 				$id = $file->update;
 			} else {
 				die "not adding file to existing unit" 
-					unless $add_file;
+					unless $add_files;
 
 				print " adding";
 				$id = $file->insert;

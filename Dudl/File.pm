@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.6 2001-12-13 11:41:48 bj Exp $
+# $Id: File.pm,v 1.7 2001-12-13 14:44:50 bj Exp $
 
 package Dudl::File;
 
@@ -410,7 +410,7 @@ sub get_path {
 	my $sql = $self->mksql( [qw{ unitid dir fname }] );
 
 	my $q = "unitid = ". $sql->{unitid} ." AND ".
-		"fname = ".  $sql->{fname} ." AND ".;
+		"fname = ".  $sql->{fname} ." AND ".
 		"dir = ". $sql->{dir};
 
 	return $self->get( $q );
