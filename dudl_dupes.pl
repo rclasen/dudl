@@ -31,7 +31,7 @@ sub run {
 	$query =
 		"SELECT ".
 			"tmp_$field.$field, ".
-			"collection, ".
+			"trim(collection), ".
 			"colnum, ".
 			"dir, ".
 			"fname ".
@@ -64,7 +64,6 @@ sub run {
 			print "\n";
 			$osum = $sum;
 		}
-		$collection =~ s/\s+$//;
 		print join("/", $collection.$colnum, $dir, $fname), "\n";
 	}
 }

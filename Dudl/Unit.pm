@@ -184,7 +184,7 @@ sub get_id {
 
 	my $query = qq{
 		SELECT 
-			collection,
+			trim(collection),
 			colnum,
 			volname,
 			size
@@ -252,7 +252,7 @@ sub get_collection {
 			size
 		FROM stor_unit
 		WHERE ".
-			"collection = ". 
+			"trim(collection) = ". 
 				$self->db->quote($self->collection, 
 					DBI::SQL_CHAR).
 				" AND ".
@@ -378,7 +378,8 @@ sub update {
 sub splitpath {
 	my $path = shift;
 
-	return $path =~ /(\w+[^\d\/])(\d+)$/;
+	return $path =~ /([^\d\/]+)(\d+)$/;
+	#return $path =~ /(\w+[^\d\/])(\d+)$/;
 }
 
 

@@ -86,7 +86,7 @@ SELECT
 	tia.nname, 
 	ti.genres,
 	ti.random, 
-	su.collection, 
+	trim(su.collection), 
 	su.colnum, 
 	fi.dir, 
 	fi.fname,
@@ -198,7 +198,6 @@ while( defined $sth->fetch ){
 	}
 	$old_id = $ti_id;
 
-	$su_col =~ s/\s+$//;
 	$ti_nr = sprintf "%02d", $ti_nr;
 
 	my $relpath = "$ti_nr.$ti_artist.$ti_title.mp3";

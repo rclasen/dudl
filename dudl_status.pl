@@ -14,7 +14,7 @@ my $db = $dudl->db;
 # TODO: move database access to module
 my $query = 
 	"SELECT ".
-		"collection, ".
+		"trim(collection), ".
 		"colnum, ".
 		"dir, ".
 		"COUNT(titleid) as titles, ".
