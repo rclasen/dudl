@@ -2,21 +2,22 @@
 
 
 use strict;
-use Mp3sum;
+use MP3::Offset;
+use MP3::Digest;
 
-my $sum = Mp3sum->new;
 
 foreach (@ARGV){
+	my $of = new MP3::Offset( $_ );
+	my $dg = new MP3::Digest( $of );
 	print $_, "\n";
-	$sum->scan($_);
-	print "file:   ". $sum->filedigest ."\n";
-	print "data:   ". $sum->datadigest ."\n";
-	print "id3v1:  ". $sum->id3v1 ."\n";
-	print "id3v2:  ". $sum->id3v2 ."\n";
-	print "riff:   ". $sum->riff ."\n";
-	print "fsize:  ". $sum->fsize ."\n";
-	print "offset: ". $sum->offset ."\n";
-	print "dsize:  ". $sum->dsize ."\n";
-	print "tail:   ". $sum->tail ."\n";
+	print "file:   ". $dg->filedigest ."\n";
+	print "data:   ". $dg->datadigest ."\n";
+	print "id3v1:  ". $of->id3v1 ."\n";
+	print "id3v2:  ". $of->id3v2 ."\n";
+	print "riff:   ". $of->riff ."\n";
+	print "fsize:  ". $of->fsize ."\n";
+	print "offset: ". $of->offset ."\n";
+	print "dsize:  ". $of->dsize ."\n";
+	print "tail:   ". $of->tail ."\n";
 }
 

@@ -1,24 +1,5 @@
 #!/usr/bin/perl -w
 
-# v0.0.1.1 - 2001-11-27
-#	* major rewrite
-#	* read everything before doing something
-#	* info file generation
-#	* riff header stripping / copying of files
-#	* id3v2 tags - klappt nich :-((
-#	* commandline options
-# v0.0.0.4 - 2001-11-12
-#	* strip v2 tags
-#	* fix permissions
-# v0.0.0.3 - 2001-06-18
-#	* pass -- to mv
-# v0.0.0.2 - 2000-12-26
-#	* use MP3::Info
-# v0.0.0.1 - 2000-08-27 20:18
-#	* release
-
-# rename mp3s an edit their ID-Tag.
-
 #syntax of input file(s):
 
 # A <albumtitle>	#
@@ -69,10 +50,9 @@
 # T blah
 
 use strict;
-use lib "/home/bj/src/work/nccdev/dudl";
 use Getopt::Long;
 use MP3::Tag;
-use Mp3sum;
+use MP3::Offset;
 
 
 sub usage {
@@ -398,6 +378,7 @@ sub copy_file {
 	&make_dir( $dir ) || die "mkdir failed: $!";
 
 	my $fname = &gen_fname( $album, $title );
+	my $mp = new MP3::Offset( $title->{file} );
 	
 	# file anlegen
 	local *OUT;
@@ -411,8 +392,6 @@ sub copy_file {
 
 	local *IN;
 	open( IN, $title->{file} ) || die "cannot open input: $!";
-	my $mp = new Mp3sum;
-	$mp->analyze( \*IN );
 	seek( IN, $mp->offset, 0 );
 
 	# copy data
