@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_mushave.pl,v 1.3 2001-12-18 12:27:39 bj Exp $
+# $Id: dudl_mushave.pl,v 1.4 2002-04-12 17:53:52 bj Exp $
 
 # search database
 
@@ -12,6 +12,7 @@ my $opt_help = 0;
 my $opt_artist = "";
 my $opt_album = "";
 my $opt_title = "";
+my $opt_debug = 0;
 my $needhelp = 0;
 
 my $want_artist = 0;
@@ -41,6 +42,7 @@ if( ! GetOptions(
 	"artist|a=s"		=> \$opt_artist,
 	"album|l=s"		=> \$opt_album,
 	"title|t=s"		=> \$opt_title,
+	"debug|d!"		=> \$opt_debug,
 ) ){
 	$needhelp ++;
 }
@@ -216,7 +218,7 @@ sub query {
 	my $db = shift;
 	my $query = shift;
 
-	#print $query, "\n";
+	print "query: ", $query, "\n" if $opt_debug;
 
 	my $sth = $db->prepare( $query );
 	if( ! $sth ){

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Offset.pm,v 1.3 2001-12-13 11:41:49 bj Exp $
+# $Id: Offset.pm,v 1.4 2002-04-12 17:53:53 bj Exp $
 
 package MP3::Offset;
 
@@ -175,6 +175,20 @@ sub head_riff {
 	return 0;
 }
 
+# TODO: search real mp3 data instead of known junk.
+# see MP3::Info::_is_mp3 on how to recognize a MP3 Data.
+# sample: ecd/ecd0013/Taucher - Bizarre [deep mix vinyl].mp3
+sub head_other {
+	my $fh = shift;
+
+	return 0
+
+#	my $h;
+#	do {
+#		_get_head( $buf );
+#	} while( ! MP3::Info::_is_mp3( $h ) );
+}
+
 
 sub tail_id3v1 {
 	my $fh = shift;
@@ -219,9 +233,6 @@ sub scan {
 	my $skipped;
 
 	# count junk at beginning ...
-	#
-	# TODO: search real mp3 data instead of known junk.
-	# see MP3::Info on how to recognize a MP3 Data.
 	do {
 		my $skip;
 
@@ -243,7 +254,9 @@ sub scan {
 
 	} while( $skipped );
 
-	
+	$skipped = &head_other( \*F );
+	$self->{OFFSET} += $skipped;
+
 	# go to tail
 	seek( \*F, 0, 2 );
 	$self->{FSIZE} = tell( \*F );

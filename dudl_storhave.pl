@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_storhave.pl,v 1.3 2001-12-20 13:13:16 bj Exp $
+# $Id: dudl_storhave.pl,v 1.4 2002-04-12 17:53:52 bj Exp $
 
 use strict;
 use Dudl;
@@ -17,6 +17,7 @@ my $db = $dudl->db;
 
 $pattern = $db->quote( $pattern, DBI::SQL_CHAR );
 
+my $opt_debug=0;
 my $where;
 if( $what eq "all" || $what eq "any" ){
 	foreach( @attribs ){
@@ -45,7 +46,7 @@ if( $what eq "all" || $what eq "any" ){
 }
 
 
-print STDERR "SELECT ... WHERE $where\n";
+print "SELECT ... WHERE $where\n" if $opt_debug;
 
 my $query = 
 "SELECT ".

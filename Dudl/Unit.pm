@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Unit.pm,v 1.5 2001-12-13 11:41:48 bj Exp $
+# $Id: Unit.pm,v 1.6 2002-04-12 17:53:52 bj Exp $
 
 package Dudl::Unit;
 
@@ -162,6 +162,7 @@ sub acquire {
 	my $self	= shift;
 	my $device	= shift;
 
+	# TODO: use something better than cdinfo
 	my @out		= `$cdinfo $device`;
 	my $found;
 

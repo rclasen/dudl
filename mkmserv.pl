@@ -1,12 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: mkmserv.pl,v 1.7 2001-12-18 12:29:03 bj Exp $
+# $Id: mkmserv.pl,v 1.8 2002-04-12 17:53:52 bj Exp $
 
 # generate directory trees for mserv
 # - symlinks
 # - .trk info files
 
 # TODO: move database access to unit
+# TODO: use ids for filenames
 
 use strict;
 use Getopt::Long;
@@ -90,7 +91,7 @@ if( $want_nfo ){
 	}
 }
 
-print STDERR "making trees ...\n";
+print "making trees ...\n";
 
 my $query = "
 SELECT 
@@ -249,7 +250,7 @@ while( defined $sth->fetch ){
 $sth->finish;
 $dudl->done();
 
-print STDERR "cleaning old stuff ...\n";
+print "cleaning old stuff ...\n";
 
 if( $want_sym ){
 	&cleanup( $dir_sym, \%sym );
@@ -270,7 +271,7 @@ sub find {
 
 	%$h = ();
 
-	print STDERR "scanning $dir...\n";
+	print "scanning $dir...\n";
 	open( F, "cd \"$dir\" && find . |" ) || die "find failed: $!";
 	while( <F> ){
 		chomp;
@@ -314,6 +315,7 @@ sub title {
 	my $title = shift;
 	my $genres = shift;
 	my $dur = shift || 0;
+	$dur *= 100;
 
 	if( -e $fn ){
 		local *F;

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Naming.pm,v 1.1 2001-12-20 16:38:30 bj Exp $
+# $Id: Naming.pm,v 1.2 2002-04-12 17:53:52 bj Exp $
 
 package Dudl::Naming;
 
@@ -50,6 +50,13 @@ sub new {
 
 	return $self;
 }
+
+sub bother {
+	my $self = shift;
+	
+	print STDERR @_, "\n";
+}
+
 
 # return directory to place file in
 sub dir {
@@ -162,7 +169,7 @@ sub album_valid {
 			$alb->{artist} = "VARIOUS";
 		}
 
-		if( ! $alb->{artist} =~ /^VARIOUS$/i ){
+		if( ! ($alb->{artist} =~ /^VARIOUS$/i) ){
 			$self->bother( "album_artist for sampler is ", 
 				"not VARIOUS" );
 			$err++;
