@@ -52,22 +52,28 @@ create+=storage/functions
 create+=mserv/tag
 
 create+=mserv/titletag
-mserv/titletag.create: mserv/tag.create storage/file.create
+mserv/titletag.create: storage/file.create mserv/tag.create
 
 create+=mserv/user
 
+create+=mserv/artist
+mserv/artist.create: music/artist.create
+
+create+=mserv/album
+mserv/album.create: music/album.create music/artist.create 
+
 create+=mserv/track
 mserv/track.create: storage/file.create storage/unit.create \
-	storage/functions.create
+	storage/functions.create mserv/artist.create mserv/album.create
 
 create+=mserv/history
-mserv/history.create: mserv/user.create storage/file.create
+mserv/history.create: storage/file.create mserv/user.create
 
 create+=mserv/xhistory
 mserv/xhistory.create: mserv/history.create mserv/track.create
 
 create+=mserv/queue
-mserv/queue.create: mserv/user.create storage/file.create
+mserv/queue.create: storage/file.create mserv/user.create
 
 create+=mserv/functions
 mserv/functions.create: mserv/titletag.create

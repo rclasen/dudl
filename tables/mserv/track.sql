@@ -4,18 +4,22 @@ BEGIN;
 CREATE VIEW mserv_track AS
 SELECT 
 	t.id,
-	t.album_id,
 	t.album_pos,
 	date_part('epoch',t.duration) AS dur,
 	time2unix(t.lastplay) AS lplay,
 	t.title,
-	t.artist_id,
 	stor_filename(u.collection,u.colnum,t.dir,t.fname) 
-		AS filename 
+		AS filename,
+	a.*,
+	ar.*
 FROM 
-	stor_file t  
-		INNER JOIN stor_unit u  
+	stor_file t INNER JOIN stor_unit u  
 		ON t.unit_id = u.id 
+	INNER JOIN mserv_album a
+		ON t.album_id = a.album_id
+	INNER JOIN mserv_artist ar
+		ON t.artist_id = ar.artist_id
+
 WHERE 
 	title NOTNULL AND
 	NOT t.broken;
