@@ -5,7 +5,7 @@ package Dudl::File;
 use strict;
 use Carp qw( :DEFAULT cluck );
 use DBI;
-use MPEG::MP3Info;
+use MP3::Info;
 use MP3::Offset;
 use MP3::Digest;
 use Dudl::Base;
