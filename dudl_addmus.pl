@@ -54,6 +54,8 @@ LINE: while(<>){
 
 	my( $key, $group, $gkey, $val ) = /^((\S+)_(\S+))\s*(.*)/;
 
+	# TODO: use album_artist, when title_artist is empty
+
 	#print STDERR "$ARGV($.): $key=$val\n";
 	if( $nonempty{$key} && ! $val ){
 		die "$ARGV($.): empty value for key $key";
@@ -135,6 +137,8 @@ sub get_artist {
 	my $db		= $dudl->db;
 	my $artist	= $db->quote(shift || 'UNKNOWN', DBI::SQL_CHAR);
 
+	# TODO: search for artist with prepended "the ", or "die "
+	# TODO: search for artist with stripped "the "...
 	my $query =
 		"SELECT ".
 			"id ".
@@ -284,7 +288,9 @@ sub save_title {
 	$query =
 		"UPDATE stor_file ".
 		"SET titleid = $tid ".
-		"WHERE id = $filid ";
+		"WHERE ".
+			"titleid ISNULL AND ".
+			"id = $filid ";
 	$res = $db->do( $query );
 	if( $res != 1 ){
 		die $db->errstr ."\nquery: $query\n";
