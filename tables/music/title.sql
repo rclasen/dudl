@@ -23,15 +23,14 @@ CREATE TABLE mus_title (
 			NOT NULL
 			REFERENCES mus_artist(id),
 
-	duration	TIME,
 	cmnt		TEXT,			-- Comment
 	lyrics		TEXT,
 
-	random		BOOLEAN			-- include in random play
+	lastplay	TIME,			-- mserv: last play time
+	random		BOOLEAN			-- mserv: include in random play
 			NOT NULL
 			DEFAULT 'true',
-
-	genres		VARCHAR(255),		-- temporary, for mserv
+	genres		VARCHAR(255),		-- mserv: temporary 
 
 	UNIQUE( album_id, nr ),
 	PRIMARY KEY( id )
