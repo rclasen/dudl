@@ -39,6 +39,13 @@ my $dir = shift;
 # TODO: use default genre
 
 
+my %lastsug = (
+	title	=> "",
+	tnum	=> "",
+	genres	=> "",
+	artist	=> "",
+	);
+
 
 my $db = $dudl->db;
 my $exp = new Dudl::StorExport( $dudl );
@@ -91,15 +98,14 @@ while( defined $sth->fetch ){
 	# TODO: current settings from mus_title
 
 	# suggest idtag
-	&tpl_cmt( $tpf, "sug: IDtag" );
-	&tpl_sug( $tpf, $id_artist, $id_tracknum, $id_title, $id_genre );
+	&tpl_sug( $tpf, \%lastsug, "IDtag", 
+		$id_artist, $id_tracknum, $id_title, $id_genre );
 
 	# suggest each regexp
 	$exp->rewind();
 	my $sug;
 	while( defined ($sug = $exp->suggest( $dir, $fname )) ){
-		&tpl_cmt( $tpf, "sug: export id=", $exp->id );
-		&tpl_sug( $tpf,
+		&tpl_sug( $tpf, \%lastsug, "export id=". $exp->id , 
 			$sug->{artist}, 
 			$sug->{titlenum}, 
 			$sug->{title},
@@ -129,6 +135,8 @@ sub tpl_open {
 
 sub tpl_close {
 	my $fh = shift;
+
+	print $fh "# vi:syntax=dudlmus\n";
 	close( $fh );
 }
 
@@ -170,18 +178,34 @@ sub tpl_file {
 # title_genres		genres (temporary till rating works)
 sub tpl_sug {
 	my $fh = shift;
+	my $l = shift;
+	my $cmt = shift;
 	my $artist = lc shift || "";
-	my $tnum = lc shift || "";
+	my $tnum = shift || 0;
 	my $title = lc shift || "";
 	my $genre = lc shift || "";
 
+	return unless $title;
 	$title =~ s/\bi\b/I/g;
 
-	print $fh "title_num	$tnum\n";
-	print $fh "title_name	$title\n";
-	print $fh "title_artist	$artist\n";
-	print $fh "title_genres	$genre\n";
-	print $fh "\n";
+	# suppress duplicate suggestions
+	if( ($l->{artist} ne $artist) ||
+		($l->{tnum} != $tnum) ||
+		($l->{title} ne $title) ||
+		($l->{genre} ne $genre) ){
+
+		$l->{artist} = $artist;
+		$l->{tnum} = $tnum;
+		$l->{title} = $title;
+		$l->{genre} = $genre;
+
+		print $fh "# sug: $cmt\n";
+		print $fh "title_num	$tnum\n";
+		print $fh "title_name	$title\n";
+		print $fh "title_artist	$artist\n";
+		print $fh "title_genres	$genre\n";
+		print $fh "\n";
+	}
 }
 
 
