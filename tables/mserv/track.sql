@@ -7,7 +7,7 @@ SELECT
 	t.album_id,
 	t.nr,
 	date_part('epoch',f.duration) AS dur,
-	date_part('epoch',t.lastplay) AS lplay,
+	time2unix(t.lastplay) AS lplay,
 	t.title,
 	t.artist_id,
 	stor_filename(u.collection,u.colnum,f.dir,f.fname) 

@@ -4,7 +4,7 @@ BEGIN;
 CREATE VIEW mserv_xhist AS
 SELECT 
 	t.*,
-	date_part('epoch',h.added) AS played, 
+	time2unix(h.added) AS played, 
 	h.user_id
 FROM 
 	mserv_track t

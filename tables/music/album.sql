@@ -30,8 +30,10 @@ GRANT all ON mus_album TO GROUP dudl;
 
 -- indices
 
-CREATE UNIQUE INDEX mus_album__id ON mus_album(id);
-CREATE UNIQUE INDEX mus_album__artist_album ON mus_album(artist_id, album);
+CREATE UNIQUE INDEX mus_album__id 
+	ON mus_album(id);
+CREATE UNIQUE INDEX mus_album__artist_album 
+	ON mus_album(artist_id, album);
 
 -- referential integrity
 
