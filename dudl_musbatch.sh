@@ -2,7 +2,7 @@
 
 set -e 
 
-: ${BINDIR:=.}
+: ${BINDIR:=/usr/local/bin}
 : ${EDITOR:=vi}
 : ${TMPDIR:=/tmp}
 export EDITOR TMPDIR
@@ -82,7 +82,7 @@ shift
 
 
 
-${BINDIR}/dudl_dirs.pl "$unit" > "$dtmp"
+${BINDIR}/dudl_musdirs.pl "$unit" > "$dtmp"
 ${EDITOR} "$dtmp"
 
 
