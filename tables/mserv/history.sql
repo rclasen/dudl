@@ -49,10 +49,12 @@ RETURNS opaque AS  '
 DECLARE
 	file	RECORD;
 BEGIN
-	SELECT INTO file lastplay FROM stor_file WHERE id = new.file_id;
+	SELECT INTO file lastplay 
+		FROM stor_file 
+		WHERE id = new.file_id AND title NOTNULL;
 
 	IF NOT FOUND THEN
-		RAISE EXCEPTION ''no such file: %'', new.file_id;
+		RAISE EXCEPTION ''found no music file with id %'', new.file_id;
 	END IF;
 
 	IF file.lastplay > new.added THEN

@@ -17,8 +17,8 @@ FROM
 		INNER JOIN stor_unit u  
 		ON t.unit_id = u.id 
 WHERE 
-	t.title NOTNULL 
-	AND NOT t.broken;
+	title NOTNULL AND
+	NOT t.broken;
 
 GRANT SELECT ON mserv_track TO PUBLIC;
 GRANT all ON mserv_track TO GROUP dudl;

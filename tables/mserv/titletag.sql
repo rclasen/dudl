@@ -37,4 +37,11 @@ ALTER TABLE mserv_filetag
 			DEFERRABLE;
 
 
+-- check that it's a real file
+CREATE TRIGGER mserv_filetag__up
+AFTER INSERT OR UPDATE
+ON mserv_filetag FOR EACH ROW
+EXECUTE PROCEDURE mserv_check_file();
+
+
 COMMIT;

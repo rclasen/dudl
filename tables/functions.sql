@@ -44,3 +44,13 @@ BEGIN
 	return date_part(''epoch'', $1);
 END;
 ' LANGUAGE 'plpgsql';
+
+
+-- DROP FUNCTION time2unix(time);
+CREATE FUNCTION time2unix(TIME)
+RETURNS INTEGER
+AS '
+BEGIN
+	return date_part(''epoch'', $1);
+END;
+' LANGUAGE 'plpgsql';

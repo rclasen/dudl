@@ -40,4 +40,13 @@ ALTER TABLE mserv_queue
 			ON UPDATE CASCADE
 			DEFERRABLE;
 
+
+-- trigger to check file validity
+
+-- DROP TRIGGER mserv_queue__up ON mserv_queue;
+CREATE TRIGGER mserv_queue__up
+AFTER INSERT OR UPDATE
+ON mserv_queue FOR EACH ROW
+EXECUTE PROCEDURE mserv_check_file();
+ 
 COMMIT;
