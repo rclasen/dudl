@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_mushave.pl,v 1.7 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl_mushave.pl,v 1.8 2003-07-06 14:04:09 bj Exp $
 
 # search database
 
@@ -164,6 +164,7 @@ if( $want_album ){
 	$query = "SELECT DISTINCT
 		al.id,
 		al.album,
+		al.publish_date,
 		a.nname
 	FROM
 		mus_album al,
