@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: mkmserv.pl,v 1.8 2002-04-12 17:53:52 bj Exp $
+# $Id: mkmserv.pl,v 1.9 2002-04-18 19:28:09 bj Exp $
 
 # generate directory trees for mserv
 # - symlinks
@@ -101,12 +101,8 @@ SELECT
 	ti.nr, 
 	ti.title, 
 	tia.nname, 
-	ti.genres,
-	ti.random, 
-	trim(su.collection), 
-	su.colnum, 
-	fi.dir, 
-	fi.fname,
+	mserv_tags(ti.id) AS tags,
+	stor_filename(su.collection, su.colnum, fi.dir, fi.fname) as file,
 	date_part('epoch',fi.duration) AS dur
 FROM 
 	mus_album al,
@@ -145,12 +141,8 @@ my (
 	$ti_nr, 
 	$ti_title, 
 	$ti_artist, 
-	$ti_genres,
-	$ti_random, 
-	$su_col, 
-	$su_colnum, 
-	$fi_dir, 
-	$fi_fname,
+	$ti_tags,
+	$fi_name, 
 	$fi_dur,
 );
 $sth->bind_columns( \( 
@@ -160,12 +152,8 @@ $sth->bind_columns( \(
 	$ti_nr, 
 	$ti_title, 
 	$ti_artist, 
-	$ti_genres,
-	$ti_random, 
-	$su_col, 
-	$su_colnum, 
-	$fi_dir, 
-	$fi_fname,
+	$ti_tags,
+	$fi_name,
 	$fi_dur,
 ) );
 
@@ -225,24 +213,15 @@ while( defined $sth->fetch ){
 	$relpath = $basepath ."/". $relpath;
 
 	if( $want_sym ){
-		my $file = &Dudl::Unit::mkpath( $dudl->cdpath, 
-			$su_col, $su_colnum);
-		$file .= "/$fi_dir" if $fi_dir;
-		$file .= "/$fi_fname";
-
+		my $file = $dudl->cdpath . "/". $fi_name;
 		delete $sym{$relpath};
 		symlink $file, "$dir_sym/$relpath";
 	}
 
 	if( $want_nfo ){
-		if( $ti_random ){
-			$ti_genres .= "," if $ti_genres;
-			$ti_genres .= "random";
-		}
-
 		delete $nfo{"$relpath.trk"};
 		&title( "$dir_nfo/$relpath.trk", $ti_artist, $ti_title,
-			$ti_genres, $fi_dur );
+			$ti_tags, $fi_dur );
 	}
 
 }	
