@@ -32,8 +32,88 @@ BEGIN {
 use vars	@EXPORT_VAR;
 
 # non-exported package globals go here
+use vars '@regexps';
+@regexps = (
+	{
+		re	=> '\.--\.([^/]+)/([^/]+)\.--\.(\d+)_([^/]+)',
+		fields	=> &re_fields( qw( album artist titlenum title )),
+	},
+	{
+		re	=> '\([^/]+\) ([^/]+)/(\d+)[-_ .]*\[([^/]+)\][-_ .]*([^/]+)',
+		fields	=> &re_fields( qw( album titlenum artist title )),
+	},
+	{
+		re	=> '[_ .]-+[_ .]+([^/]+)/(\d+)[-_ .]*\(([^/]+)\)[-_ .]*([^/]+)',
+		fields	=> &re_fields( qw( album titlenum artist title )),
+	},
+	{
+		re	=> '(?:^|/)([^/]+) \(([^/]+) #(\d+)\) - ([^/]+)',
+		fields	=> &re_fields( qw( artist album titlenum title )),
+	},
+	{
+		re	=> '(?:[_ .]-+[_ .]+)?([^/]+)/(\d+)_([^/]+)\.--\.([^/]+)',
+		fields	=> &re_fields( qw( album titlenum artist title )),
+	},
+	{
+		re	=> '(?:[_ .]-+[_ .]+)?([^/]+)/([^/]+)\.--\.(\d+)_([^/]+)',
+		fields	=> &re_fields( qw( album artist titlenum title )),
+	},
+	{
+		re	=> '(?:[_ .]-+[_ .]+)?([^/]+)/(\d+)[-_ .]+([^/]+)[-_ .]+-[-_ .]+([^/])',
+		fields	=> &re_fields( qw( album titlenum artist title )),
+	},
+	{
+		re	=> '(?:[_ .]-+[_ .]+)?[^/]+/([^/]+)[-_ .]+-[-_ .]+([^/]+)-(\d+)-([^/]+)',
+		fields	=> &re_fields( qw( artist album titlenum title )),
+	},
+	{
+		re	=> '(?:[_ .]-+[_ .]+)?([^/]+)/([^/]+)[-_ .]+-[-_ .]+(\d+)[-_ .]+-[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( album artist titlenum title )),
+	},
+	{
+		re	=> '\(([^/]+)\) ([^/]+)/(\d+)[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( artist album titlenum title )),
+	},
+	{
+		re	=> '([^/]+)[_ .]-+[_ .]+([^/]+)/(\d+)[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( artist album titlenum title )),
+	},
+	{
+		re	=> '([^/]+)/(\d+)[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( album titlenum title )),
+	},
+	{
+		re	=> '\(([^/]+)\) ([^/]+)/([^/]+)',
+		fields	=> &re_fields( qw( artist album title )),
+	},
+	{
+		re	=> '-[-_ .]+([^/]+)/([^/]+)[-_ .]+-[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( album artist title )),
+	},
+	{
+		re	=> '([^/]+)/([^/]+)[-_ .]+-[-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( album artist title )),
+	},
+);
+
+foreach my $r ( 0..$#regexps ){
+	$regexps[$r]->{source} = "stored:$r";
+}
 
 # initialize package globals, first exported ones
+
+# map array to hash with index as value
+sub re_fields {
+	my $h = {};
+
+	foreach( 0..$#_ ){
+		next unless ( defined $_[$_] && $_[$_] );
+
+		$h->{$_[$_]} = $_;
+	}
+
+	return $h;
+}
 
 
 sub new {
@@ -44,14 +124,12 @@ sub new {
 
 	my $class	= ref($proto) || $proto;
 	my $self	= {
-		BASE		=> shift,
-		regexps		=> [],
 		sugs		=> [],
 		cur		=> 0,
 		};
 
 	bless $self, $class;
-	return $self->get_regexps;
+	return $self;
 }
 
 # move internal pointer back to start
@@ -231,77 +309,8 @@ sub add_stor {
 	my $self	= shift;
 	my $path	= shift;
 	
-	return $self->add_relist( $path, $self->{regexps} );
+	return $self->add_relist( $path, \@regexps );
 }
-
-# load regexps from database
-sub get_regexps {
-	my $self	= shift;
-
-	# TODO: move regexps from database to code
-	my $db = $self->{BASE}->db;
-	my $query = 
-		"SELECT ".
-			"id, ".
-			"regexp, ".
-			"fields, ".
-			"description ".
-		"FROM stor_export ".
-		"WHERE ".
-			"regexp NOTNULL ".
-		"ORDER BY ".
-			"priority ";
-	my $dbre = $db->prepare( $query );
-	if( ! $dbre ){
-		warn "query failed: ". $query ."\n". $db->errstr;
-		return undef;
-	}
-	if( ! $dbre->execute ){
-		warn "query failed: ". $query ."\n". $dbre->errstr;
-		return undef;
-	}
-
-	my $i = 0;
-	my(
-		$id,
-		$regexp,
-		$fields,
-		$desc
-		);
-	$dbre->bind_columns( \(
-		$id,
-		$regexp,
-		$fields,
-		$desc
-		));
-
-	while( $dbre->fetch ){
-		$regexp = "" unless defined $regexp;
-		$fields = "" unless defined $fields;
-
-		print STDERR "$id, $regexp, $fields\n" if $self->{debug};
-
-		$self->{regexps}[$i] = {
-			source	=> "stor_export:$id",
-			re	=> $regexp,
-			fields	=> {},
-			desc	=> $desc,
-			};
-
-		my @f = split /\s*,\s*/, $fields;
-		foreach( 0..$#f ){
-			next unless ( defined $f[$_] && $f[$_] );
-
-			$self->{regexps}[$i]{fields}{$f[$_]} = $_;
-		}
-
-		$i++;
-	}
-
-	$dbre->finish;
-	return $self;
-}
-
 
 
 1;
