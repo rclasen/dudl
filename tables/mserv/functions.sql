@@ -1,4 +1,4 @@
-BEGIN;
+-- BEGIN;
 
 
 -- DROP FUNCTION mserv_check_file();
@@ -99,7 +99,7 @@ END;
 CREATE FUNCTION mserv_tagged(integer, integer )
 RETURNS boolean AS '
 DECLARE
-	id integer;
+	id record;
 BEGIN
 	SELECT INTO id tag_id
 	FROM mserv_filetag 
@@ -169,4 +169,4 @@ BEGIN
 END;
 'LANGUAGE 'plpgsql';
 
-COMMIT;
+-- COMMIT;

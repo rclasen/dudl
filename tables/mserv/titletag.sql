@@ -38,6 +38,7 @@ ALTER TABLE mserv_filetag
 
 
 -- check that it's a real file
+-- DROP TRIGGER mserv_filetag__up ON mserv_filetag;
 CREATE TRIGGER mserv_filetag__up
 AFTER INSERT OR UPDATE
 ON mserv_filetag FOR EACH ROW
