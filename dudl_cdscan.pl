@@ -22,6 +22,7 @@ sub usage {
 	print " scan one CD mounted at <topdir> for mp3s\n";
  	print " get IDtag and add infos to database\n";
 	print " options:\n";
+	print "  --eject   open tray when done with CD\n";
 	print "  --unit    do not scan files\n";
 	print "  --mp3     scan mp3 information\n";
 	print "  --sum     calculate md5 sum\n";
@@ -29,11 +30,13 @@ sub usage {
 }
 
 
+my $opt_eject;
 my $opt_mp3;
 my $opt_sum;
 my $opt_unit;
 
 my $result = GetOptions(
+	"eject"		=> \$opt_eject,
 	"mp3!"		=> \$opt_mp3,
 	"sum!"		=> \$opt_sum,
 	"unit!"		=> \$opt_unit,
@@ -89,20 +92,40 @@ if( ! $dir ){
 
 $dir .= "/";
 $dir =~ s:/+:/:g;
-my $dlen = length($dir);
 
 print "going to scan ". ($#ARGV +1) ." CDs in \"". $dir ."\"\n";
 
 
 
+&cd_umount( $dev, 0 );
 
 foreach $disc ( @ARGV ){
+	&cd_mount( $dev, $disc );
+
+	&scan( $dev, $dir, $disc, ! $opt_unit );
+	$dudl->commit || die;
+
+	&cd_umount( $dev, $opt_eject );
+}
+
+$dudl->done;
+
+
+
+
+
+sub scan {
+	my $dev		= shift;
+	my $dir		= shift;
+	my $disc	= shift;
+	my $dofiles	= shift;
+
 	my $collection;
 	my $discid;
 
 	if( 2 != ( ( $collection, $discid ) = ($disc =~ m/(\D+)(\d+)/ ))){
 		print STDERR "invalid collection or id: $disc\n";
-		next;
+		return;
 	}
 
 
@@ -112,13 +135,6 @@ foreach $disc ( @ARGV ){
 	$unit->get_collection( $collection, $discid );
 
 	if( $dev ){
-		system( "/bin/umount", $dev );
-
-		do {
-			print "please insert disc \"$disc\" in $dev: ";
-			my $foo = <STDIN>;
-		} while( system( "/bin/mount", $dev ));
-
 		$unit->acquire( $dev );
 	}
 
@@ -134,54 +150,76 @@ foreach $disc ( @ARGV ){
 	}
 	print "unit id: ". $id ."\n";
 	
-	next if $opt_unit;
+
+
+	if( $dofiles ){
+		my $dlen = length($dir);
+		my $file = $unit->newfile;
+		$file->want( \@want );
+
+
+		print "searching for mp3s in \"$dir\"\n";
+		#@files = ();
+		#&finddepth(\&want_file, $dir );
+		@files = `find $dir -type f -iname \*.mp3`;
 
 
 
+		print "analyzing mp3s\n";
+		foreach (@files){
+			chomp;
 
-	print "searching for mp3s in \"$dir\"\n";
-	#@files = ();
-	#&finddepth(\&want_file, $dir );
-	@files = `find $dir -type f -iname \*.mp3`;
+			my $relpath = substr($_, $dlen );
+			print "$relpath ...";
 
-	print "analyzing mp3s\n";
-	my $file = $unit->newfile;
-	$file->want( \@want );
+			$file->get_path( $relpath );
+			if( ! $file->acquire( $dir, $relpath ) ){
+				die "cannot get file details";
+			}
 
-	my $errs = 0;
+			if( $file->id ){
+				print " updating";
+				$id = $file->update;
+			} else {
+				print " adding";
+				$id = $file->insert;
+			}
 
+			if( ! $id ){
+				die;
+			}
+			print " $id\n";
 
-	foreach (@files){
-		chomp;
-
-		my $relpath = substr($_, $dlen );
-		print "$relpath ...";
-
-		$file->get_path( $relpath );
-		if( ! $file->acquire( $dir, $relpath ) ){
-			die "cannot get file details";
+			$file->clean;
 		}
-
-		if( $file->id ){
-			print " updating";
-			$id = $file->update;
-		} else {
-			print " adding";
-			$id = $file->insert;
-		}
-
-		if( ! $id ){
-			die;
-		}
-		print " $id\n";
-
-		$file->clean;
 	}
-	$dudl->commit || die;
-
 }
 
-$dudl->done;
+sub cd_mount {
+	my $dev		= shift;
+	my $disc	= shift;
+
+	if( $dev ){
+		do {
+			print "please insert disc \"$disc\" in $dev: ";
+			my $foo = <STDIN>;
+		} while( system( "/bin/mount", $dev ));
+	}
+}
+
+sub cd_umount {
+	my $dev		= shift;
+	my $eject	= shift;
+
+	if( $dev ){
+		if( $eject ){
+			system( "eject", $dev );
+		} else {
+			system( "/bin/umount", $dev );
+		}
+	}
+}
+
 
 
 
