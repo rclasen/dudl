@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.11 2001-12-13 11:41:49 bj Exp $
+# $Id: Base.pm,v 1.12 2001-12-18 18:14:29 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
@@ -136,6 +136,28 @@ sub next {
 	return( $alb, $fil, $tit );
 }
 
+sub order {
+	my $self = shift;
+
+	foreach( @{$self->{all}} ){
+		&order_files( $_->{files} );
+	}
+}
+
+sub order_files {
+	my $files = shift;
+
+	@{$files} = sort {
+		if( ! @{$b->{titles}} ){
+			1;
+		} elsif( ! @{$a->{titles}} ){
+			-1;
+		} else {
+			$a->{titles}->[0]->{num} <=> $b->{titles}->[0]->{num};
+		}
+	} @{$files};
+}
+
 sub album {
 	my $self = shift;
 
@@ -173,8 +195,6 @@ sub title {
 
 	return $fil->{titles}[$self->{ctit}];
 }
-
-
 
 
 
@@ -496,6 +516,15 @@ sub title_key {
 		$self->title_group || $err++;
 
 		$cur->{$key} = $val;
+
+		foreach( @{$self->album->{files}} ){
+			if( exists $_->{titles} && @{$_->{titles}} && 
+			    $_->{titles}->[0]->{num} == $val ){
+				$self->bother( "duplicate titlenum" );
+				return;
+			}
+		}
+
 		return !$err;
 
 	} elsif( $key eq "name" ){
