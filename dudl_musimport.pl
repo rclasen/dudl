@@ -1,135 +1,35 @@
 #!/usr/bin/perl -w
 
-# add/modify music entries from template file
 
-# template (similar to mp3ren)
-#
-# album_artist		artist for this album (optional)
-# album_name		Album
-#
-#
-# file_id		database ID of file
-# track_id		database ID (only when found)
-#
-# track_num		Track number
-# track_name		Track name
-# track_artist		Artist
-# track_genres		genres (temporary till rating works)
-# track_random		include in random play?
-# 
+# add music entries from template file
+# TODO: modify
 
 use strict;
 use Dudl;
+use Dudl::Job::Music;
 
 my $dudl = new Dudl;
+my $job = new Dudl::Job::Music;
 
-my %nonempty = (
-	album_name	=> 1,
-	file_id		=> 1,
-	title_num	=> 1,
-	title_artist	=> 1,
-	title_name	=> 1,
-	);
-
-my %album = (
-	artist	=> undef,
-	name	=> undef,
-	);
-my %title = (
-	id	=> undef,
-	num	=> undef,
-	artist	=> undef,
-	name	=> undef,
-	genres	=> undef,
-	random	=> undef,
-	);
-my $file_id;
-my $album_id;
-
-my $state = "album";
-LINE: while(<>){
-	chomp;
-	s/^\s+//;
-	s/^#.*//;
-	s/\s+$//;
-	next if /^\s*$/;
-
-	my( $key, $group, $gkey, $val ) = /^((\S+)_(\S+))\s*(.*)/;
-
-	# TODO: use album_artist, when title_artist is empty
-
-	#print STDERR "$ARGV($.): $key=$val\n";
-	if( $nonempty{$key} && ! $val ){
-		die "$ARGV($.): empty value for key $key";
-	}
-
-	# continue title entry
-	if( ($group eq "title") && exists($title{$gkey}) ){
-
-		if( ! $file_id ){
-			die "$ARGV($.): title entry without file_id";
-		}
-
-
-		if( defined $title{$gkey} ){
-			die "$ARGV($.): duplicate entry for $key";
-		}
-
-		$title{$gkey} = $val;
-		next LINE;
-	}
-
-	# start a new file/title
-	if( $key eq "file_id" ){
-		if( ! $album_id ){
-			# either there was nothing or an album entry - try to
-			# save album
-			$album_id = &save_album( $dudl, \%album );
-		}
-
-		if( $file_id  ){
-			# previos entry was a file - save it
-			&save_title( $dudl, $album_id, $file_id, \%title );
-		}
-
-		$file_id = $val;
-		next LINE;
-	}
-
-	# continue album entry
-	if( ($group eq "album") && exists($album{$gkey}) ){
-
-		if( $file_id ){
-			# previos entry was for a file - save it
-			&save_title( $dudl, $album_id, $file_id, \%title );
-
-			$file_id = undef;
-			$album_id = undef;
-	
-		} elsif( $album_id ){
-			die "$ARGV($.): another album? the last one was empty!";
-		}
-
-		if( defined $album{$gkey} ){
-			die "$ARGV($.): duplicate entry for $key";
-		}
-
-		$album{$gkey} = $val;
-		next LINE;
-	}
-
-	die "$ARGV($.): invalid key";
+foreach my $f ( @ARGV ){
+	$job->read( $f ) || die "$!";
 }
 
-if( $file_id  ){
-	# previos entry was a file - save it
-	&save_title( $dudl, $album_id, $file_id, \%title );
-}
+while( my( $alb, $fil, $tit ) = $job->next ){
+	if( ! $alb->{id} ){
+		$alb->{id} = &save_album( $dudl, $alb );
+	}
 
-$dudl->commit();
+	&save_title( $dudl, $alb->{id}, $fil->{id}, $tit );
+}
+$dudl->rollback();
+#$dudl->commit();
 
 # cleanup
 $dudl->done();
+
+
+
 
 # search for artist
 # if found, return id
@@ -231,10 +131,6 @@ sub save_album {
 		die $db->errstr ."\nquery: $query\n";
 	}
 
-	foreach( keys %$hr ){
-		$hr->{$_} = undef;
-	}
-
 	return $aid;
 }
 
@@ -305,9 +201,5 @@ sub save_title {
 	$res = $db->do( $query );
 	if( $res != 1 ){
 		die $db->errstr ."\nquery: $query\n";
-	}
-
-	foreach( keys %$hr ){
-		$hr->{$_} = undef;
 	}
 }
