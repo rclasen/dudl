@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Suggester.pm,v 1.12 2001-12-18 12:31:53 bj Exp $
+# $Id: Suggester.pm,v 1.13 2001-12-18 18:15:40 bj Exp $
 
 package Dudl::Suggester;
 
@@ -96,11 +96,15 @@ use vars '@regexps';
 		fields	=> &re_fields( qw( album artist title )),
 	},
 	{
+		re	=> '\[(\d+)\][-_ .]+([^/]+)[-_ .][-_ .]+([^/]+)',
+		fields	=> &re_fields( qw( titlenum artist title )),
+	},
+	{
 		re	=> '(\d+)[-_ .]+([^/]+)',
 		fields	=> &re_fields( qw( titlenum title )),
 	},
 	{
-		re	=> '([^/]+)[-_ .]+([^/]+)[-_ .]+(\d+)[-_ .]+([^/]+)',
+		re	=> '([^/]+).+([^/]+)[-_ .]+(\d+)[-_ .]+([^/]+)',
 		fields	=> &re_fields( qw( artist album titlenum title )),
 	},
 );
@@ -274,7 +278,7 @@ sub add_regexp {
 	my $source	= shift;	# only comment
 
 	$path =~ s/\.(wav|mp3)$//i;
-	$re .= "\"" unless $re =~ /\$$/;
+	$re .= "\$" unless $re =~ /\$$/;
 	my @match = $path =~ m:$re:i;
 
 	return unless @match;
