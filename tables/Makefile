@@ -56,6 +56,13 @@ create+=mserv/tag
 create+=mserv/titletag
 mserv/titletag.create: mserv/tag.create music/title.create
 
+create+=mserv/user
+
+create+=mserv/history
+mserv/history.create: mserv/user.create music/title.create
+
+create+=mserv/queue
+mserv/queue.create: mserv/user.create music/title.create
 
 
 
