@@ -9,7 +9,7 @@ SELECT
 FROM 
 	mserv_track t
 		INNER JOIN mserv_hist h
-		ON h.title_id = t.id;
+		ON h.file_id = t.id;
 
 GRANT SELECT ON mserv_xhist TO PUBLIC;
 GRANT all ON mserv_xhist TO GROUP dudl;

@@ -2,37 +2,36 @@ BEGIN;
 
 -- n->m mapping of which tags are set for a title
 
-CREATE TABLE mserv_titletag (
+CREATE TABLE mserv_filetag (
 	tag_id		INTEGER NOT NULL ,
-	title_id	INTEGER NOT NULL
+	file_id		INTEGER NOT NULL
 );
 
-GRANT SELECT ON mserv_titletag TO PUBLIC;
-GRANT all ON mserv_titletag TO GROUP dudl;
+GRANT SELECT ON mserv_filetag TO PUBLIC;
+GRANT all ON mserv_filetag TO GROUP dudl;
 
 -- indices
 
-CREATE UNIQUE INDEX mserv_titletag__tag_title 
-	ON mserv_titletag(tag_id, title_id);
-CREATE INDEX mserv_titletag__mserv_tag
-	ON mserv_titletag(tag_id);
-CREATE INDEX mserv_titletag__mus_title
-	ON mserv_titletag(title_id);
+CREATE UNIQUE INDEX mserv_filetag__tag_file 
+	ON mserv_filetag(tag_id, file_id);
+CREATE INDEX mserv_filetag__mserv_tag
+	ON mserv_filetag(tag_id);
+CREATE INDEX mserv_filetag__stor_file
+	ON mserv_filetag(file_id);
 
 -- refererential integrity
 
-ALTER TABLE mserv_titletag
-	ADD CONSTRAINT ri__mserv_titletag__mserv_tag
+ALTER TABLE mserv_filetag
+	ADD CONSTRAINT ri__mserv_filetag__mserv_tag
 		FOREIGN KEY ( tag_id )
 		REFERENCES mserv_tag( id )
-			ON DELETE CASCADE
 			ON UPDATE CASCADE
 			DEFERRABLE;
 
-ALTER TABLE mserv_titletag
-	ADD CONSTRAINT ri__mserv_titletag__mus_title
-		FOREIGN KEY ( title_id )
-		REFERENCES mus_title( id )
+ALTER TABLE mserv_filetag
+	ADD CONSTRAINT ri__mserv_filetag__stor_file
+		FOREIGN KEY ( file_id )
+		REFERENCES stor_file( id )
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 			DEFERRABLE;

@@ -8,7 +8,7 @@ GRANT all ON mserv_queue_id_seq TO GROUP dudl;
 CREATE TABLE mserv_queue (
 	id		INTEGER NOT NULL
 			DEFAULT nextval('mserv_queue_id_seq'),
-	title_id	INTEGER NOT NULL,
+	file_id		INTEGER NOT NULL,
 	added		TIMESTAMP NOT NULL
 			DEFAULT CURRENT_TIMESTAMP,
 	user_id		INTEGER		-- who queued this track?
@@ -25,9 +25,9 @@ CREATE UNIQUE INDEX mserv_queue__id
 -- referential integrity
 
 ALTER TABLE mserv_queue
-	ADD CONSTRAINT ri__mserv_queue__mus_title
-		FOREIGN KEY ( title_id )
-		REFERENCES mus_title( id )
+	ADD CONSTRAINT ri__mserv_queue__stor_file
+		FOREIGN KEY ( file_id )
+		REFERENCES stor_file( id )
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 			DEFERRABLE;

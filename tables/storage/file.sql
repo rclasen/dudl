@@ -13,12 +13,11 @@ GRANT all ON stor_file_id_seq TO GROUP dudl;
 CREATE TABLE stor_file (
 	id		INTEGER NOT NULL
 			DEFAULT nextval('stor_file_id_seq'),
-	modified	TIMESTAMP,
 
 	------------------------------
 	-- information related to each file
 
-	unitid		INTEGER		-- -> ref
+	unit_id		INTEGER		-- -> ref
 			NOT NULL,
 
 	dir		VARCHAR(255)	-- directory on this unit
@@ -80,15 +79,30 @@ CREATE TABLE stor_file (
 	------------------------------
 	-- status
 
+	available	BOOLEAN,	-- file is readable
 	broken		BOOLEAN		-- is this file damaged?
 			NOT NULL 
 			DEFAULT 'false',
 	cmnt		TEXT,		-- Comment
 
 	------------------------------
-	-- linkage to music part of DB
+	-- music part of DB
 
-	titleid		INTEGER		-- -> ref
+	album_id	INTEGER,	-- -> ref
+	album_pos	INTEGER
+			CHECK( album_pos > 0 ),
+	title		VARCHAR(255),
+	artist_id	INTEGER		-- -> ref
+			DEFAULT 0
+			NOT NULL,
+
+	------------------------------
+	-- mserv data:
+
+	-- lastplay is updated automatically on update/insert in
+	-- mserv_hist. There is no need to update this column manually.
+	lastplay	TIMESTAMP NOT NULL	-- mserv: last time of play
+			DEFAULT '1970-1-1 0:0:0+0'
 
 );
 
@@ -100,30 +114,47 @@ GRANT all ON stor_file TO GROUP dudl;
 CREATE UNIQUE INDEX stor_file__id
 	ON stor_file(id);
 CREATE UNIQUE INDEX stor_file__unit_file
-	ON stor_file( unitid, dir, fname );
+	ON stor_file( unit_id, dir, fname );
+CREATE UNIQUE INDEX stor_file__album_pos
+	ON stor_file( album_id, album_pos );
 
+
+-- checking
+
+ALTER TABLE stor_file
+	ADD CONSTRAINT stor_file__mus
+		CHECK( (
+			album_id ISNULL AND 
+			album_pos ISNULL AND 
+			title ISNULL AND
+			artist_id = 0
+		) OR (
+			album_id NOTNULL AND 
+			album_pos NOTNULL AND 
+			title NOTNULL
+		));
+			
+			
 -- referential integrity
 
 ALTER TABLE stor_file
 	ADD CONSTRAINT ri__stor_file__stor_unit
-		FOREIGN KEY ( unitid )
+		FOREIGN KEY ( unit_id )
 		REFERENCES stor_unit(id)
 			DEFERRABLE;
 
 ALTER TABLE stor_file
-	ADD CONSTRAINT ri__stor_file__mus_title
-		FOREIGN KEY ( titleid )
-		REFERENCES mus_title(id)
-			ON DELETE SET NULL
+	ADD CONSTRAINT ri__stor_file__mus_album
+		FOREIGN KEY( album_id )
+		REFERENCES mus_album(id)
 			DEFERRABLE;
 
--- other trigger
+ALTER TABLE stor_file
+	ADD CONSTRAINT ri__stor_file__mus_artist
+		FOREIGN KEY( artist_id )
+		REFERENCES mus_artist(id)
+			DEFERRABLE;
 
-CREATE TRIGGER trigger_stor_file_modified
-BEFORE INSERT OR UPDATE 
-ON stor_file
-FOR EACH ROW
-EXECUTE PROCEDURE trigger_update_modified();
 
 
 

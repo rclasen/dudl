@@ -28,11 +28,11 @@ DECLARE
 BEGIN
 	FOR tag IN SELECT name 
 		FROM 
-			mserv_titletag tt 
+			mserv_filetag tt 
 				INNER JOIN mserv_tag ta
 				ON tt.tag_id = ta.id
 		WHERE
-			tt.title_id = $1
+			tt.file_id = $1
 		ORDER BY
 			ta.id
 	LOOP
@@ -56,9 +56,9 @@ DECLARE
 BEGIN
 	FOR tag IN SELECT tag_id AS id
 		FROM 
-			mserv_titletag tt 
+			mserv_filetag tt 
 		WHERE
-			tt.title_id = $1
+			tt.file_id = $1
 		ORDER BY
 			tt.tag_id
 	LOOP
@@ -81,8 +81,8 @@ DECLARE
 	id integer;
 BEGIN
 	SELECT INTO id tag_id
-	FROM mserv_titletag 
-	WHERE title_id = $1 AND tag_id = $2;
+	FROM mserv_filetag 
+	WHERE file_id = $1 AND tag_id = $2;
 
 	IF NOT FOUND THEN
 		RETURN 0;
@@ -111,7 +111,7 @@ BEGIN
 		RETURN 1;
 	END IF;
 
-	INSERT INTO mserv_titletag( title_id, tag_id )
+	INSERT INTO mserv_filetag( file_id, tag_id )
 	VALUES( $1, $2 );
 
 	RETURN 1;
@@ -132,8 +132,8 @@ END;
 CREATE FUNCTION mserv_del_tag( integer, integer )
 RETURNS boolean AS '
 BEGIN
-	DELETE FROM mserv_titletag 
-		WHERE title_id = $1 AND tag_id = $2;
+	DELETE FROM mserv_filetag 
+		WHERE file_id = $1 AND tag_id = $2;
 
 	RETURN 1;
 END;

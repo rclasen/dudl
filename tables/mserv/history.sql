@@ -8,7 +8,7 @@ GRANT all ON mserv_hist_id_seq TO GROUP dudl;
 CREATE TABLE mserv_hist (
 	id		INTEGER NOT NULL
 			DEFAULT nextval('mserv_hist_id_seq'),
-	title_id	INTEGER NOT NULL,
+	file_id		INTEGER NOT NULL,
 	added		TIMESTAMP NOT NULL
 			DEFAULT CURRENT_TIMESTAMP,
 	user_id		INTEGER		-- who queued this track?
@@ -25,9 +25,9 @@ CREATE UNIQUE INDEX mserv_hist__id
 -- referential integrity
 
 ALTER TABLE mserv_hist
-	ADD CONSTRAINT ri__mserv_hist__mus_title
-		FOREIGN KEY ( title_id )
-		REFERENCES mus_title( id )
+	ADD CONSTRAINT ri__mserv_hist__stor_file
+		FOREIGN KEY ( file_id )
+		REFERENCES stor_file( id )
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 			DEFERRABLE;
@@ -41,23 +41,27 @@ ALTER TABLE mserv_hist
 			DEFERRABLE;
 
 
--- trigger to update mus_title.lastplay on insert
+-- trigger to update stor_file.lastplay on insert
 
 -- DROP FUNCTION mserv_hist__up_lastplay();
 CREATE FUNCTION mserv_hist__up_lastplay()
 RETURNS opaque AS  '
 DECLARE
-	title	RECORD;
+	file	RECORD;
 BEGIN
-	SELECT INTO title lastplay FROM mus_title WHERE id = new.title_id;
+	SELECT INTO file lastplay FROM stor_file WHERE id = new.file_id;
 
-	IF title.lastplay > new.added THEN
-		RAISE NOTICE ''lastplay for title % is newer - no update'', 
-			new.title_id;
+	IF NOT FOUND THEN
+		RAISE EXCEPTION ''no such file: %'', new.file_id;
+	END IF;
+
+	IF file.lastplay > new.added THEN
+		RAISE NOTICE ''lastplay for file % is newer - no update'', 
+			new.file_id;
 		RETURN new;
 	END IF;
 
-	UPDATE mus_title SET lastplay = new.added WHERE id = new.title_id;
+	UPDATE stor_file SET lastplay = new.added WHERE id = new.file_id;
 
 	RETURN new;
 END;
