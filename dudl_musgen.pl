@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.10 2001-12-18 12:27:10 bj Exp $
+# $Id: dudl_musgen.pl,v 1.11 2001-12-20 13:12:20 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -78,6 +78,7 @@ if( ! $dir ){
 }
 
 $genre = shift || "";
+$genre = "" if $genre eq "-";
 
 if( $opt_afile =~ /\// ){
 	print STDERR "archive jobfile must be a basename\n";
@@ -146,6 +147,7 @@ $sth->bind_columns( \( $id, $fname,
 	$id_title, $id_artist, $id_album, $id_tracknum,
 	$titleid ) );
 
+my %album;
 my $nr = 0;
 while( defined $sth->fetch ){
 	my $path = ($dir ? $dir ."/" : "") .$fname;
@@ -175,10 +177,17 @@ while( defined $sth->fetch ){
 				artist		=> $tit->{artist},
 				titlenum	=> $tit->{num} || $nr,
 				title		=> $tit->{name},
+				genres		=> $tit->{genres},
+				cmt		=> $tit->{cmt},
+				random		=> $tit->{random},
 				album		=> $alb->{name},
 				source		=> "archive",
 				preference	=> 3,
 				);
+
+				$job->file->{encoder} = $tit->{encoder};
+				$job->file->{broken} = $tit->{broken};
+				$job->file->{cmt} = $tit->{cmt};
 				last;
 			}
 		}
@@ -204,6 +213,7 @@ while( defined $sth->fetch ){
 		$exp->add_stor( $path );
 	}
 
+
 	$exp->order;
 	my $sug;
 	my $sugnum = 0;
@@ -219,11 +229,29 @@ while( defined $sth->fetch ){
 			name	=> $sug->{title},
 			artist	=> $sug->{artist}, 
 			num	=> $sug->{titlenum} || $nr, 
-			genres	=> $genre);
+			genres	=> $genre || $sug->{genres} || "",
+			cmt	=> $sug->{cmt} || "",
+			random	=> exists($sug->{random}) ? $sug->{random} : 1,
+		);
+		$album{name}{$sug->{album}}++ if $sug->{album};
+		$album{artist}{$sug->{artist}}++ if $sug->{artist};
+
 		$sugnum ++;
 	}
 }	
 $sth->finish;
+
+@_ = sort { $b <=> $a } keys %{$album{name}};
+if( @_ && 3* $album{name}{$_[0]} >= scalar @_ ){
+	$job->album->{name} = $_[0];
+}
+
+@_ = sort { $b <=> $a } keys %{$album{artist}};
+if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
+	$job->album->{artist} = $_[0];
+}
+
+
 $job->write( \*STDOUT );
 
 # cleanup
