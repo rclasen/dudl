@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: DB.pm,v 1.1 2002-07-26 17:49:28 bj Exp $
+# $Id: DB.pm,v 1.2 2002-07-30 15:10:26 bj Exp $
 
 package Dudl::DB;
 
 use strict;
 use Carp;
-use DBI;
+use EzDBI;
 use Dudl::Config;
 use Dudl::Unit;
 use Dudl::File;
@@ -57,6 +57,7 @@ sub new {
 		db_name		=> "dudl",
 
 		# files
+		cdinfo		=> "/usr/local/bin/cdinfo",
 		cdpath		=> "/vol/cd/MP3",
 		);
 	return undef unless $self;
@@ -81,10 +82,15 @@ sub db {
 			$cmd .= ";host=". $self->conf("db_host"),
 		}
 
-		$self->{DB} = DBI->connect( $cmd,
+		$self->{DB} = EzDBI->connect( $cmd,
 			$self->conf("db_user"), 
-			$self->conf("db_pass"),
-			{ 'AutoCommit' => 0 }) ||
+			$self->conf("db_pass"), { 
+				'AutoCommit' => 0,
+				'RaiseError' => 1,
+				'ShowErrorStatement' => 1,
+				'FetchHashKeyName' => 'NAME_lc',
+				'ChopBlanks' => 1,
+			}) ||
 			croak $DBI::errstr;
 	}
 
