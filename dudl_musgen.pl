@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.12 2001-12-20 14:10:28 bj Exp $
+# $Id: dudl_musgen.pl,v 1.13 2002-04-18 19:53:58 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -179,7 +179,6 @@ while( defined $sth->fetch ){
 				title		=> $tit->{name},
 				genres		=> $tit->{genres},
 				cmt		=> $tit->{cmt},
-				random		=> $tit->{random},
 				album		=> $alb->{name},
 				source		=> "archive",
 				preference	=> 3,
@@ -231,7 +230,6 @@ while( defined $sth->fetch ){
 			num	=> $sug->{titlenum} || $nr, 
 			genres	=> $genre || $sug->{genres} || "",
 			cmt	=> $sug->{cmt} || "",
-			random	=> exists($sug->{random}) ? $sug->{random} : 1,
 		);
 		$album{name}{$sug->{album}}++ if $sug->{album};
 		$album{artist}{$sug->{artist}}++ if $sug->{artist};
