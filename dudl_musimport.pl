@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.5 2001-12-18 12:28:13 bj Exp $
+# $Id: dudl_musimport.pl,v 1.6 2002-04-18 21:28:19 bj Exp $
 
 
 # add music entries from template file
@@ -154,14 +154,7 @@ sub save_title {
 
 	my $nr = $db->quote( $hr->{num}, DBI::SQL_INTEGER );
 	my $title = $db->quote( $hr->{name}, DBI::SQL_CHAR );
-	my $genres = $db->quote( $hr->{genres}, DBI::SQL_CHAR );
 	# TODO: move default for random to SQL server
-	my $random;
-	if( defined $hr->{random} ){
-		$random = $hr->{random} ? "true" : "false";
-	}else {
-		$random = "true";
-	}
 
 	# first get a new id
 	my $query = "SELECT nextval('mus_title_id_seq')";
@@ -170,7 +163,7 @@ sub save_title {
 		die $db->errstr ."\nquery: $query\n";
 	}
 
-	print STDERR "adding title $tid: $albid,$nr\n";
+	print STDERR "adding title $tid: $albid,$nr";
 
 	# add new title with this id
 	$query =
@@ -179,17 +172,13 @@ sub save_title {
 			"album_id, ".
 			"nr, ".
 			"title, ".
-			"artist_id, ".
-			"genres, ".
-			"random ".
+			"artist_id ".
 		") VALUES ( ".
 			"$tid, ".
 			"$albid, ".
 			"$nr, ".
 			"$title, ".
-			"$aid, ".
-			"$genres, ".
-			"$random ".
+			"$aid ".
 		") ";
 	#print STDERR "save_title: ", $query, "\n";
 	my $res = $db->do( $query );
@@ -197,6 +186,7 @@ sub save_title {
 		die $db->errstr ."\nquery: $query\n";
 	}
 
+	&save_genres( $dudl, $tid, $hr->{genres} );
 
 	# update file
 	$query =
@@ -209,4 +199,66 @@ sub save_title {
 	if( $res != 1 ){
 		die $db->errstr ."\nquery: $query\n";
 	}
+
+	print STDERR ".\n";
 }
+
+
+sub save_genres {
+	my $dudl = shift;
+	my $tid = shift;
+	my $genres = shift;
+
+	my $db = $dudl->db;
+	my %genre;
+	my $num = 0;
+	foreach( split /\s*,\*/, $genres ){
+		$genre{lc $_} = 0;
+		$num++;
+	}
+
+	return unless $num;
+
+	my $query = "SELECT id, name FROM mserv_tag ".
+		"WHERE name IN( ".  join( ",", map { 
+			$db->quote($_,DBI::SQL_CHAR) ;
+		} keys %genre ) ." )";
+
+	my $sth = $db->prepare( $query );
+	if( ! $sth ){
+		die $db->errstr ."\nquery: $query\n";
+	}
+
+	if( ! $sth->execute ){
+		die $sth->errstr ."\nquery: $query\n";
+	}
+
+	my( $id, $name );
+	$sth->bind_columns( \( $id, $name ) );
+	while( defined $sth->fetch ){
+		$genre{$name} = $id;
+	}
+
+	$sth->finish;
+
+	$query = "INSERT INTO mserv_titletag ".
+		"(title_id, tag_id ) ".
+		"VALUES ($tid,?)";
+	$sth = $db->prepare( $query );
+	if( ! $sth ){
+		die $db->errstr ."\nquery: $query\n";
+	}
+
+	foreach( keys %genre ){
+		if( ! $genre{$_} ){
+			print STDERR "couldn't find genre '$_'\n";
+			exit 1;
+		}
+
+		print STDERR " ", $_, "(", $genre{$_}, ")";
+		if( ! $sth->execute( $genre{$_} )){
+			die $sth->errstr ."\nquery: $query\n";
+		}
+	}
+}
+
