@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.9 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl_musimport.pl,v 1.10 2004-08-28 13:24:31 bj Exp $
 
 
 # add music entries from template file
@@ -108,6 +108,8 @@ sub save_album {
 	my $hr		= shift;
 
 	my $artist = &get_artist( $dudl, $hr->{artist} );
+	my $year = $hr->{year} || 0;
+
 	my $db = $dudl->db;
 
 	# first get a new id
@@ -125,11 +127,13 @@ sub save_album {
 		"INSERT INTO mus_album ( ".
 			"id, ".
 			"album, ".
-			"artist_id ".
+			"artist_id, ".
+			"publish_date ".
 		") VALUES ( ".
 			"$aid, ".
 			"$album, ".
-			"$artist ".
+			"$artist, ".
+			"'$year-1-1' ".
 		") ";
 	my $res = $db->do( $query );
 	if( $res != 1 ){

@@ -9,6 +9,7 @@ SELECT
 	aa.nname		AS album_artist,
 	t.album_id,
 	a.album,
+	a.publish_date,
 	t.id,
 	t.album_pos		AS pos,
 	t.title,
