@@ -1,0 +1,200 @@
+#!/usr/bin/perl -w
+
+# $Id: dudl-muslinks,v 1.1 2002-08-03 09:45:32 bj Exp $
+
+# generate symlink farm with music information
+
+# TODO: move database access to unit
+# TODO: use ids for filenames
+
+use strict;
+use Getopt::Long;
+use Dudl::DB;
+
+my $opt_help = 0;
+my $opt_dir = "./tracks";
+my $needhelp = 0;
+
+if( ! GetOptions(
+	"help|h!"		=> \$opt_help,
+	"dir|d=s"		=> \$opt_dir,
+) ){
+	$needhelp ++;
+}
+
+if( $opt_help ){
+	print <<EOF;
+usage: $0 [opts]
+generate mserv directory trees
+ --dir <dir>               default: './tracks'
+ --help
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $dudl = Dudl::DB->new;
+my $db = $dudl->db;
+
+my %sym;
+if( ! -d $opt_dir ){
+	print "creating $opt_dir\n";
+	mkdir $opt_dir, 0777 || die "mkdir('$opt_dir'): $!";
+} else {
+	&find( $opt_dir, \%sym );
+}
+
+print "adding links ...\n";
+
+my $query = "
+SELECT 
+	ala.nname, 
+	al.album, 
+	fi.id, 
+	fi.album_pos, 
+	fi.title, 
+	tia.nname, 
+	mserv_tags(fi.id) AS tags,
+	stor_filename(su.collection, su.colnum, fi.dir, fi.fname) as file,
+	time2unix(fi.duration) AS dur
+FROM 
+	mus_album al 
+		INNER JOIN mus_artist ala
+		ON al.artist_id = ala.id 
+
+		INNER JOIN stor_file fi
+		ON al.id = fi.album_id 
+
+		INNER JOIN mus_artist tia
+		ON fi.artist_id = tia.id 
+
+		INNER JOIN stor_unit su
+		ON fi.unit_id = su.id 
+WHERE 
+	NOT fi.broken AND
+	fi.title NOTNULL
+ORDER by 
+	ala.nname, 
+	al.album,
+	fi.album_pos;
+";
+
+my $sth = $db->prepare( $query );
+if( ! $sth ){
+	die $db->errstr ."\nquery: $query\n";
+}
+
+my $res = $sth->execute;
+if( ! $res ){
+	die $sth->errstr ."\nquery: $query\n";
+}
+
+my (
+	$al_artist, 
+	$al_album, 
+	$fi_id, 
+	$fi_pos, 
+	$fi_title, 
+	$fi_artist, 
+	$fi_tags,
+	$fi_name, 
+	$fi_dur,
+);
+$sth->bind_columns( \( 
+	$al_artist, 
+	$al_album, 
+	$fi_id, 
+	$fi_pos, 
+	$fi_title, 
+	$fi_artist, 
+	$fi_tags,
+	$fi_name,
+	$fi_dur,
+) );
+
+my $old_apath = "";
+my $old_basepath = ""; 
+my $old_id = 0;
+
+while( defined $sth->fetch ){
+	my $apath = $al_artist;
+	$apath =~ s/\W+/./g;
+
+	if( $old_apath ne $apath ){
+		delete $sym{$apath};
+		mkdir "$opt_dir/$apath", 0777 ||
+			die "mkdir('$opt_dir/$apath'): $!";
+		$old_apath = $apath;
+	}
+
+	my $basepath = $al_album;
+	$basepath =~ s/\W+/./g;
+	$basepath = $apath ."/". $basepath;
+
+	if( $old_basepath ne $basepath ){
+		delete $sym{$basepath};
+		mkdir "$opt_dir/$basepath", 0777 ||
+			die "mkdir('$opt_dir/$basepath'): $!";
+		$old_basepath = $basepath;
+
+	} elsif( $old_id == $fi_id ){
+		# skip duplicate files for titles
+		next;
+
+	}
+	$old_id = $fi_id;
+
+	$fi_pos = sprintf "%02d", $fi_pos;
+
+	my $relpath = "$fi_pos.$fi_artist.$fi_title.mp3";
+	$relpath =~ s/\W+/./g;
+	$relpath = $basepath ."/". $relpath;
+
+	my $file = $dudl->conf("cdpath") . "/". $fi_name;
+	delete $sym{$relpath};
+	symlink $file, "$opt_dir/$relpath";
+}	
+
+$sth->finish;
+
+print "cleaning old stuff ...\n";
+&cleanup( $opt_dir, \%sym );
+
+exit 0;
+
+
+sub find {
+	my $dir = shift;
+	my $h = shift;
+
+	local *F;
+
+	%$h = ();
+
+	print "scanning $dir...\n";
+	open( F, "cd \"$dir\" && find . |" ) || die "find failed: $!";
+	while( <F> ){
+		chomp;
+		s/^\.\///;
+		$h->{$_} = 1;
+	}
+	close F;
+}
+
+sub cleanup {
+	my $dir = shift;
+	my $h = shift;
+
+	foreach my $k ( sort { $a cmp $b } keys %$h ){
+		my $p = $dir ."/". $k;
+		if( -d $p ){
+			rmdir( $p );
+		} else {
+			unlink( $p );
+		}
+	}
+}
