@@ -6,8 +6,11 @@ use strict;
 use Carp qw( :DEFAULT cluck );
 use DBI;
 use MPEG::MP3Info;
-use Mp3sum;
+use MP3::Offset;
+use MP3::Digest;
 use Dudl::Base;
+
+# TODO: move file analyzing to seperate file
 
 BEGIN {
 	use Exporter ();
@@ -314,17 +317,18 @@ sub acquire {
 	}
 
 	if( $self->{WANTGET}->{sum} ){
-		my $sum = Mp3sum->new;
-		if( ! $sum->scan( $path ) ){
+		my $os = new MP3::Offset( $path );
+		if( ! $os ){
 			warn "no sum";
 			return 0;
 		}
+		my $dg = new MP3::Digest( $os );
 
-		$self->{fsum}	= $sum->filedigest;
-		$self->{dsum}	= $sum->datadigest;
-		$self->{id3v1}	= $sum->id3v1 ? 't' : 'f';
-		$self->{id3v2}	= $sum->id3v2 ? 't' : 'f';
-		$self->{riff}	= $sum->riff ? 't' : 'f';
+		$self->{fsum}	= $dg->filedigest;
+		$self->{dsum}	= $dg->datadigest;
+		$self->{id3v1}	= $os->id3v1 ? 't' : 'f';
+		$self->{id3v2}	= $os->id3v2 ? 't' : 'f';
+		$self->{riff}	= $os->riff ? 't' : 'f';
 	}
 
 	return 1;
