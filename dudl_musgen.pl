@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# TODO: use Job::Archive for reading Job file
+
 # generate mus template for editing an adding
 
 # edit
@@ -8,24 +10,10 @@
 # - generate template
 
 
-# template (similar to mp3ren)
-#
-# album_artist		artist for this album (optional)
-# album_name		Album
-#
-#
-# file_id		database ID of file
-# title_id		database ID (only when found)
-#
-# title_num		Track number
-# title_name		Track name
-# title_artist		Artist
-# title_genres		genres (temporary till rating works)
-# 
-
 use strict;
 use Dudl;
 use Dudl::Suggester;
+use Dudl::Job::Music;
 
 my $dudl = new Dudl;
 
@@ -41,7 +29,7 @@ my $genre = shift || "";
 # TODO: use default genre
 
 
-my $opt_max = 10;
+my $opt_max = 1;
 my $opt_id = 1;
 
 my %lastsug = (
@@ -54,7 +42,8 @@ my %lastsug = (
 
 my $db = $dudl->db;
 my $exp = new Dudl::Suggester( $dudl );
-my $tpf = &tpl_open() || die "cannot open tempfile: $!";
+my $job = new Dudl::Job::Music;
+$job->add_album();
 
 # TODO: move database access to module
 my $query =
@@ -96,18 +85,24 @@ while( defined $sth->fetch ){
 	my $path = ($dir ? $dir ."/" : "") .$fname;
 
 	$nr ++;
+	$exp->clear();
+
+	$job->add_file( 
+		mp3	=> $path,
+		id	=> $id, 
+		);
 
 	if( $titleid ){
-		&tpl_ignore( $tpf, $path, $id, $titleid );
-		next;
+		# TODO: fetch data from mus_title
+		$exp->add( 
+			titleid => $titleid,
+		#	...
+			);
 	}
 
-	&tpl_file( $tpf, $path, $id, $titleid );
-
-	# TODO: current settings from mus_title
+	# TODO: try to find a match in mus_title
 
 
-	$exp->clear();
 
 	# suggest at least an empty one
 	$exp->add( source => "empty" );
@@ -131,92 +126,20 @@ while( defined $sth->fetch ){
 	my $sugnum = 0;
 	while( ( ! $opt_max || $sugnum < $opt_max ) && 
 	    defined ($sug = $exp->get) ){
-		&tpl_sug( $tpf, \%lastsug, 
-			$sug->{source} , 
-			$sug->{artist}, 
-			$sug->{titlenum} || $nr, 
-			$sug->{title},
-			$genre);
+	    	$job->add_title(
+			id	=> $sug->{titleid} || undef,
+			source	=> $sug->{source},
+			name	=> $sug->{title},
+			artist	=> $sug->{artist}, 
+			num	=> $sug->{titlenum} || $nr, 
+			genres	=> $genre);
 		$sugnum ++;
 	}
 }	
 $sth->finish;
+$job->write( \*STDOUT );
 
 # cleanup
-&tpl_close( $tpf );
-$tpf = undef;
 $dudl->done();
 
 
-
-
-
-
-# album_artist		artist for this album (optional)
-# album_name		Album
-sub tpl_open {
-	print "album_artist	\n";
-	print "album_name	\n";
-
-	return( \*STDOUT );
-}
-
-sub tpl_close {
-	my $fh = shift;
-
-	print $fh "# vi:syntax=dudlmus\n";
-	close( $fh );
-}
-
-sub tpl_cmt {
-	my $fh = shift;
-
-	print $fh "# ", @_, "\n";
-}
-
-sub tpl_ignore {
-	my $fh = shift;
-	my $path = shift;
-	my $storid = shift;
-	my $titleid = shift;
-
-	print $fh "\n";
-	print $fh "# already in mus_title: $path\n";
-	print $fh "# file_id		$storid\n";
-	print $fh "# title_id		$titleid\n";
-	print $fh "\n";
-}
-
-sub tpl_file {
-	my $fh = shift;
-	my $path = shift;
-	my $storid = shift;
-	my $titleid = shift;
-
-	print $fh "\n";
-	print $fh "# $path\n";
-	print $fh "file_id		$storid\n";
-	print $fh "\n";
-}
-
-
-# title_num		Track number
-# title_name		Track name
-# title_artist		Artist
-# title_genres		genres (temporary till rating works)
-sub tpl_sug {
-	my $fh = shift;
-	my $l = shift;
-	my $cmt = shift;
-	my $artist = shift;
-	my $tnum = shift;
-	my $title = shift;
-	my $genre = shift || "";
-
-	print $fh "# sug: $cmt\n";
-	print $fh "title_num	$tnum\n";
-	print $fh "title_name	$title\n";
-	print $fh "title_artist	$artist\n";
-	print $fh "title_genres	$genre\n";
-	print $fh "\n";
-}
