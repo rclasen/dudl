@@ -164,7 +164,8 @@ sub head_riff {
 				$hlen += $len;
 			};
 		
-			return $hlen;
+			# HACK: ignore too large RIFF headers
+			return $hlen if $hlen < 600000;
 		}
 	}
 
@@ -216,6 +217,9 @@ sub scan {
 	my $skipped;
 
 	# count junk at beginning ...
+	#
+	# TODO: search real mp3 data instead of known junk.
+	# see MP3::Info on how to recognize a MP3 Data.
 	do {
 		my $skip;
 
