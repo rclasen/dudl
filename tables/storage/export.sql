@@ -1,5 +1,8 @@
 BEGIN;
 
+-- TODO: move regexps to Dudl::StorExport module
+-- TODO: kill this table
+
 ------------------------------------------------------------
 --
 -- stor_export
@@ -86,6 +89,11 @@ INSERT INTO stor_export ( description, regexp, fields) VALUES (
         'album,titlenum,artist,title');
 
 
+-- fehlt noch:
+INSERT INTO stor_export ( description, regexp, fields) VALUES (
+	'Regexp: ^|/)artist (album #01) title',
+	'(^|/)([^/]+) \\(([^/]+) #([0-9]+)\\) - ([^/]+)',
+	',artist,album,titlenum,title');
 
 
 
