@@ -91,14 +91,14 @@ while( defined $sth->fetch ){
 	# TODO: current settings from mus_title
 
 	# suggest idtag
-	&tpl_cmt( $tpf, "IDtag" );
+	&tpl_cmt( $tpf, "sug: IDtag" );
 	&tpl_sug( $tpf, $id_artist, $id_tracknum, $id_title, $id_genre );
 
 	# suggest each regexp
 	$exp->rewind();
 	my $sug;
 	while( defined ($sug = $exp->suggest( $dir, $fname )) ){
-		&tpl_cmt( $tpf, "export id=", $exp->id );
+		&tpl_cmt( $tpf, "sug: export id=", $exp->id );
 		&tpl_sug( $tpf,
 			$sug->{artist}, 
 			$sug->{titlenum}, 
@@ -170,10 +170,12 @@ sub tpl_file {
 # title_genres		genres (temporary till rating works)
 sub tpl_sug {
 	my $fh = shift;
-	my $artist = shift || "";
-	my $tnum = shift || "";
-	my $title = shift || "";
-	my $genre = shift || "";
+	my $artist = lc shift || "";
+	my $tnum = lc shift || "";
+	my $title = lc shift || "";
+	my $genre = lc shift || "";
+
+	$title =~ s/\bi\b/I/g;
 
 	print $fh "title_num	$tnum\n";
 	print $fh "title_name	$title\n";
