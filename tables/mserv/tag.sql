@@ -21,6 +21,6 @@ GRANT all ON mserv_tag TO GROUP dudl;
 CREATE UNIQUE INDEX mserv_tag__id 
 	ON mserv_tag(id);
 CREATE UNIQUE INDEX mserv_tag__name 
-	ON mserv_tag(name);
+	ON mserv_tag( lower(name) );
 
 COMMIT;
