@@ -242,11 +242,13 @@ sub path {
 
 	if( defined $path ){
 		$path =~ /((.*)\/)?([^\/]+)$/;
-		$self->{dir} = $2;
+		$self->{dir} = ( defined $2 && length $2 ) ? $2 : '';
 		$self->{fname} = $3;
 	}
 
-	return (defined($self->{dir}) ? ($self->{dir}."/") : "" ). $self->{fname};
+	return (length($self->{dir}) ? 
+		($self->{dir}."/") : 
+		"" ). $self->{fname};
 }
 
 # fill in wanted information from specified file
@@ -277,22 +279,21 @@ sub acquire {
 	
 	if( $self->{WANTGET}->{info} ){
 		my $info = get_mp3info( $path );
-		if( ! $info ){
+		if( $info ){
+			$self->{duration}	= (int($$info{"MM"} / 60) .":". 
+					($$info{"MM"} % 60) .":".  
+					$$info{"SS"});
+			$self->{channels}	= ($$info{"STEREO"} ? 2 : 1);
+			$self->{freq}		= 1000 * $$info{"FREQUENCY"};
+			$self->{bits}		= 16;
+			$self->{mpeg_ver}	= $$info{"VERSION"};
+			$self->{mpeg_lay}	= $$info{"LAYER"};
+			$self->{mpeg_mode}	= $$info{"MODE"};
+			$self->{mpeg_brate}	= 1000 * $$info{"BITRATE"};
+			$self->{vbr}		= $$info{"VBR"} ? 't' : 'f';
+		} else {
 			warn "no info";
-			#return 0;
 		}
-
-		$self->{duration}	= (int($$info{"MM"} / 60) .":". 
-				($$info{"MM"} % 60) .":".  
-				$$info{"SS"});
-		$self->{channels}	= ($$info{"STEREO"} ? 2 : 1);
-		$self->{freq}		= 1000 * $$info{"FREQUENCY"};
-		$self->{bits}		= 16;
-		$self->{mpeg_ver}	= $$info{"VERSION"};
-		$self->{mpeg_lay}	= $$info{"LAYER"};
-		$self->{mpeg_mode}	= $$info{"MODE"};
-		$self->{mpeg_brate}	= 1000 * $$info{"BITRATE"};
-		$self->{vbr}		= $$info{"VBR"} ? 't' : 'f';
 	}
 
 	if( $self->{WANTGET}->{tag} ){
@@ -308,7 +309,9 @@ sub acquire {
 		if( ! $self->{id_tracknum} ){
 			$self->{id_tracknum} = 0;
 		}
-		$self->{id_year}	= $$tag{"YEAR"};
+		if( $$tag{"YEAR"} && $$tag{"YEAR"} =~ /^\d+$/ ){
+			$self->{id_year}	= $$tag{"YEAR"};
+		}
 		if( ! $self->{id_year} ){
 			$self->{id_year} = 0;
 		}
@@ -359,6 +362,10 @@ sub get {
 		return undef;
 	}
 
+	if( $prep->rows > 1 ){
+		croak "found more than a single result";
+	}
+
 	if( $prep->rows != 1 ){
 		return undef;
 	}
@@ -399,11 +406,12 @@ sub get_path {
 	}
 
 	my $sql = $self->mksql( [qw{ unitid dir fname }] );
-	return $self->get( 
-			"unitid = ". $sql->{unitid} ." AND ".
-			"dir = ". $sql->{dir} ." AND ".
-			"fname = ".  $sql->{fname}
-			); 
+
+	my $q = "unitid = ". $sql->{unitid} ." AND ".
+		"fname = ".  $sql->{fname} ." AND ".;
+		"dir = ". $sql->{dir};
+
+	return $self->get( $q );
 }
 
 
