@@ -94,9 +94,9 @@ read junk <&6
 while read tit fil genre unitid dir <&6 ; do
 	if [ $tit -eq 0 ]; then
 		echo "processing $dir" >&2
-		do_dir "$@" $unitid $dir $genre || exit 1
+		do_dir "$@" "$unitid" "$dir" "$genre" || exit 1
 	else
-		echo "skipping non-virgin $dir" >&2
+		echo "skipping non-virgin '$dir'" >&2
 	fi
 done
 
