@@ -84,4 +84,13 @@ sub write_file {
 	$self->SUPER::write_file( $fh, $fil );
 }
 
+sub write_title {
+	my $self = shift;
+	my $fh = shift;
+	my $tit = shift;
+
+	print $fh "# sug: ". $tit->{source} ."\n" if $tit->{source};
+	$self->SUPER::write_title( $fh, $tit );
+}
+
 1;
