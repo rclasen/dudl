@@ -44,8 +44,8 @@ sub new {
 	my $class	= ref($proto) || $proto;
 	my $self	= {
 		DBHOST		=> "",
-		DBUSER		=> "dudl",
-		DBPASS		=> "dudl",
+		DBUSER		=> "reader",
+		DBPASS		=> "reader",
 		DBNAME		=> "dudl",
 		CDPATH		=> "/vol/cd/MP3",
 		RCFILES		=> [ 
