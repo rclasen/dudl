@@ -16,11 +16,13 @@ bins	:= \
 	dudl_status.pl \
 	mkmserv.pl \
 	mp3sum.pl
+other	:= \
+	README
 
 all:
 
 dist:
-	tar -cf ../Dudl.tar Makefile $(libs) $(bins)
+	tar -czf ../Dudl.tgz Makefile $(other) $(libs) $(bins)
 
 install: install-bin install-lib
 
