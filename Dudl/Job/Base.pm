@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.17 2001-12-25 10:36:24 bj Exp $
+# $Id: Base.pm,v 1.18 2002-04-18 21:28:50 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
@@ -23,7 +23,7 @@
 #  name		+	+	+	+	+
 #  artist	+	+	+	+	+
 #  genres	?	?	?	?	?
-#  random	?	?	?	?	?
+#  random	?	?	?	?	? - discouraged
 #  cmt		?	?	?	?	?
 #  year		?	?	?	?	?
 #  id		-	-	-	-	*
@@ -505,6 +505,14 @@ sub title_valid {
 
 	my $cur = $self->{title};
 	my $err = 0;
+
+	my $random = exists( $cur->{random} ) ? $cur->{random} : 1;
+	if( ! $random ){
+		$cur->{genres} .= "," if $cur->{genres};
+		$cur->{gernes} .= "norandom";
+	}
+	delete $cur->{random};
+
 	if( ! $cur->{num} ){
 		$self->bother( "missing title number");
 		$err++;
@@ -633,14 +641,11 @@ sub write_title {
 	my $fh = shift;
 	my $tit = shift;
 
-	my $random = exists( $tit->{random} ) ? $tit->{random} : 1;
-
 	print $fh 
 		"title_num	", ($tit->{num} || 0) ,"\n",
 		"title_name	", ($tit->{name} || "") ,"\n",
 		"title_artist	", ($tit->{artist} || "") ,"\n",
 		"title_genres	", ($tit->{genres} || "") ,"\n",
-		"title_random	", $random ,"\n",
 		"title_cmt	", ($tit->{cmt} || "") ,"\n",
 		;
 }
