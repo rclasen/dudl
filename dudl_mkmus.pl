@@ -29,8 +29,8 @@ use Dudl::StorExport;
 
 my $dudl = new Dudl;
 
-my $unitid = shift;
-my $dir = shift;
+my $unitid = shift || die "need a unit ID";
+my $dir = shift || die "need a directory";
 my $genre = shift || "";
 
 # TODO: check arguments
@@ -40,6 +40,9 @@ my $genre = shift || "";
 # TODO: optionally only use idtag or certain regexp IDs
 # TODO: use default genre
 
+
+my $opt_max = 1;
+my $opt_id = 1;
 
 my %lastsug = (
 	title	=> "",
@@ -66,7 +69,9 @@ my $query =
 	"FROM stor_file ".
 	"WHERE ".
 		"unitid = $unitid AND ".
-		"dir ='$dir'";
+		"dir = ". $db->quote( $dir, DBI::SQL_CHAR ) ." ".
+	"ORDER BY ".
+		"fname";
 
 my $sth = $db->prepare( $query );
 if( ! $sth ){
@@ -86,8 +91,11 @@ $sth->bind_columns( \( $id, $fname,
 	$id_title, $id_artist, $id_album, $id_tracknum,
 	$titleid ) );
 
+my $nr = 0;
 while( defined $sth->fetch ){
 	my $path = ($dir ? $dir ."/" : "") .$fname;
+
+	$nr ++;
 
 	if( $titleid ){
 		&tpl_ignore( $tpf, $path, $id, $titleid );
@@ -98,19 +106,31 @@ while( defined $sth->fetch ){
 
 	# TODO: current settings from mus_title
 
+	my $sugs = 0;
+
 	# suggest idtag
-	&tpl_sug( $tpf, \%lastsug, "IDtag", 
-		$id_artist, $id_tracknum, $id_title, $genre );
+	if( $opt_id ){
+		$sugs += &tpl_sug( $tpf, \%lastsug, "IDtag", 
+			$id_artist, $id_tracknum || $nr, $id_title, $genre );
+	}
 
 	# suggest each regexp
 	$exp->rewind();
 	my $sug;
-	while( defined ($sug = $exp->suggest( $dir, $fname )) ){
-		&tpl_sug( $tpf, \%lastsug, "export id=". $exp->id , 
+	while( ( ! $opt_max || $sugs < $opt_max ) && 
+	    defined ($sug = $exp->suggest( $dir, $fname )) ){
+		$sugs += &tpl_sug( $tpf, \%lastsug, 
+			"export id=". $exp->id , 
 			$sug->{artist}, 
-			$sug->{titlenum}, 
+			$sug->{titlenum} || $nr, 
 			$sug->{title},
 			$genre);
+	}
+	if( ! $sugs ){
+		$lastsug{genre} = $genre;
+		$lastsug{title} = $fname;
+		$lastsug{tnum} = $nr;
+		&tpl_print( $tpf, "", \%lastsug );
 	}
 }	
 $sth->finish;
@@ -200,13 +220,22 @@ sub tpl_sug {
 		$l->{title} = $title;
 		$l->{genre} = $genre;
 
-		print $fh "# sug: $cmt\n";
-		print $fh "title_num	$tnum\n";
-		print $fh "title_name	$title\n";
-		print $fh "title_artist	$artist\n";
-		print $fh "title_genres	$genre\n";
-		print $fh "\n";
+		&tpl_print( $fh, $cmt, $l );
+
+		return 1;
 	}
+	return 0;
 }
 
+sub tpl_print {
+	my $fh = shift;
+	my $cmt = shift;
+	my $l = shift;
 
+	print $fh "# sug: $cmt\n";
+	print $fh "title_num	$l->{tnum}\n";
+	print $fh "title_name	$l->{title}\n";
+	print $fh "title_artist	$l->{artist}\n";
+	print $fh "title_genres	$l->{genre}\n";
+	print $fh "\n";
+}
