@@ -8,7 +8,7 @@ DECLARE
 BEGIN
 	SELECT INTO tag id 
 	FROM mserv_tag
-	WHERE name = $1;
+	WHERE name = lower($1);
 
 	IF NOT FOUND THEN
 		RAISE EXCEPTION ''tag not found: %'', $1;
