@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rename.pl,v 1.6 2001-12-13 16:38:21 bj Exp $
+# $Id: dudl_rename.pl,v 1.7 2001-12-18 18:12:29 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -81,6 +81,7 @@ my $job = new Dudl::Job::Rename;
 foreach my $f ( @ARGV ){
 	$job->read( $f ) || die "error: $!";
 }
+$job->order;
 
 
 if( $opt_info && ! &gen_info( $job ) ){
@@ -119,7 +120,7 @@ sub write_info {
 
 	if( $out->album ){
 		my $dir = &gen_dirname( $out->album );
-		print STDERR "generate archive jobfile in $dir\n";
+		print STDERR "generate archive jobfile in $dir ...\n";
 
 		&make_dir( $dir ) || die "cannot mkdir: $!";
 		local *OUT;
@@ -167,10 +168,36 @@ sub gen_info {
 sub copy {
 	my $in = shift;
 
-	$in->rewind;
 
+	$in->rewind;
+	my $oalb;
+	my $onum;
+	my $err = 0;
 	while( my($alb,$fil,$tit) = $in->next ){
+		if( !defined($oalb) || $oalb != $alb ){
+			print STDERR "copying album ", $alb->{name}, " ...\n";
+			$oalb = $alb;
+			$onum = 0;
+		}
+		if( ++$onum != $tit->{num} ){
+			warn "unexpected title number: ", $tit->{num};
+			$err++;
+		}
+		$onum = $tit->{num};
+
 		&copy_file( $fil->{mp3}, $alb, $tit ) || return;
+	}
+
+	return 1 unless $opt_delete;
+
+	if( $err ){
+		warn "warnings found, not deleting input files";
+		return 1;
+	}
+
+	$in->rewind;
+	while( my($alb,$fil,$tit) = $in->next ){
+		unlink( $fil->{mp3} ) || warn "unlink failed: $!";
 	}
 
 	return 1;
@@ -180,6 +207,8 @@ sub copy_file {
 	my $ifile = shift;
 	my $album = shift;
 	my $title = shift;
+
+	printf STDERR " %2d ". $ifile, $title->{num};
 
 	my $dir = &gen_dirname( $album );
 	&make_dir( $dir ) || die "mkdir failed: $!";
@@ -216,10 +245,7 @@ sub copy_file {
 			die "cannot write id3v2 tag";
 	}
 
-	if( $opt_delete ){
-		unlink( $ifile ) || warn "unlink failed: $!";
-	}
-
+	print "\n";
 	return 1;
 }
 
