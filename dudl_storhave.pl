@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_storhave.pl,v 1.5 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_storhave.pl,v 1.6 2002-07-26 17:49:25 bj Exp $
 
 use strict;
-use Dudl;
+use Dudl::DB;
 
 my @attribs = qw( dir fname );
 my $filesql = "TRIM( both ' ' FROM collection ) || ".
@@ -12,7 +12,7 @@ my $filesql = "TRIM( both ' ' FROM collection ) || ".
 my $what=lc shift || die "missing 'what' argument: any|file|sql|..";
 my $pattern = join( " ", @ARGV ) || die "missing pattern";
 
-my $dudl = Dudl->new;
+my $dudl = Dudl::DB->new;
 my $db = $dudl->db;
 
 $pattern = $db->quote( $pattern, DBI::SQL_CHAR );
@@ -97,8 +97,6 @@ while( defined $sth->fetch ){
 		$dir, ($dir ? "/" : ""), $fname, "\n";
 }	
 $sth->finish;
-
-$dudl->done();
 
 
 

@@ -1,11 +1,14 @@
 #!/usr/bin/perl -w
 
-# $Id: test_job.pl,v 1.2 2001-12-13 11:41:48 bj Exp $
+# $Id: test_job.pl,v 1.3 2002-07-26 17:49:25 bj Exp $
 
 use strict;
+use Dudl::Config;
 use Dudl::Job::Rename;
 
-my $j = new Dudl::Job::Rename;
+my $dudl = new Dudl::Config;
+
+my $j = new Dudl::Job::Rename( naming => $dudl->naming );
 foreach( @ARGV ){
 	$j->read( $_ );
 }

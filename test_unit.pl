@@ -1,10 +1,10 @@
 #! /usr/bin/perl -w
 
-# $Id: test_unit.pl,v 1.2 2001-12-13 11:41:48 bj Exp $
+# $Id: test_unit.pl,v 1.3 2002-07-26 17:49:25 bj Exp $
 
 
 use strict;
-use Dudl::Base;
+use Dudl::DB;
 use Dudl::Unit;
 
 sub show {
@@ -17,7 +17,7 @@ sub show {
 	print "size:       ", $unit->size, "\n";
 }
 
-my $dudl = Dudl::Base->new;
+my $dudl = Dudl::DB->new;
 my $unit = Dudl::Unit->new( $dudl );
 
 
@@ -37,5 +37,4 @@ $unit->collection("test");
 $unit->colnum(0);
 $unit->insert;
 
-$dudl->done;
 

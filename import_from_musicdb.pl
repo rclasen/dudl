@@ -1,15 +1,15 @@
 #!/usr/bin/perl -w
 
-# $Id: import_from_musicdb.pl,v 1.3 2001-12-13 11:41:48 bj Exp $
+# $Id: import_from_musicdb.pl,v 1.4 2002-07-26 17:49:25 bj Exp $
 
 use strict;
-use Dudl;
+use Dudl::DB;
 
 print STDERR "this script shouldn't be needed anymore\n";
 exit 0;
 
 my @want = ( qw{ UNITID DIR FNAME } );
-my $dudl = Dudl->new;
+my $dudl = Dudl::DB->new;
 
 my %units;
 
@@ -51,4 +51,3 @@ while(<>){
 	}
 }
 
-$dudl->done;

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.9 2002-07-25 10:36:46 bj Exp $
+# $Id: File.pm,v 1.10 2002-07-26 17:49:28 bj Exp $
 
 package Dudl::File;
 
@@ -10,7 +10,6 @@ use DBI;
 use MP3::Info;
 use MP3::Offset;
 use MP3::Digest;
-use Dudl::Base;
 
 # TODO: move file analyzing to seperate file
 

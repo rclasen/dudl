@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: mkmserv.pl,v 1.10 2002-04-28 11:54:59 bj Exp $
+# $Id: mkmserv.pl,v 1.11 2002-07-26 17:49:25 bj Exp $
 
 # generate directory trees for mserv
 # - symlinks
@@ -11,7 +11,7 @@
 
 use strict;
 use Getopt::Long;
-use Dudl;
+use Dudl::DB;
 use Dudl::Unit;
 
 my $opt_help = 0;
@@ -70,7 +70,7 @@ if( $needhelp ){
 	exit 1;
 }
 
-my $dudl = Dudl->new;
+my $dudl = Dudl::DB->new;
 my $db = $dudl->db;
 
 my %sym;
@@ -215,7 +215,7 @@ while( defined $sth->fetch ){
 	$relpath = $basepath ."/". $relpath;
 
 	if( $want_sym ){
-		my $file = $dudl->cdpath . "/". $fi_name;
+		my $file = $dudl->conf("cdpath") . "/". $fi_name;
 		delete $sym{$relpath};
 		symlink $file, "$dir_sym/$relpath";
 	}
@@ -229,7 +229,6 @@ while( defined $sth->fetch ){
 }	
 
 $sth->finish;
-$dudl->done();
 
 print "cleaning old stuff ...\n";
 

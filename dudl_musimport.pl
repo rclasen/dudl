@@ -1,17 +1,17 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.8 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_musimport.pl,v 1.9 2002-07-26 17:49:25 bj Exp $
 
 
 # add music entries from template file
 # TODO: modify
 
 use strict;
-use Dudl;
+use Dudl::DB;
 use Dudl::Job::Music;
 
-my $dudl = new Dudl;
-my $job = new Dudl::Job::Music;
+my $dudl = new Dudl::DB;
+my $job = new Dudl::Job::Music( naming => $dudl->naming );
 
 if( 0 == scalar @ARGV ){
 	die "need at least one input file";
@@ -32,8 +32,6 @@ while( my( $alb, $fil, $tit ) = $job->next ){
 #$dudl->rollback();
 $dudl->commit();
 
-# cleanup
-$dudl->done();
 
 
 

@@ -1,15 +1,15 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_dupes.pl,v 1.6 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_dupes.pl,v 1.7 2002-07-26 17:49:25 bj Exp $
 
 # find duplicate files using their stored md5sums
 
 # TODO: move database access to module
 
 use strict;
-use Dudl;
+use Dudl::DB;
 
-my $dudl = Dudl->new;
+my $dudl = new Dudl::DB;
 
 sub run {
 	my $db		= shift;
@@ -76,4 +76,3 @@ print "\nduplicates by file:\n";
 print "\nduplicates by data:\n";
 &run( $dudl->db, "dsum" );
 
-$dudl->done;

@@ -1,16 +1,16 @@
 #!/usr/bin/perl -w
 
-# $Id: checkfiles.pl,v 1.1 2002-07-25 10:38:53 bj Exp $
+# $Id: checkfiles.pl,v 1.2 2002-07-26 17:49:25 bj Exp $
 
 # delete bogus entries from database
 
 use strict;
-use Dudl;
+use Dudl::DB;
 
 print STDERR "this file is too dangerous!!";
 exit 0;
 
-my $dudl = new Dudl;
+my $dudl = new Dudl::DB;
 
 my $query = 
 "SELECT ".
@@ -97,5 +97,4 @@ if( ! $res ){
 $db->commit;
 
 
-$dudl->done();
 

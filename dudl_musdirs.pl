@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musdirs.pl,v 1.5 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_musdirs.pl,v 1.6 2002-07-26 17:49:25 bj Exp $
 
 # list directories of a unit
 
@@ -8,9 +8,9 @@
 # show if all/some files in directory have links in mus_
 
 use strict;
-use Dudl;
+use Dudl::DB;
 
-my $dudl = Dudl->new;
+my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
 my $unitname = shift || die "need a unit name";
@@ -54,5 +54,4 @@ while( defined $sth->fetch ){
 }	
 $sth->finish;
 
-$dudl->done();
 

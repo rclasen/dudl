@@ -1,12 +1,13 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl_cdscan.pl,v 1.7 2001-12-18 18:11:23 bj Exp $
+# $Id: dudl_cdscan.pl,v 1.8 2002-07-26 17:49:25 bj Exp $
 
 
 use strict;
 use File::Find;
 use Getopt::Long;
-use Dudl;
+use Dudl::DB;
+use Dudl::Misc;
 
 # Dudl::File elements to update
 my @want;
@@ -90,15 +91,14 @@ if( ! @ARGV ){
 }
 
 	
-my $dudl = Dudl->new;
+my $dudl = new Dudl::DB;
 
-( $dev, $dir ) = $dudl->get_fstab( $cd );
+( $dev, $dir ) = get_fstab( $cd );
 if( ! $dir ){
 	$dir = $cd;
 	if( $#ARGV > 0 ){
 		print STDERR 
 			"cannot scan multiple units when $cd is no CD-ROM\n";
-		$dudl->done;
 		exit 1;
 	}
 }
@@ -122,7 +122,6 @@ foreach $disc ( @ARGV ){
 	&cd_umount( $dev, $opt_eject );
 }
 
-$dudl->done;
 
 
 

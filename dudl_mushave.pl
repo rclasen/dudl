@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_mushave.pl,v 1.6 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_mushave.pl,v 1.7 2002-07-26 17:49:25 bj Exp $
 
 # search database
 
 use strict;
 use Getopt::Long;
-use Dudl;
+use Dudl::DB;
 
 my $opt_help = 0;
 my $opt_artist = "";
@@ -103,7 +103,7 @@ if( $needhelp ){
 	exit 1;
 }
 
-my $dudl = Dudl->new;
+my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
 
@@ -212,7 +212,6 @@ if( $want_title ){
 }
 
 
-$dudl->done();
 
 sub query {
 	my $db = shift;

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_status.pl,v 1.4 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_status.pl,v 1.5 2002-07-26 17:49:25 bj Exp $
 
 # list directories of a unit
 
@@ -8,9 +8,9 @@
 # show if all/some files in directory have links in mus_
 
 use strict;
-use Dudl;
+use Dudl::DB;
 
-my $dudl = Dudl->new;
+my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
 # TODO: move database access to module

@@ -1,13 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: Unit.pm,v 1.6 2002-04-12 17:53:52 bj Exp $
+# $Id: Unit.pm,v 1.7 2002-07-26 17:49:28 bj Exp $
 
 package Dudl::Unit;
 
 use strict;
 use Carp qw{ :DEFAULT cluck };
 use DBI;
-use Dudl::Base;
 use Dudl::File;
 
 

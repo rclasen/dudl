@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.14 2002-04-28 11:54:59 bj Exp $
+# $Id: dudl_musgen.pl,v 1.15 2002-07-26 17:49:25 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -12,7 +12,7 @@
 
 use strict;
 use Getopt::Long;
-use Dudl;
+use Dudl::DB;
 use Dudl::Suggester;
 use Dudl::Job::Music;
 use Dudl::Job::Archive;
@@ -22,15 +22,15 @@ use Dudl::Job::Archive;
 # TODO: merge with an existing mus_album
 # TODO: edit an existing mus_album
 
-my $dudl = new Dudl;
+my $dudl = new Dudl::DB;
 
-my $opt_max = $dudl->sug_max;
-my $opt_minscore = $dudl->sug_score;
-my $opt_id = $dudl->sug_id3;
-my $opt_stored = $dudl->sug_int;
+my $opt_max = $dudl->conf("sug_max");
+my $opt_minscore = $dudl->conf("sug_score");
+my $opt_id = $dudl->conf("sug_id3");
+my $opt_stored = $dudl->conf("sug_int");
 
 my $opt_archive = 1;
-my $opt_afile = $dudl->write_jname;
+my $opt_afile = $dudl->conf("write_jname");
 
 my $opt_help = 0;
 my $needhelp = 0;
@@ -105,11 +105,12 @@ if( $opt_archive ){
 	my $path = $unit->path ."/";
 	$path .= $dir ."/" if $dir;
 	$path .= $opt_afile;
-	$arch = new Dudl::Job::Archive( file => $path );
+	$arch = new Dudl::Job::Archive( naming => $dudl->naming, 
+		file => $path );
 }
 
 my $exp = new Dudl::Suggester;
-my $job = new Dudl::Job::Music;
+my $job = new Dudl::Job::Music( naming => $dudl->naming );
 $job->add_album();
 
 # TODO: move database access to module
@@ -252,8 +253,5 @@ if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
 
 
 $job->write( \*STDOUT );
-
-# cleanup
-$dudl->done();
 
 
