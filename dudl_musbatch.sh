@@ -21,7 +21,7 @@ do_dir() {
 
 	while : ; do
 		[ -s "${LST}" ] || \
-			${BINDIR}/dudl_mkmus.pl "$@" > "${LST}" \
+			${BINDIR}/dudl_musgen.pl "$@" > "${LST}" \
 			|| return 1
 		$dummy ${EDITOR} "${LST}"
 		
@@ -39,7 +39,7 @@ do_dir() {
 
 			case "$reply" in
 			  i)
-				if ${dummy} ${BINDIR}/dudl_addmus.pl "${LST}" ; then
+				if ${dummy} ${BINDIR}/dudl_musimport.pl "${LST}" ; then
 					return 0
 				else
 					echo "press ENTER to continue";
@@ -82,7 +82,7 @@ shift
 
 
 
-${BINDIR}/dudl_dirs.pl "$unit" > "$dtmp"
+${BINDIR}/dudl_musdirs.pl "$unit" > "$dtmp"
 ${EDITOR} "$dtmp"
 
 

@@ -11,7 +11,7 @@ use Dudl;
 my $dudl = Dudl->new;
 my $db = $dudl->db;
 
-my $unitname = shift;
+my $unitname = shift || die "need a unit name";
 
 my $unit = $dudl->findunitpath($unitname);
 if( ! $unit ){
