@@ -17,7 +17,9 @@ CREATE TABLE stor_file (
 			NOT NULL
 			REFERENCES stor_unit(id),
 
-	dir		VARCHAR(255),	-- directory on this unit
+	dir		VARCHAR(255)	-- directory on this unit
+			NOT NULL
+			DEFAULT '',
 	fname		VARCHAR(255),	-- filename (without directory)
 
 	--ftype		INTEGER		-- file type
