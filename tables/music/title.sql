@@ -30,12 +30,7 @@ CREATE TABLE mus_title (
 	cmnt		TEXT,			-- Comment
 	lyrics		TEXT,
 
-	lastplay	DATE,			-- mserv: last start of play
-	random		BOOLEAN			-- mserv: include in random play
-			NOT NULL
-			DEFAULT 'true',
-	genres		VARCHAR(255)		-- mserv: temporary 
-
+	lastplay	DATE			-- mserv: last start of play
 );
 
 GRANT SELECT ON mus_title TO PUBLIC;
