@@ -129,6 +129,26 @@ sub order {
 }
 
 # add a suggestion
+sub add_asis {
+	my $self = shift;
+	my $dat;
+	if( ref($_[0]) ){
+		$dat = shift;
+	} else {
+		$dat = { @_ };
+	}
+
+	foreach my $k ( qw( artist album title )){
+		$dat->{$k} = $dat->{$k} | "";
+	}
+
+	$dat->{titlenum} = int( $dat->{titlenum} );
+	$dat->{source} = $dat->{source} || '';
+
+	$self->rate( $dat );
+	push @{$self->{sugs}}, $dat;
+}
+
 sub add {
 	my $self = shift;
 	my $dat;
@@ -148,11 +168,8 @@ sub add {
 		$dat->{$k} =~ s/n t\b/n't/g;
 	}
 	$dat->{titlenum} = $dat->{titlenum} || 0;
-	$dat->{titlenum} =~ int( $dat->{titlenum} );
-	$dat->{source} = $dat->{source} || '';
 
-	$self->rate( $dat );
-	push @{$self->{sugs}}, $dat;
+	$self->add_asis( $dat );
 }
 
 sub add_regexp {

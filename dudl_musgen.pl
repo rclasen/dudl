@@ -154,7 +154,7 @@ while( defined $sth->fetch ){
 
 	if( $titleid ){
 		# TODO: fetch data from mus_title
-		$exp->add( 
+		$exp->add_asis( 
 			titleid => $titleid,
 		#	...
 			);
@@ -165,7 +165,7 @@ while( defined $sth->fetch ){
 		while( my($alb,$fil,$tit) = $arch->next ){
 			my $n = $fil->{mp3};
 			if( $path =~ /(^|\/)\Q$n\E$/i ){
-				$exp->add(
+				$exp->add_asis(
 				artist		=> $tit->{artist},
 				titlenum	=> $tit->{num} || $nr,
 				title		=> $tit->{name},
