@@ -30,7 +30,8 @@ music/title.create: music/album.create music/artist.create
 create+=music/xtitle
 music/xtitle.create: storage/file.create storage/unit.create \
 	storage/functions.create \
-	music/album.create music/artist.create music/title.create
+	music/album.create music/artist.create music/title.create \
+	mserv/functions.create 
 
 
 

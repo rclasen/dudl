@@ -16,8 +16,8 @@ SELECT
 	t.title,
 	ta.id			AS title_artist_id,
 	ta.nname		AS title_artist,
-	t.genres,
-	t.random,
+	mserv_tags(t.id)	AS tags,
+	mserv_tagids(t.id)	AS tid,
 	t.cmnt,
 	stor_filename( u.collection, u.colnum, f.dir, f.fname )
 				AS filename
