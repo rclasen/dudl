@@ -80,6 +80,7 @@ my $query = "
 SELECT 
 	ala.nname, 
 	al.album, 
+	ti.id, 
 	ti.nr, 
 	ti.title, 
 	tia.nname, 
@@ -123,6 +124,7 @@ if( ! $res ){
 my (
 	$al_artist, 
 	$al_album, 
+	$ti_id, 
 	$ti_nr, 
 	$ti_title, 
 	$ti_artist, 
@@ -137,6 +139,7 @@ my (
 $sth->bind_columns( \( 
 	$al_artist, 
 	$al_album, 
+	$ti_id, 
 	$ti_nr, 
 	$ti_title, 
 	$ti_artist, 
@@ -187,7 +190,13 @@ while( defined $sth->fetch ){
 			close A;
 		}
 		$old_basepath = $basepath;
+
+	} elsif( $old_id == $ti_id ){
+		# skip duplicate files for titles
+		next;
+
 	}
+	$old_id = $ti_id;
 
 	$su_col =~ s/\s+$//;
 	$ti_nr = sprintf "%02d", $ti_nr;
@@ -211,6 +220,7 @@ while( defined $sth->fetch ){
 			$ti_genres .= "random";
 		}
 
+		# TODO: update, not overwrite
 		open( T, ">$dir_nfo/$relpath.trk" )||
 			die "open('$dir_nfo/$relpath.trk'): $!";
 		print T "_author=$ti_artist\n";
@@ -226,6 +236,8 @@ while( defined $sth->fetch ){
 }	
 
 $sth->finish;
+
+# TODO: delete obsolete files
 
 $dudl->done();
 
