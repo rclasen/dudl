@@ -124,17 +124,22 @@ sub id {
 
 sub path {
 	my $self	= shift;
+	my $path	= shift;
 
-	my $fname = $self->{BASE}->{CDPATH} ."/". 
-		$self->{collection};
+	if( $path ){
+		my @sp = &splitpath( $path ) || return undef;
 
-	if( -e ( $fname . sprintf( "%03d", $self->{colnum})) ){
-		$fname .= sprintf( "%03d", $self->{colnum} );
+		$self->{collection} = $sp[1];
+		$self->{colnum} = $sp[2];
+
+		return 1;
+
 	} else {
-		$fname .= sprintf( "%02d", $self->{colnum} );
-	} 
-	
-	return $fname;
+		return &mkpath( 
+			$self->{BASE}->{CDPATH},
+			$self->{collection}, 
+			$self->{colnum} );
+	}
 }
 
 # create a new file object attached to this unit
@@ -370,4 +375,37 @@ sub update {
 }
 
 
+sub splitpath {
+	my $path = shift;
+
+	return $path =~ /(\w+[^\d\/])(\d+)$/;
+}
+
+
+# generic helper
+sub mkpath {
+	my $cdpath	= shift;
+	my $collection	= shift;
+	my $colnum	= shift;
+
+	my $fname = $cdpath ."/". 
+		$collection;
+
+	if( -d ( $fname . sprintf( "%d", $colnum)) ){
+		$fname .= sprintf( "%d", $colnum );
+
+	} elsif( -d ( $fname . sprintf( "%02d", $colnum)) ){
+		$fname .= sprintf( "%02d", $colnum );
+
+	} elsif( -d ( $fname . sprintf( "%03d", $colnum)) ){
+		$fname .= sprintf( "%03d", $colnum );
+
+	} else {
+		$fname .= sprintf( "%04d", $colnum );
+	} 
+	
+	return $fname;
+} 
+
+1;
 

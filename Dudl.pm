@@ -43,5 +43,20 @@ sub newunit {
 	return Dudl::Unit->new( $self );
 }
 
+sub findunitpath {
+	my $self	= shift;
+	my $name	= shift;
+
+	my $unit = Dudl::Unit->new( $self );
+	if( ! $unit ){
+		return undef;
+	}
+
+	if( $unit->get_collection( &Dudl::Unit::splitpath($name) )){
+		return $unit;
+	} else {
+		return undef;
+	}
+}
 
 1;
