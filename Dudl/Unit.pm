@@ -389,6 +389,7 @@ sub mkpath {
 	my $colnum	= shift;
 
 	my $fname = $cdpath ."/". 
+		$collection ."/".
 		$collection;
 
 	if( -d ( $fname . sprintf( "%d", $colnum)) ){
