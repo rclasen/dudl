@@ -102,6 +102,7 @@ sub rate {
 	$dat->{sug_quality} = 0;
 
 	# + jedes feld
+	$dat->{sug_quality} +=10 if $dat->{titleid};
 	$dat->{sug_quality} +=3 if $dat->{titlenum};
 	$dat->{sug_quality} +=1 if $dat->{title};
 	$dat->{sug_quality} +=1 if $dat->{artist};
