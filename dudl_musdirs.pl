@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musdirs.pl,v 1.3 2001-12-18 12:26:46 bj Exp $
+# $Id: dudl_musdirs.pl,v 1.4 2001-12-20 13:10:14 bj Exp $
 
 # list directories of a unit
 
@@ -48,9 +48,9 @@ if( ! $res ){
 my( $dir, $titles, $files );
 $sth->bind_columns( \( $dir, $titles, $files ) );
 
-printf "%4s %4s %2s %7s %s\n", "tit", "fil", "gnre", "unit", "dir";
+printf "%4s %4s %7s %s\n", "tit", "fil", "unit", "dir";
 while( defined $sth->fetch ){
-	printf "%4s %4d %2s %7d %s\n", $titles, $files, "-", $unit->id(), $dir;
+	printf "%4s %4d %7d %s\n", $titles, $files, $unit->id(), $dir;
 }	
 $sth->finish;
 

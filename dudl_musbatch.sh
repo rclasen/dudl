@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: dudl_musbatch.sh,v 1.4 2001-12-13 11:41:48 bj Exp $
+# $Id: dudl_musbatch.sh,v 1.5 2001-12-20 13:10:14 bj Exp $
 
 set -e 
 
@@ -93,10 +93,10 @@ exec 6< "$dtmp"
 # skip header
 read junk <&6
 	
-while read tit fil genre unitid dir <&6 ; do
+while read tit fil unitid dir <&6 ; do
 	if [ $tit -eq 0 ]; then
 		echo "processing $dir" >&2
-		do_dir "$@" "$unitid" "$dir" "$genre" || exit 1
+		do_dir "$@" "$unitid" "$dir" || exit 1
 	else
 		echo "skipping non-virgin '$dir'" >&2
 	fi
