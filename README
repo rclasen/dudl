@@ -3,9 +3,12 @@ needed perl libs:
 
 basic
  MP3::Tag	from tagged-0.40.tar.gz
- Digest::MD5	
+ Digest::MD5	debian: libdigest-md5-perl
 
 for database
- MP3::Info
+ MP3::Info	debian: libmp3-info-perl
  DBI
  DBD::Pg
+
+you may install each module with
+ perl -MCPAN -e 'CPAN::Shell->install("<name>")'
