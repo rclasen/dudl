@@ -15,12 +15,12 @@
 #
 #
 # file_id		database ID of file
-# track_id		database ID (only when found)
+# title_id		database ID (only when found)
 #
-# track_num		Track number
-# track_name		Track name
-# track_artist		Artist
-# track_genres		genres (temporary till rating works)
+# title_num		Track number
+# title_name		Track name
+# title_artist		Artist
+# title_genres		genres (temporary till rating works)
 # 
 
 use strict;
@@ -35,7 +35,8 @@ my $dir = shift;
 # TODO: let user specify a mus_album
 # TODO: merge with an existing mus_album
 # TODO: edit an existing mus_album
-
+# TODO: optionally only use idtag or certain regexp IDs
+# TODO: use default genre
 
 
 
@@ -141,12 +142,12 @@ sub tpl_ignore {
 	my $fh = shift;
 	my $path = shift;
 	my $storid = shift;
-	my $trackid = shift;
+	my $titleid = shift;
 
 	print $fh "\n";
 	print $fh "# already in mus_title: $path\n";
 	print $fh "# file_id		$storid\n";
-	print $fh "# track_id		$trackid\n";
+	print $fh "# title_id		$titleid\n";
 	print $fh "\n";
 }
 
@@ -154,7 +155,7 @@ sub tpl_file {
 	my $fh = shift;
 	my $path = shift;
 	my $storid = shift;
-	my $trackid = shift;
+	my $titleid = shift;
 
 	print $fh "\n";
 	print $fh "# $path\n";
@@ -163,10 +164,10 @@ sub tpl_file {
 }
 
 
-# track_num		Track number
-# track_name		Track name
-# track_artist		Artist
-# track_genres		genres (temporary till rating works)
+# title_num		Track number
+# title_name		Track name
+# title_artist		Artist
+# title_genres		genres (temporary till rating works)
 sub tpl_sug {
 	my $fh = shift;
 	my $artist = shift || "";
@@ -174,14 +175,11 @@ sub tpl_sug {
 	my $title = shift || "";
 	my $genre = shift || "";
 
-	print $fh "track_num	$tnum\n";
-	print $fh "track_name	$title\n";
-	print $fh "track_artist	$artist\n";
-	print $fh "track_genres	$genre\n";
+	print $fh "title_num	$tnum\n";
+	print $fh "title_name	$title\n";
+	print $fh "title_artist	$artist\n";
+	print $fh "title_genres	$genre\n";
 	print $fh "\n";
 }
 
-
-sub addtemplate {
-}
 
