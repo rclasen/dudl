@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_storhave.pl,v 1.2 2001-12-13 14:49:36 bj Exp $
+# $Id: dudl_storhave.pl,v 1.3 2001-12-20 13:13:16 bj Exp $
 
 use strict;
 use Dudl;
@@ -49,7 +49,10 @@ print STDERR "SELECT ... WHERE $where\n";
 
 my $query = 
 "SELECT ".
-	"$filesql as file ".
+	"collection, ".
+	"colnum, ".
+	"dir, ".
+	"fname ".
 "FROM ".
 	"stor_file f INNER JOIN ".
 		"stor_unit u ".
@@ -73,11 +76,24 @@ if( ! $res ){
 	die $sth->errstr ."\nquery: $query\n";
 }
 
-my $file;
-$sth->bind_columns( \$file );
+my(
+	$col,
+	$colnum,
+	$dir,
+	$fname
+);
+$sth->bind_columns( \(
+	$col,
+	$colnum,
+	$dir,
+	$fname
+));
 
 while( defined $sth->fetch ){
-	print $file, "\n";
+	$col =~ s/\s+$//;
+	$colnum = sprintf "%04d", $colnum;
+	print $col, "/", $col, $colnum,"/",
+		$dir, ($dir ? "/" : ""), $fname, "\n";
 }	
 $sth->finish;
 
