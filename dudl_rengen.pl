@@ -3,17 +3,53 @@
 # TODO: optionally suggest based on manually specified regexp
 
 use strict;
+use Getopt::Long;
 use Dudl;
 use Dudl::Suggester;
-use MP3::Tag;
 use Dudl::Job::Rename;
-
-# TODO: getopt
-# TODO: merge with dudl_musgen?
+use MP3::Tag;
 
 my $opt_max = 2;
 my $opt_minscore = 6;
 my $opt_genres = "";
+
+my $opt_help = 0;
+my $needhelp = 0;
+
+sub usage {
+	print { $_[0] } "$0 [opts] <filenames> ...
+generate job file for dudl_rename.pl
+optons:
+ --max <n>       maximum number of suggestions per file
+ --minscore <n>  minimum score suggestions must have
+ --genres <g>    list default genres to use
+
+ --help          this help
+
+reads filenames from stdin when there are none on the cmdline
+";
+}
+
+
+if( !GetOptions(
+	"max=i"		=> \$opt_max,
+	"minscore=i"	=> \$opt_minscore,
+	"genres=s"	=> \$opt_genres,
+	"help|h!"	=> \$opt_help,
+)){
+	$needhelp++;
+}
+
+if( $opt_help ){
+	&usage( \*STDOUT );
+	exit 0;
+}
+
+if( $needhelp ){
+	&usage( \*STDERR );
+	exit 1;
+}
+
 
 my @files;
 

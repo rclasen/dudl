@@ -9,30 +9,88 @@
 
 
 use strict;
+use Getopt::Long;
 use Dudl;
 use Dudl::Suggester;
 use Dudl::Job::Music;
 use Dudl::Job::Archive;
 
-my $dudl = new Dudl;
-
-my $unitid = shift || die "need a unit ID";
-my $dir = shift || die "need a directory";
-my $genre = shift || "";
 
 # TODO: check arguments
 # TODO: let user specify a mus_album
 # TODO: merge with an existing mus_album
 # TODO: edit an existing mus_album
-# TODO: optionally only use idtag or certain regexp IDs
 # TODO: use default genre
 
 
 my $opt_max = 1;
+my $opt_minscore = 6;
 my $opt_id = 1;
 my $opt_archive = 1;
 my $opt_afile = "TRACKS.dudl_archive";
 
+my $opt_help = 0;
+my $needhelp = 0;
+
+my( $unitid, $dir, $genre );
+
+sub usage {
+	print { $_[0] } "$0 [opts] <unitid> <dir> [<genres>]
+generate job file for dudl_musimport.pl
+optons:
+ --max <n>       maximum number of suggestions per file
+ --minscore <n>  minimum score suggestions must have
+ --[no]id        get suggestions from IDtags in storage tables
+ --[no]archive   try to get suggestions from an archive file
+ --afile <f>     override archive jobfile
+
+ --help          this help
+";
+}
+
+
+if( !GetOptions(
+	"max=i"		=> \$opt_max,
+	"minscore=i"	=> \$opt_minscore,
+	"id!"		=> \$opt_id,
+	"archive!"	=> \$opt_archive,
+	"afile=s"	=> \$opt_afile,
+	"help|h!"	=> \$opt_help,
+)){
+	$needhelp++;
+}
+
+$unitid = shift;
+if( ! $unitid || $unitid =~ /^\d+$/ ){
+	print STDERR "need numeric unit ID\n";
+	$needhelp ++;
+}
+
+$dir = shift;
+if( ! $dir ){
+	print "need a directory (at least '/')\n";
+	$needhelp ++;
+}
+
+$genre = shift || "";
+
+if( $opt_afile =~ /\// ){
+	print STDERR "archive jobfile must be a basename\n";
+	$needhelp++;
+}
+
+if( $opt_help ){
+	&usage( \*STDOUT );
+	exit 0;
+}
+
+if( $needhelp ){
+	&usage( \*STDERR );
+	exit 1;
+}
+
+
+my $dudl = new Dudl;
 my $db = $dudl->db;
 
 my $arch;
@@ -145,6 +203,9 @@ while( defined $sth->fetch ){
 	my $sugnum = 0;
 	while( ( ! $opt_max || $sugnum < $opt_max ) && 
 	    defined ($sug = $exp->get) ){
+
+		next if $sugnum && $sug->{sug_quality} < $opt_minscore;
+
 	    	$job->add_title(
 			id	=> $sug->{titleid} || undef,
 			source	=> $sug->{source} ." score: ".
