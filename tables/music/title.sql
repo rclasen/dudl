@@ -27,6 +27,8 @@ CREATE TABLE mus_title (
 	cmnt		TEXT,			-- Comment
 	lyrics		TEXT,
 
+	genres		VARCHAR(255),		-- temporary, for mserv
+
 	UNIQUE( album_id, nr ),
 	PRIMARY KEY( id )
 );
