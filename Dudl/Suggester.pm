@@ -1,11 +1,6 @@
 #!/usr/bin/perl -w
 
-package Dudl::StorExport;
-
-# suggest fields for Musik database from filenames
-# based on stor_export table containing regular expressions
-
-# TODO: migrate rgexps from stor_export table to this file
+package Dudl::Suggester;
 
 use strict;
 use Carp qw{ :DEFAULT cluck };
@@ -51,18 +46,176 @@ sub new {
 	my $self	= {
 		BASE		=> shift,
 		regexps		=> [],
+		sugs		=> [],
 		cur		=> 0,
-		debug		=> shift,
 		};
 
 	bless $self, $class;
-	return $self->get_regexp();
+	return $self->get_regexps;
+}
+
+# move internal pointer back to start
+sub rewind {
+	my $self	=shift;
+
+	$self->{cur} = 0;
+}
+
+# get next suggestion
+sub get {
+	my $self	= shift;
+
+	if( $self->{cur} > 0 ){
+		# skip similar suggestions
+		while( ! &sugcmp( $self->{sugs}[$self->{cur}-1],
+			$self->{sugs}[$self->{cur}] ) ){
+			$self->{cur}++;
+		}
+	}
+	return $self->{sugs}[$self->{cur}++];
+}
+
+sub sugcmp {
+	my $a = shift;
+	my $b = shift;
+
+	return 1 unless defined $a;
+	return -1 unless defined $b;
+	foreach my $k (qw( title artist album )){
+		my $r = $b->{$k} cmp $a->{$k};
+		return $r if $r;
+	}
+	return 0;
+}
+
+sub clear {
+	my $self	= shift;
+
+	$self->{sugs} = [];
+	$self->{cur} = 0;
+}
+
+sub rate {
+	my $self = shift;
+	my $dat = shift;
+
+	$dat->{sug_quality} = 0;
+
+	# + jedes feld
+	$dat->{sug_quality} +=3 if $dat->{titlenum};
+	$dat->{sug_quality} +=1 if $dat->{title};
+	$dat->{sug_quality} +=1 if $dat->{artist};
+	$dat->{sug_quality} +=2 if $dat->{album};
+
+	# + הצ`´' enthalten
+	$dat->{sug_quality} +=1 if $dat->{title} =~ /[üצהÜײִ`´']/;
+
+	# - 0-9- enthalten
+	$dat->{sug_quality} -=1 if $dat->{title} =~ /[0-9-]/;
+}
+
+sub order {
+	my $self = shift;
+
+	@{$self->{sugs}} = sort { 
+		$b->{sug_quality} <=> $a->{sug_quality} 
+	} @{$self->{sugs}};
+
+	$self->{cur} = 0;
+}
+
+# add a suggestion
+sub add {
+	my $self = shift;
+	my $dat;
+	if( ref($_[0]) ){
+		$dat = shift;
+	} else {
+		$dat = { @_ };
+	}
+
+	foreach my $k ( qw( artist album title )){
+		$dat->{$k} = lc $dat->{$k} | "";
+		$dat->{$k} =~ s/\bi\b/I/g;
+		$dat->{$k} =~ s/\bii\b/2/g;
+		$dat->{$k} =~ s/\biii\b/3/g;
+		$dat->{$k} =~ s/\biv\b/4/g;
+		$dat->{$k} =~ s/´/'/g;
+		$dat->{$k} =~ s/n t\b/n't/g;
+	}
+	$dat->{titlenum} = $dat->{titlenum} || 0;
+	$dat->{titlenum} =~ int( $dat->{titlenum} );
+	$dat->{source} = $dat->{source} || '';
+
+	$self->rate( $dat );
+	push @{$self->{sugs}}, $dat;
+}
+
+sub add_regexp {
+	my $self	= shift;
+	my $path	= shift;
+	my $re		= shift;
+	my $fields	= shift;
+	my $source	= shift;	# only comment
+
+	$re .= "\\.mp3\$";
+	my @match = $path =~ m:$re:i;
+
+	# return hashref on match
+	$self->add(
+		artist	=> &sugitem( "artist", \@match, $fields ),
+		album	=> &sugitem( "album", \@match, $fields ),
+		titlenum => &sugitem( "titlenum", \@match, $fields ),
+		title	=> &sugitem( "title", \@match, $fields ),
+		source	=> $source,
+		);
+}
+
+sub sugitem {
+	my $item = shift;
+	my $match = shift;
+	my $fields = shift;
+
+	my $val = "";
+	if( exists $fields->{$item} ){
+		my $f = $fields->{$item};
+
+		if( defined $match->[$f] ){
+			$val = $match->[$f];
+		}
+	}
+
+	$val =~ s/\.+/ /g;
+	return $val;
+}
+
+
+# return hashref with next suggestion
+sub add_relist {
+	my $self	= shift;
+	my $path	= shift;
+	my $regexps	= shift;
+
+	foreach my $re ( @$regexps ){
+		$self->add_regexp( $path, 
+			$re->{re}, 
+			$re->{fields},
+			$re->{source} );
+	}
+}
+
+sub add_stor {
+	my $self	= shift;
+	my $path	= shift;
+	
+	return $self->add_relist( $path, $self->{regexps} );
 }
 
 # load regexps from database
-sub get_regexp {
+sub get_regexps {
 	my $self	= shift;
 
+	# TODO: move regexps from database to code
 	my $db = $self->{BASE}->db;
 	my $query = 
 		"SELECT ".
@@ -106,7 +259,7 @@ sub get_regexp {
 		print STDERR "$id, $regexp, $fields\n" if $self->{debug};
 
 		$self->{regexps}[$i] = {
-			id	=> $id,
+			source	=> "stor_export:$id",
 			re	=> $regexp,
 			fields	=> {},
 			desc	=> $desc,
@@ -126,69 +279,6 @@ sub get_regexp {
 	return $self;
 }
 
-# move internal pointer back to start
-sub rewind {
-	my $self	=shift;
 
-	$self->{cur} = 0;
-}
-
-sub id {
-	my $self	= shift;
-	
-	return $self->{regexps}[$self->{cur}]{id};
-}
-
-sub desc {
-	my $self	= shift;
-	
-	return $self->{regexps}[$self->{cur}]{desc};
-}
-
-# return hashref with next suggestion
-sub suggest {
-	my $self	= shift;
-	my $dir		= shift;
-	my $fname	= shift;
-
-	my $path = $dir ."/". $fname;
-
-	while( $self->{cur} < $#{$self->{regexps}} ){
-
-		my $re = $self->{regexps}[$self->{cur}]{re} ."\\.mp3\$";
-		my $fields = $self->{regexps}[$self->{cur}]{fields};
-
-		my @match = $path =~ m:$re:i;
-		$self->{cur}++;
-
-		# return hashref on match
-		return( {
-			artist	=> &sugitem( "artist", \@match, $fields ),
-			album	=> &sugitem( "album", \@match, $fields ),
-			titlenum => &sugitem( "titlenum", \@match, $fields ),
-			title	=> &sugitem( "title", \@match, $fields ),
-		}) if @match;
-	}
-
-	return undef;
-};
-
-sub sugitem {
-	my $item = shift;
-	my $match = shift;
-	my $fields = shift;
-
-	my $val = "";
-	if( exists $fields->{$item} ){
-		my $f = $fields->{$item};
-
-		if( defined $match->[$f] ){
-			$val = $match->[$f];
-		}
-	}
-
-	$val =~ s/\.+/ /g;
-	return $val;
-}
 
 1;
