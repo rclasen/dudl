@@ -124,7 +124,8 @@ SELECT
 	f.fname,
 	f.broken,
 	f.cmnt,
-	f.titleid
+	f.titleid,
+	f.freq
 FROM
 	stor_unit u,
 	stor_file f
