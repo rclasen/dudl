@@ -1,12 +1,10 @@
 #!/usr/bin/perl -w
 
-# TODO: get rid of Database dependency (Dudl.pm)
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
 
 use strict;
 use Getopt::Long;
-use Dudl;
 use Dudl::Suggester;
 use Dudl::Job::Rename;
 use MP3::Tag;
@@ -103,7 +101,6 @@ if( defined $ARGV[0] ){
 	}
 }
 
-my $dudl = new Dudl;
 my $job = new Dudl::Job::Rename;
 
 $job->add_album(
@@ -114,7 +111,7 @@ $job->add_album(
 foreach my $f ( @files ){
 	$job->add_file( mp3 => $f );
 
-	my $sug = new Dudl::Suggester( $dudl, $f );
+	my $sug = new Dudl::Suggester;
 
 	$sug->add( source => "empty" );
 	if( $opt_stored ){
@@ -163,9 +160,6 @@ foreach my $f ( @files ){
 }
 
 $job->write( \*STDOUT );
-
-$dudl->done;
-
 
 sub get_regexp {
 	my $re = shift;

@@ -4,8 +4,6 @@ package Dudl::Suggester;
 
 use strict;
 use Carp qw{ :DEFAULT cluck };
-use DBI;
-use Dudl::Base;
 
 
 BEGIN {

@@ -101,7 +101,7 @@ if( $opt_archive ){
 	$arch = new Dudl::Job::Archive( $path );
 }
 
-my $exp = new Dudl::Suggester( $dudl );
+my $exp = new Dudl::Suggester;
 my $job = new Dudl::Job::Music;
 $job->add_album();
 
