@@ -1,5 +1,24 @@
 BEGIN;
 
+-- DROP FUNCTION gettag( varchar );
+CREATE FUNCTION gettag( varchar )
+RETURNS INTEGER AS '
+DECLARE
+	tag RECORD;
+BEGIN
+	SELECT INTO tag id 
+	FROM mserv_tag
+	WHERE name = $1;
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION ''tag not found: %'', $1;
+	END IF;
+
+	RETURN tag.id;
+END;
+' LANGUAGE 'plpgsql';
+
+
 -- DROP FUNCTION mserv_tags(integer);
 CREATE FUNCTION mserv_tags(integer)
 RETURNS char AS '
@@ -53,5 +72,80 @@ BEGIN
 	RETURN tags;
 END;
 ' LANGUAGE 'plpgsql';
+
+
+-- DROP FUNCTION mserv_tagged(integer, integer );
+CREATE FUNCTION mserv_tagged(integer, integer )
+RETURNS boolean AS '
+DECLARE
+	id integer;
+BEGIN
+	SELECT INTO id tag_id
+	FROM mserv_titletag 
+	WHERE title_id = $1 AND tag_id = $2;
+
+	IF NOT FOUND THEN
+		RETURN 0;
+	END IF;
+
+	RETURN 1;
+END;
+' LANGUAGE 'plpgsql';
+
+
+-- DROP FUNCTION mserv_tagged(integer, varchar );
+CREATE FUNCTION mserv_tagged(integer, varchar )
+RETURNS boolean AS '
+BEGIN
+	RETURN mserv_tagged($1, gettag($2));
+END;
+' LANGUAGE 'plpgsql';
+
+
+
+-- DROP FUNCTION mserv_set_tag( integer, integer );
+CREATE FUNCTION mserv_set_tag( integer, integer )
+RETURNS boolean AS '
+BEGIN
+	IF mserv_tagged($1,$2) THEN
+		RETURN 1;
+	END IF;
+
+	INSERT INTO mserv_titletag( title_id, tag_id )
+	VALUES( $1, $2 );
+
+	RETURN 1;
+END;
+' LANGUAGE 'plpgsql';
+
+
+-- DROP FUNCTION mserv_set_tag( integer, varchar );
+CREATE FUNCTION mserv_set_tag( integer, varchar )
+RETURNS boolean AS '
+BEGIN
+	RETURN mserv_set_tag( $1, gettag($2) );
+END;
+'LANGUAGE 'plpgsql';
+
+
+-- DROP FUNCTION mserv_del_tag( integer, integer );
+CREATE FUNCTION mserv_del_tag( integer, integer )
+RETURNS boolean AS '
+BEGIN
+	DELETE FROM mserv_titletag 
+		WHERE title_id = $1 AND tag_id = $2;
+
+	RETURN 1;
+END;
+' LANGUAGE 'plpgsql';
+
+
+-- DROP FUNCTION mserv_del_tag( integer, varchar );
+CREATE FUNCTION mserv_del_tag( integer, varchar )
+RETURNS boolean AS '
+BEGIN
+	RETURN mserv_del_tag( $1, gettag($2) );
+END;
+'LANGUAGE 'plpgsql';
 
 COMMIT;
