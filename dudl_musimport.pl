@@ -22,8 +22,8 @@ while( my( $alb, $fil, $tit ) = $job->next ){
 
 	&save_title( $dudl, $alb->{id}, $fil->{id}, $tit );
 }
-$dudl->rollback();
-#$dudl->commit();
+#$dudl->rollback();
+$dudl->commit();
 
 # cleanup
 $dudl->done();
