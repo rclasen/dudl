@@ -114,5 +114,23 @@ FOR EACH ROW
 EXECUTE PROCEDURE trigger_update_modified();
 
 
+CREATE VIEW stor_xfile AS
+SELECT
+	f.id,
+	f.unitid,
+	u.collection		as col,
+	u.colnum,
+	f.dir,
+	f.fname,
+	f.broken,
+	f.cmnt,
+	f.titleid
+FROM
+	stor_unit u,
+	stor_file f
+WHERE
+	u.id = f.unitid;
+
+
 COMMIT;
 
