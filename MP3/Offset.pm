@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package Mp3sum;
+package MP3::Offset;
 
 use strict;
 use Carp qw( :DEFAULT cluck);
@@ -38,11 +38,9 @@ sub new {
 	if( !defined $proto ){
 		carp "must be called as method";
 	}
-
 	my $class	= ref($proto) || $proto;
 	my $self	= {
-		FILEDIGEST	=> '',
-		DATADIGEST	=> '',
+		FILE		=> shift,
 		RIFF		=> 0,	# riff header length
 		ID3V1		=> 0,	# id3v1 header length 
 		ID3V2		=> 0,	# id3v2 header length 
@@ -53,17 +51,13 @@ sub new {
 		};
 
 	bless $self, $class;
-	return $self;
+	return $self->scan;
 }
 
-sub filedigest {
-	my $self	= shift;
-	return $self->{FILEDIGEST};
-}
 
-sub datadigest {
+sub file {
 	my $self	= shift;
-	return $self->{DATADIGEST};
+	return $self->{FILE};
 }
 
 sub id3v1 {
@@ -202,24 +196,13 @@ sub tail_id3v1 {
 
 sub scan {
 	my $self	= shift;
-	my $file	= shift;
 
 	local *F;
-	unless( open( F, $file ) ){
-		cluck "cannot open $file: $!";
-		return 0;
+	unless( open( F, $self->file ) ){
+		cluck "cannot open ". $self->file .": $!";
+		return;
 	}
 
-	$self->analyze( \*F );
-	$self->digest( \*F );
-
-	close( F );
-
-}
-
-sub analyze {
-	my $self	= shift;
-	my $fh	= shift;
 
 	$self->{ID3V1}	= 0;
 	$self->{ID3V2}	= 0;
@@ -238,13 +221,13 @@ sub analyze {
 
 		$skipped = 0;
 
-		$skip = &head_id3v2( $fh );
+		$skip = &head_id3v2( \*F );
 		if( $skip ){
 			$self->{ID3V2} += $skip;
 		}
 		$skipped += $skip;
 
-		$skip = &head_riff( $fh );
+		$skip = &head_riff( \*F );
 		if( $skip ){
 			$self->{RIFF} += $skip;
 		}
@@ -256,8 +239,8 @@ sub analyze {
 
 	
 	# go to tail
-	seek( $fh, 0, 2 );
-	$self->{FSIZE} = tell( $fh );
+	seek( \*F, 0, 2 );
+	$self->{FSIZE} = tell( \*F );
 
 	# count junk at tail
 	do {
@@ -265,7 +248,7 @@ sub analyze {
 
 		$skipped = 0;
 
-		$skip = &tail_id3v1( $fh );
+		$skip = &tail_id3v1( \*F );
 		if( $skip ){
 			$self->{ID3V1} += $skip;
 		}
@@ -276,58 +259,11 @@ sub analyze {
 	} while( $skipped );
 
 	$self->{DSIZE} = $self->{FSIZE} - $self->{OFFSET} - $self->{TAIL};
+
+	close( F );
+	return $self;
 }
 
-
-sub digest {
-	my $self	= shift;
-	my $fh	= shift;
-
-	my $fsum = new Digest::MD5;
-	my $dsum = new Digest::MD5;
-
-	# go back to start, read all headers and feed them to fsum
-	seek( $fh, 0, 0 ) || croak "seek failed";
-
-	my $buf;
-	my $r;
-	if( $self->{OFFSET} ){
-		$r = read( $fh, $buf, $self->{OFFSET} );
-		if( $self->{OFFSET} != $r ){
-			croak "whoops cannot read as much as I wanted!";
-		}
-
-		$fsum->add( $buf );
-	}
-
-
-	# read everything (except of tail to ignore) and feed to fsum and
-	# dsum
-	my $size = 8192;
-	while( $size < $self->{TAIL} ){
-		$size *= 2;
-	}
-
-	while( $r = read( $fh, $buf, $size ) ){
-		$fsum->add( $buf );
-
-		# chop off tail
-		if( $self->{TAIL} ){
-			if( eof( $fh ) || $r < $size  ){
-				$buf = substr( $buf, 0, $r - $self->{TAIL} );
-			}
-
-			$dsum->add( $buf );
-		}
-	} 
-	
-	$self->{FILEDIGEST} = $fsum->hexdigest;
-	$self->{DATADIGEST} = ( $self->{FSIZE} == $self->{DSIZE} ) ?
-		$self->{FILEDIGEST} :
-		$dsum->hexdigest;
-
-	return 1;
-}
 
 
 
