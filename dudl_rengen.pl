@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_rengen.pl,v 1.9 2001-12-18 12:31:51 bj Exp $
+# $Id: dudl_rengen.pl,v 1.10 2001-12-18 18:13:21 bj Exp $
 
 # TODO: suggest album, too
 # TODO: get suggestions from freedb
@@ -81,31 +81,7 @@ if( $needhelp ){
 }
 
 
-my @files;
-
-# decide where to look for filenames and fill an array
-if( defined $ARGV[0] ){
-	if( -d $ARGV[0] ){
-		my $dir = $ARGV[0];
-		# - readdir $ARGV[0]
-		opendir( DIR, $dir ) || die "cannot opendir \"$dir\": $! ";
-		while( defined( $_ = readdir( DIR )) ){
-			next if /^\.\.?$/;
-			next unless /\.(mp3|wav)$/i;
-			push @files, "$dir/$_";
-		}
-		closedir( DIR );
-	} else {
-		# - process all of @ARGV
-		push @files, @ARGV;
-	}
-} else {
-	# - read stdin
-	while( <STDIN> ){
-		chomp;
-		push @files, $_;
-	}
-}
+my @files = $dudl->arg_files( \@ARGV );
 
 my $job = new Dudl::Job::Rename;
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.4 2001-12-13 16:38:23 bj Exp $
+# $Id: Base.pm,v 1.5 2001-12-18 18:13:23 bj Exp $
 
 package Dudl::Base;
 
@@ -270,6 +270,54 @@ sub get_fstab
 	close FS;
 
 	return undef;
+}
+
+sub arg_files {
+	my $self = shift;
+	my $arg = shift;
+
+	my @f;
+	my $stdin =0;
+	foreach( @$arg ){
+		if( $_ eq "-" ){
+			push @f, &arg_stdin if ! $stdin++;
+
+		} elsif( -d $_ ){
+			push @f, &arg_dir( $_ );
+
+		} else {
+			push @f, $_;
+		}
+	}
+
+	return @f;
+}
+
+sub arg_stdin {
+	my @files;
+
+	while( <STDIN> ){
+		chomp;
+		push @files, $_;
+	}
+	return @files;
+}
+
+sub arg_dir {
+	my $dir = shift;
+
+	local *DIR;
+	my @files;
+
+	opendir( DIR, $dir ) || die "cannot opendir \"$dir\": $! ";
+	while( defined( $_ = readdir( DIR )) ){
+		next if /^\.\.?$/;
+		next unless /\.(mp3|wav)$/i;
+		push @files, "$dir/$_";
+	}
+	closedir( DIR );
+
+	return sort { $a cmp $b } @files;
 }
 
 
