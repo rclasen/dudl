@@ -112,6 +112,7 @@ sub rate {
 
 	# - 0-9- enthalten
 	$dat->{sug_quality} -=1 if $dat->{title} =~ /[0-9-]/;
+	$dat->{sug_quality} -=2 if $dat->{album} =~ /--/;
 }
 
 sub order {
@@ -158,7 +159,7 @@ sub add_regexp {
 	my $fields	= shift;
 	my $source	= shift;	# only comment
 
-	$re .= "\\.mp3\$";
+	$re .= "\\.(?:mp3|wav)\$";
 	my @match = $path =~ m:$re:i;
 
 	# return hashref on match
