@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.10 2002-07-26 17:49:28 bj Exp $
+# $Id: File.pm,v 1.11 2005-08-07 13:41:32 bj Exp $
 
 package Dudl::File;
 
@@ -279,6 +279,7 @@ sub acquire {
 
 	
 	if( $self->{WANTGET}->{info} ){
+		$self->{channels}	= 2;
 		my $info = get_mp3info( $path );
 		if( $info ){
 			$self->{duration}	= (int($$info{"MM"} / 60) .":". 
