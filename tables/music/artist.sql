@@ -36,3 +36,5 @@ INSERT INTO mus_artist (id, nname)
 	VALUES( 0, 'UNKNOWN');
 
 COMMIT;
+
+-- select id, nname, case when nname ~* '^(die|the) ' then substr(lower(nname),5) else lower(nname) end  from mus_artist order by case when nname ~* '^(die|the) ' then substr(lower(nname),5) else lower(nname) end;

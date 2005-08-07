@@ -42,3 +42,5 @@ GRANT SELECT ON mus_xtitle TO PUBLIC;
 GRANT all ON mus_xtitle TO GROUP dudl;
 
 COMMIT;
+
+-- select id, title_artist, substr(title,0,40), album, album_id from mus_xtitle where not exists (select file_id from mserv_filetag where tag_id = 29 and file_id = id) order by title_artist, title;
