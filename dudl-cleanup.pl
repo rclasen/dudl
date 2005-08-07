@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-cleanup.pl,v 1.1 2004-08-28 13:24:01 bj Exp $
+# $Id: dudl-cleanup.pl,v 1.2 2005-08-07 08:28:00 bj Exp $
 
 # do periodic maintenance
 
@@ -21,9 +21,9 @@ $sth->execute
 $db->commit;
 
 # vacuum analyze
-$db->{AutoCommit} = 1;
-$sth = $db->prepare( "VACUUM ANALYZE" )
-	or die $db->errstr;
-$sth->execute 
-	or die $db->errstr;
+#$db->{AutoCommit} = 1;
+#$sth = $db->prepare( "VACUUM ANALYZE" )
+#	or die $db->errstr;
+#$sth->execute 
+#	or die $db->errstr;
 
