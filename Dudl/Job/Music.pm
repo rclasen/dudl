@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Music.pm,v 1.6 2001-12-20 16:38:30 bj Exp $
+# $Id: Music.pm,v 1.7 2005-08-07 14:05:00 bj Exp $
 
 package Dudl::Job::Music;
 
@@ -55,8 +55,8 @@ sub album_key {
 
 sub file_valid {
 	my $self = shift;
+	my $cur = shift || $self->{file};
 	
-	my $cur = $self->{file};
 	my $err = 0;
 	if( ! $cur->{id} ){
 		$self->bother( "no id for file");
@@ -64,7 +64,7 @@ sub file_valid {
 		
 	}
 
-	$self->SUPER::file_valid || $err++;
+	$self->SUPER::file_valid( $cur ) || $err++;
 
 	return !$err;
 }

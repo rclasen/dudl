@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.17 2004-09-12 12:50:53 bj Exp $
+# $Id: dudl_musgen.pl,v 1.18 2005-08-07 14:05:18 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -17,7 +17,7 @@ use Dudl::StorUnit;
 use Dudl::Suggester;
 use Dudl::Job::Music;
 use Dudl::Job::Archive;
-
+use Data::Dumper;
 
 # TODO: let user specify a mus_album
 # TODO: merge with an existing mus_album
@@ -112,7 +112,7 @@ if( $opt_archive ){
 
 my $exp = new Dudl::Suggester;
 my $job = new Dudl::Job::Music( naming => $dudl->naming );
-$job->add_album();
+$job->add_album(); # ignore retval, user edits this anyways
 
 # TODO: move database access to module
 my $query =
@@ -160,14 +160,25 @@ while( defined $sth->fetch ){
 	$job->add_file( 
 		mp3	=> $path,
 		id	=> $id, 
-		);
+	) or die;
 
 	if( defined $title ){
+		print STDERR "WARNING: data for this file was already entered!\n";
+
+=pod
 		# TODO: fetch music data from stor_file
 		$exp->add_asis( 
-			titleid => $id,
-		#	...
-			);
+			source		=> "stor_file:$id",
+			artist		=> $,
+			titlenum	=> $ || $nr,
+			title		=> $title,
+			genres		=> $,
+			cmt		=> $,
+			album		=> $,
+			preference	=> 4,
+		);
+
+=cut
 	}
 
 	if( $arch ){
@@ -232,7 +243,7 @@ while( defined $sth->fetch ){
 			num	=> $sug->{titlenum} || $nr, 
 			genres	=> $genre || $sug->{genres} || "",
 			cmt	=> $sug->{cmt} || "",
-		);
+		); # ignore retval, user edits this anyways
 		$album{name}{$sug->{album}}++ if $sug->{album};
 		$album{artist}{$sug->{artist}}++ if $sug->{artist};
 
