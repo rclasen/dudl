@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.18 2005-08-07 14:05:18 bj Exp $
+# $Id: dudl_musgen.pl,v 1.19 2005-08-12 19:51:49 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -24,6 +24,7 @@ use Data::Dumper;
 # TODO: edit an existing mus_album
 
 my $dudl = new Dudl::DB;
+my $cdpath = $dudl->conf("cdpath");
 
 my $opt_max = $dudl->conf("sug_max");
 my $opt_minscore = $dudl->conf("sug_score");
@@ -103,7 +104,7 @@ my $arch;
 if( $opt_archive ){
 	my $unit = Dudl::StorUnit->load( dudl => $dudl, 
 		where => { id => $unitid } );
-	my $path = $unit->dir ."/";
+	my $path = $cdpath ."/". $unit->dir ."/";
 	$path .= $dir ."/" if $dir;
 	$path .= $opt_afile;
 	$arch = new Dudl::Job::Archive( naming => $dudl->naming, 
