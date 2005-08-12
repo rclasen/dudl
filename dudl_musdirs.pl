@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musdirs.pl,v 1.7 2002-07-30 16:04:34 bj Exp $
+# $Id: dudl_musdirs.pl,v 1.8 2005-08-12 19:51:10 bj Exp $
 
 # list directories of a unit
 
@@ -32,6 +32,7 @@ my $query =
 	"FROM stor_file ".
 	"WHERE ".
 		"unit_id = $id ".
+		" AND NOT broken ".
 	"GROUP BY ".
 		"dir ".
 	"ORDER BY ".
