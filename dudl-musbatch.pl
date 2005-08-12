@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musbatch.pl,v 1.1 2005-08-07 08:30:13 bj Exp $
+# $Id: dudl-musbatch.pl,v 1.2 2005-08-12 19:53:56 bj Exp $
 
 # alle auf einer CD gefundenen alben/directories aus der file-Datenbank in
 # Musik Datenbank überführen.
@@ -15,6 +15,8 @@ $ENV{EDITOR} ||= "vi";
 $ENV{TMPDIR} ||= "/tmp";
 
 my $dudl = Dudl::DB->new;
+my $cdpath = $dudl->conf("cdpath");
+my $afile = $dudl->conf("write_jname")
 
 my $unit;
 my $opt_pickdirs;
@@ -67,12 +69,13 @@ print $tfh $_;
 # rest:
 while(<DFH>){
 	chomp;
-	($tit, $fil, $unitid, $dir) = split;
+	s/^\s+//;
+	($tit, $fil, $unitid, $dir) = split /\s+/,$_,4;
 	if( $tit ){
 		print STDERR "skipping non-virgin '$dir'\n";
 		next;
 	}
-	print $tfh $_, "\n";
+	printf $tfh "%4s %4d %7d %s\n", $tit, $fil, $unitid, $dir;
 }
 close(DFH);
 close($tfh);
@@ -88,7 +91,8 @@ open( FH, "$tfn" ) or die "open: $!";
 $_ = <FH>; # skip header
 while(<FH>){
 	chomp;
-	($tit, $fil, $unitid, $dir) = split;
+	s/^\s+//;
+	($tit, $fil, $unitid, $dir) = split /\s+/,$_,4;
 	&dodir( $unitid, $dir ) && last;
 }
 close(FH);
@@ -108,7 +112,7 @@ sub dodir {
 
 	my $unit = Dudl::StorUnit->load( dudl => $dudl,
 		where => { id => $unitid } );
-	my $jobpath = $unit->dir ."/$dir/TRACKS.dudl_archive";
+	my $jobpath = $cdpath ."/". $unit->dir ."/$dir/$afile";
 
 	my $needuser;
 	-r $jobpath || $needuser++;
@@ -117,10 +121,10 @@ sub dodir {
 
 
 	my( $doexit, $donext );
+	my $tfn;
 	do {
 
 		# create/rebuild jobfile
-		my $tfn;
 		if( ! $tfn ){
 			my $tfh;
 			( $tfh, $tfn ) = tempfile;
