@@ -79,7 +79,9 @@ CREATE TABLE stor_file (
 	------------------------------
 	-- status
 
-	available	BOOLEAN,	-- file is readable
+	available	BOOLEAN		-- file is readable
+			NOT NULL
+			DEFAULT 'true',
 	broken		BOOLEAN		-- is this file damaged?
 			NOT NULL 
 			DEFAULT 'false',
@@ -157,6 +159,9 @@ ALTER TABLE stor_file
 
 
 
+-- sequence for unsorted files:
+CREATE SEQUENCE stor_file_unknown_pos_seq;
+-- UPDATE stor_file SET album_id = 0, title = fname, album_pos = NEXTVAL('stor_file_unknown_pos_seq') WHERE unit_id =351 AND dir = 'diverses';
 
 COMMIT;
 
