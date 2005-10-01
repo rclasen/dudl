@@ -53,7 +53,7 @@ create+=storage/functions
 
 create+=mserv/tag
 
-create+=mserv/filter
+create+=mserv/sfilter
 
 create+=mserv/titletag
 mserv/titletag.create: storage/file.create mserv/tag.create
@@ -97,7 +97,7 @@ x-all: $(all)
 #	( echo $(pass); cat $< ) | psql $(db)
 	@echo "psql $(db) < $(pwd)/$<"
 	@echo "\\i $(pwd)/$<"
-	@echo enter y when done; read r; [ \"$$r\"x = yx ]
+	@echo enter y when done; read r; [ "$$r"x = yx ]
 	@touch $@
 
 clean:
