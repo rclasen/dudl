@@ -2,6 +2,8 @@
 db		:= dudl
 pass		:=
 
+pwd		:= $(shell pwd )
+
 all: x-all
 create:=
 
@@ -51,6 +53,8 @@ create+=storage/functions
 
 create+=mserv/tag
 
+create+=mserv/filter
+
 create+=mserv/titletag
 mserv/titletag.create: storage/file.create mserv/tag.create
 
@@ -68,6 +72,9 @@ mserv/track.create: storage/file.create storage/unit.create \
 
 create+=mserv/history
 mserv/history.create: storage/file.create mserv/user.create
+
+create+=mserv/dupes
+mserv/dupes.create: mserv/history.create
 
 create+=mserv/xhistory
 mserv/xhistory.create: mserv/history.create mserv/track.create
@@ -88,9 +95,9 @@ x-all: $(all)
 
 %.create: %.sql
 #	( echo $(pass); cat $< ) | psql $(db)
-	@echo $<
-	@echo enter y when done
-	@read r; [ "$$r"x = yx ] 
+	@echo "psql $(db) < $(pwd)/$<"
+	@echo "\\i $(pwd)/$<"
+	@echo enter y when done; read r; [ \"$$r\"x = yx ]
 	@touch $@
 
 clean:
