@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-cleanup.pl,v 1.2 2005-08-07 08:28:00 bj Exp $
+# $Id: dudl-cleanup.pl,v 1.3 2005-10-08 16:52:46 bj Exp $
 
 # do periodic maintenance
 
@@ -14,7 +14,7 @@ my $sth;
 # clear history
 $sth = $db->prepare( 
 "DELETE FROM mserv_hist 
-WHERE age(added) > interval '2 month'" )
+WHERE age(added) > interval '6 month'" )
 	or die $db->errstr;
 $sth->execute 
 	or die $db->errstr;
