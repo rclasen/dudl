@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.12 2005-10-08 16:53:23 bj Exp $
+# $Id: File.pm,v 1.13 2005-10-08 18:50:37 bj Exp $
 
 package Dudl::File;
 
@@ -245,9 +245,10 @@ sub path {
 	my $path	= shift;
 
 	if( defined $path ){
-		$path =~ /((.*)\/)?([^\/]+)$/;
-		$self->{dir} = ( defined $2 && length $2 ) ? $2 : '';
-		$self->{fname} = $3;
+		$path =~ s/\/+/\//g;
+		$path =~ /^\/*(?:(.*)\/)?([^\/]+)$/;
+		$self->{dir} = ( defined $1 && length $1 ) ? $1 : '';
+		$self->{fname} = $2;
 	}
 
 	return (length($self->{dir}) ? 
@@ -310,16 +311,21 @@ sub acquire {
 		$self->{id_title}	= substr $$tag{"TITLE"}||"",0,30;
 		$self->{id_artist}	= substr $$tag{"ARTIST"}||"",0,30;
 		$self->{id_album}	= substr $$tag{"ALBUM"}||"",0,30;
-		$self->{id_tracknum}	= $$tag{"TRACKNUM"};
+
+		if( $$tag{"TRACKNUM"} && $$tag{"TRACKNUM"} =~ /^(\d+)/ ){
+			$self->{id_tracknum} = $1;
+		}
 		if( ! $self->{id_tracknum} ){
 			$self->{id_tracknum} = 0;
 		}
+
 		if( $$tag{"YEAR"} && $$tag{"YEAR"} =~ /^\d+$/ ){
 			$self->{id_year}	= $$tag{"YEAR"};
 		}
 		if( ! $self->{id_year} ){
 			$self->{id_year} = 0;
 		}
+
 		$self->{id_comment}	= substr $$tag{"COMMENT"}||"",0,30;
 		$self->{id_genre}	= substr $$tag{"GENRE"}||"", 0, 10;
 	}
