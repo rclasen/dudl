@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.11 2005-08-07 13:41:32 bj Exp $
+# $Id: File.pm,v 1.12 2005-10-08 16:53:23 bj Exp $
 
 package Dudl::File;
 
@@ -190,11 +190,14 @@ sub want {
 	my $self	= shift;
 	my $want 	= shift;
 
-	my @realwant;
+	my $realwant;
 
 	if( ! defined($want) || ! (ref($want) eq "ARRAY") || ! @$want ){
-		@realwant = keys %table;
-	} 
+		$realwant = [ keys %table ];
+	} else {
+		$realwant = $want;
+	}
+
 
 	@{$self->{WANTUPD}} = ();
 	%{$self->{WANTGET}} = ();
@@ -203,7 +206,7 @@ sub want {
 	}
 
 	# duplicates don't matter because mksql puts them in a hash
-	foreach( @$want ){
+	foreach( @$realwant ){
 		next unless exists $table{$_};
 		next if $_ eq "unit_id";
 		next if $_ eq "id";
