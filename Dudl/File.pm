@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.13 2005-10-08 18:50:37 bj Exp $
+# $Id: File.pm,v 1.14 2005-10-08 21:53:22 bj Exp $
 
 package Dudl::File;
 
 use strict;
 use Carp qw( :DEFAULT cluck );
+use Encode;
 use DBI;
 use MP3::Info;
 use MP3::Offset;
@@ -437,7 +438,8 @@ sub mksql {
 	foreach $f ( @$want ){
 		next unless exists $table{$f};
 
-		$sql{$f} = $self->db->quote($self->{$f}, 
+		# TODO: hack
+		$sql{$f} = $self->db->quote(encode("iso-8859-1",$self->{$f}), 
 			$table{$f}{type});
 	}
 
