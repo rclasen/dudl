@@ -22,7 +22,9 @@ FROM
 		INNER JOIN mus_album a ON f.album_id = a.id
 		INNER JOIN mus_artist ta ON f.artist_id = ta.id
 WHERE 
-	album_id = 880
+	ta.nname != 'UNKNOWN'
+	AND a.album != 'UNSORTED'
+	AND NOT u.autoscan
 ORDER BY
 	path
 ";
