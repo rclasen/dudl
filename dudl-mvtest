@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -e
+
+: ${mvprefix:=}
+
+do_file () {
+	local src="$1"
+	if [ -d "$src" ]; then : ; else
+		echo "skipping non-dir: $src" >&2
+		continue
+	fi
+
+	dst=`dudl-mkname "$src"`
+	mv "$src" "$tstdir/$mvprefix$dst"
+	(cd "$tstdir/$mvprefix$dst"; dudl-cleannames *)
+}
+
+if [ $# -gt 0 ]; then
+	for src in "$@"; do
+		do_file "$src"
+	done
+else
+	while read src; do
+		do_file "$src"
+	done
+fi
+

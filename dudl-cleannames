@@ -1,0 +1,21 @@
+#/bin/sh
+
+set -e
+
+do_file () {
+	local src=${src%%/}
+	dst="`dudl-mkname "$src"`"
+	[ "$src"x == "$dst"x ] && continue
+	mv "$src" "$dst"
+}
+
+if [ $# -gt 0 ]; then
+	for src in "$@"; do
+		do_file "$src"
+	done
+else
+	while read src; do
+		do_file "$src"
+	done
+fi
+
