@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# TODO: set ID tags according to data from music database
+# set ID tags according to data from music database
 
 use strict;
 use Dudl::DB;
