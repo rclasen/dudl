@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musimport.pl,v 1.10 2004-08-28 13:24:31 bj Exp $
+# $Id: dudl_musimport.pl,v 1.11 2005-10-09 07:24:14 bj Exp $
 
 
 # add music entries from template file
@@ -156,7 +156,6 @@ sub save_title {
 
 	my $nr = $db->quote( $hr->{num}, DBI::SQL_INTEGER );
 	my $title = $db->quote( $hr->{name}, DBI::SQL_CHAR );
-	# TODO: move default for random to SQL server
 
 	print STDERR "updating title $filid: $albid,$nr";
 
