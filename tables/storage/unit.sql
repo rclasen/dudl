@@ -19,7 +19,10 @@ CREATE TABLE stor_unit (
 			DEFAULT 0,
 
 	volname		VARCHAR(12),	-- Volume name
-	size		INTEGER		-- disk size - in bytes
+	size		INTEGER,	-- disk size - in bytes
+
+	autoscan	BOOLEAN NOT NULL -- automagically scan this unit 
+			DEFAULT false	-- for new/deleted files
 
 );
 
