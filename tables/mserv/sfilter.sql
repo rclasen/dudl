@@ -6,11 +6,12 @@ CREATE SEQUENCE juke_sfilter_id_seq;
 GRANT SELECT ON juke_sfilter_id_seq TO PUBLIC;
 GRANT all ON juke_sfilter_id_seq TO GROUP dudl;
 
+-- DROP TABLE juke_sfilter;
 CREATE TABLE juke_sfilter (
 	id		INTEGER NOT NULL
 			DEFAULT nextval('juke_sfilter_id_seq'),
 	name		VARCHAR(32),
-	sfilter		TEXT
+	filter		TEXT
 );
 
 GRANT SELECT ON juke_sfilter TO PUBLIC;
