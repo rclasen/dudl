@@ -3,6 +3,7 @@
 set -e
 
 : ${mvprefix:=}
+tstdir=/pub/fun/mp3/2test
 
 do_file () {
 	local src="$1"
