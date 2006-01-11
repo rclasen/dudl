@@ -13,11 +13,11 @@ do_dir () {
 	fi
 
 	# TODO: strip trailing 'the|die|...' from directory names
-	dst="$(dudl-mkname "`basename "$src"`")"
+	dst="$(dudl-fname "`basename "$src"`")"
 	mv "$src" "$tstdir/$prefix$dst"
 	(
 		cd "$tstdir/$prefix$dst" 
-		dudl-cleannames *
+		dudl-fclean *
 		[ -r ren ] \
 			|| find . -type f -iname \*.mp3 \
 			| sort \

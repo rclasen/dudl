@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_storhave.pl,v 1.6 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl-storhave,v 1.1 2006-01-11 13:50:36 bj Exp $
 
 use strict;
 use Dudl::DB;

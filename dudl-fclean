@@ -4,7 +4,7 @@ set -e
 
 do_file () {
 	local src=${src%%/}
-	dst="`dudl-mkname "$src"`"
+	dst="`dudl-fname "$src"`"
 	[ "$src"x == "$dst"x ] && continue
 	mv "$src" "$dst"
 }

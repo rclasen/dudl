@@ -1,5 +1,5 @@
 
-# $Id: Makefile,v 1.15 2006-01-11 13:13:41 bj Exp $
+# $Id: Makefile,v 1.16 2006-01-11 13:50:36 bj Exp $
 
 prefix		:= /usr/local
 perllib		:= $(prefix)/lib/site_perl
@@ -7,23 +7,23 @@ bindir		:= $(prefix)/bin
 
 libs	:= $(shell find -name \*.pm)
 bins	:= \
-	dudl_cdscan.pl \
-	dudl-checkavail.pl \
-	dudl-cleanup.pl \
-	dudl-yearadd.pl \
-	dudl-mus2id.pl \
-	dudl_musdirs.pl \
-	dudl-musbatch.pl \
-	dudl_musgen.pl \
-	dudl_mushave.pl \
+	dudl-dbavcheck \
+	dudl-dbmaintenance \
+	dudl-dbstatus \
+	dudl-doout \
+	dudl-dotest \
+	dudl-fclean \
+	dudl-fname \
+	dudl-mus2id \
+	dudl-musbatch \
+	dudl-musdirs \
+	dudl-musgen \
+	dudl-mushave \
+	dudl-musimport \
 	dudl-muslinks \
-	dudl_musimport.pl \
-	dudl_status.pl \
-	dudl_storhave.pl \
-	dudl-mkname \
-	dudl-cleannames \
-	dudl-mvtest \
-	dudl-out
+	dudl-musyearadd \
+	dudl-storhave \
+	dudl-storscan 
 
 other	:= \
 	README

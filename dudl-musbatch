@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musbatch.pl,v 1.3 2006-01-11 11:28:47 bj Exp $
+# $Id: dudl-musbatch,v 1.1 2006-01-11 13:50:36 bj Exp $
 
 # alle auf einer CD gefundenen alben/directories aus der file-Datenbank in
 # Musik Datenbank überführen.
@@ -59,10 +59,10 @@ if( $needhelp ){
 # step1: 
 # build list with directories and let user decide which to process
 
-# TODO: make dudl_musdirs a module and use it directly
+# TODO: make dudl-musdirs a module and use it directly
 my($tit, $fil, $unitid, $dir);
 my( $tfh, $tfn ) = tempfile;
-open( DFH, "dudl_musdirs.pl $unit|" ) or die "open(dudl_musdirs): $!";
+open( DFH, "dudl-musdirs $unit|" ) or die "open(dudl-musdirs): $!";
 # header:
 $_ = <DFH>; 
 print $tfh $_;
@@ -105,8 +105,8 @@ unlink($tfn);
 sub dodir {
 	my( $unitid, $dir ) = @_;
 
-	# TODO: make dudl_musgen a module and use it directly
-	# TODO: make dudl_musimport a module and use it directly
+	# TODO: make dudl-musgen a module and use it directly
+	# TODO: make dudl-musimport a module and use it directly
 
 	print "\n\nprocessing $dir...\n";
 
@@ -128,8 +128,8 @@ sub dodir {
 		if( ! $tfn ){
 			my $tfh;
 			( $tfh, $tfn ) = tempfile;
-			open( GFH, "dudl_musgen.pl \"$unitid\" \"$dir\"|" ) 
-				or die "open(dudl_musgen): $!";
+			open( GFH, "dudl-musgen \"$unitid\" \"$dir\"|" ) 
+				or die "open(dudl-musgen): $!";
 			while( <GFH> ){
 				print $tfh $_;
 			}
@@ -171,7 +171,7 @@ EOP
 
 		} elsif( $reply eq "i" ){
 			print "importing $dir...\n";
-			if( 0 == system( "dudl_musimport.pl", $tfn ) ){
+			if( 0 == system( "dudl-musimport", $tfn ) ){
 				$donext++;
 			} else {
 				print "press ENTER to continue\n";

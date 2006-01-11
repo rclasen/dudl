@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_musgen.pl,v 1.19 2005-08-12 19:51:49 bj Exp $
+# $Id: dudl-musgen,v 1.1 2006-01-11 13:50:36 bj Exp $
 
 # generate mus template for editing an adding
 
@@ -41,7 +41,7 @@ my( $unitid, $dir, $genre );
 
 sub usage {
 	print { $_[0] } "$0 [opts] <unitid> <dir> [<genres>]
-generate job file for dudl_musimport.pl
+generate job file for dudl-musimport
 optons:
  --max <n>       maximum number of suggestions per file
  --minscore <n>  minimum score suggestions must have
