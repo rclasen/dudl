@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musbatch.pl,v 1.2 2005-08-12 19:53:56 bj Exp $
+# $Id: dudl-musbatch.pl,v 1.3 2006-01-11 11:28:47 bj Exp $
 
 # alle auf einer CD gefundenen alben/directories aus der file-Datenbank in
 # Musik Datenbank überführen.
@@ -16,7 +16,7 @@ $ENV{TMPDIR} ||= "/tmp";
 
 my $dudl = Dudl::DB->new;
 my $cdpath = $dudl->conf("cdpath");
-my $afile = $dudl->conf("write_jname")
+my $afile = $dudl->conf("write_jname");
 
 my $unit;
 my $opt_pickdirs;
