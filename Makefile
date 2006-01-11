@@ -1,5 +1,5 @@
 
-# $Id: Makefile,v 1.14 2005-10-08 21:57:47 bj Exp $
+# $Id: Makefile,v 1.15 2006-01-11 13:13:41 bj Exp $
 
 prefix		:= /usr/local
 perllib		:= $(prefix)/lib/site_perl
@@ -22,7 +22,8 @@ bins	:= \
 	dudl_storhave.pl \
 	dudl-mkname \
 	dudl-cleannames \
-	dudl-mvtest
+	dudl-mvtest \
+	dudl-out
 
 other	:= \
 	README

@@ -1,11 +1,8 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl_status.pl,v 1.5 2002-07-26 17:49:25 bj Exp $
+# $Id: dudl_status.pl,v 1.6 2006-01-11 13:13:41 bj Exp $
 
-# list directories of a unit
-
-# show number of files
-# show if all/some files in directory have links in mus_
+# show some statistics
 
 use strict;
 use Dudl::DB;
@@ -14,7 +11,22 @@ my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
 # TODO: move database access to module
-my $query = 
+
+&col( "units",		"SELECT COUNT(*),0 FROM stor_unit");
+&col( "sl units",	"SELECT max(colnum),0 FROM stor_unit WHERE collection='sl'");
+&col( "files all",	"SELECT COUNT(*),SUM(fsize)/1073741824 FROM stor_file");
+&col( "files intact",	"SELECT COUNT(*),SUM(fsize)/1073741824 FROM stor_file WHERE NOT broken");
+&col( "albums",		"SELECT COUNT(*),0 FROM mus_album");
+&col( "titles all",	"SELECT COUNT(*),SUM(fsize)/1073741824 FROM stor_file WHERE album_id NOTNULL");
+&col( "titles nontmp",	"SELECT COUNT(*),SUM(fsize)/1073741824 FROM stor_file WHERE album_id > 0");
+
+sub col {
+	my( $desc, $query ) = @_;
+	my( $num, $sz ) = $db->selectrow_array( $query );
+	printf "%-15s %15d %15d\n", $desc, $num, $sz;
+}
+
+=pod
 	"SELECT ".
 		"trim(collection), ".
 		"colnum, ".
@@ -32,6 +44,8 @@ my $query =
 		"collection, ".
 		"colnum, ".
 		"dir ";
-print $query ,"\n";
-exit;
+=cut
+
+
+
 

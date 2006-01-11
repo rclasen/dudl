@@ -2,28 +2,39 @@
 
 set -e
 
-: ${mvprefix:=}
+: ${prefix:=}
 tstdir=/pub/fun/mp3/2test
 
-do_file () {
+do_dir () {
 	local src="$1"
 	if [ -d "$src" ]; then : ; else
 		echo "skipping non-dir: $src" >&2
 		continue
 	fi
 
-	dst=`dudl-mkname "$src"`
-	mv "$src" "$tstdir/$mvprefix$dst"
-	(cd "$tstdir/$mvprefix$dst"; dudl-cleannames *)
+	# TODO: strip trailing 'the|die|...' from directory names
+	dst="$(dudl-mkname "`basename "$src"`")"
+	mv "$src" "$tstdir/$prefix$dst"
+	(
+		cd "$tstdir/$prefix$dst" 
+		dudl-cleannames *
+		[ -r ren ] \
+			|| find . -type f -iname \*.mp3 \
+			| sort \
+			| ( 
+				printf "TODO: edit\n# TODO: year\n"
+				dudl-rengen -
+			)  > ren 2>/dev/null 
+	)
 }
 
 if [ $# -gt 0 ]; then
 	for src in "$@"; do
-		do_file "$src"
+		do_dir "$src"
 	done
 else
 	while read src; do
-		do_file "$src"
+		do_dir "$src"
 	done
 fi
 

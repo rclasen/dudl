@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-muslinks,v 1.3 2005-08-07 08:29:16 bj Exp $
+# $Id: dudl-muslinks,v 1.4 2006-01-11 13:13:41 bj Exp $
 
 # generate symlink farm with music information
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
+# TODO: generate job-files
 
 use strict;
 use Getopt::Long;

@@ -120,6 +120,7 @@ sub clean_uvanished {
 	}
 }
 
+# TODO: use "ren" jobfile if one exists
 sub check_unew {
 	my $uid		= shift;
 	my $uname	= shift;

@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -e
+odir="/pub/fun/mp3/4out"
+
+genre="`echo "$1" | tr '[a-z]' '[A-Z]' `"
+shift
+
+case "$genre" in
+ COMEDY|DANCE|POP|ROCK|SAMPLER)
+	:
+	;;
+ *)
+ 	echo "invalid genre: >$genre<"
+	exit 1
+	;;
+esac
+
+gdir="$odir/$genre"
+[ -d "$gdir" ] || mkdir "$gdir"
+
+for i in "$@"; do
+	if [ -d "$i" ]; then
+		sdir="$i"
+		ren="$sdir/ren"
+	else
+		ren="$i"
+		sdir="${i%/*}"
+	fi
+
+	dudl-rename --outdir="$gdir" $ren
+	echo "hit ^C on error, ENTER on success"
+	read
+	rm -rf "$sdir"
+done

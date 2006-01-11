@@ -1,7 +1,8 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl_cdscan.pl,v 1.9 2002-07-30 16:04:34 bj Exp $
+# $Id: dudl_cdscan.pl,v 1.10 2006-01-11 13:13:41 bj Exp $
 
+# TODO: BUG: adds empty filenames when scanning /cdrom with --sum --add
 
 use strict;
 use File::Find;
@@ -61,9 +62,12 @@ if( !( $opt_mp3 || $opt_sum || $opt_unit )){
 	$opt_sum=1;
 }
 
-if( $opt_mp3 ){
+if( $opt_mp3 || $opt_sum ){
 	push @want, Dudl::File::acquires( "base" );
 	push @want, Dudl::File::acquires( "file" );
+}
+
+if( $opt_mp3 ){
 	push @want, Dudl::File::acquires( "info" );
 	push @want, Dudl::File::acquires( "tag" );
 }
@@ -91,6 +95,11 @@ if( ! @ARGV ){
 	exit 1;
 }
 
+print "scanning:", 
+	( $opt_mp3 ? " files" : ""),
+	( $opt_sum ? " chksum" : ""),
+	( $opt_unit ? " unit" : ""),
+	"\n";
 	
 my $dudl = new Dudl::DB;
 

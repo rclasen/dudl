@@ -1,3 +1,6 @@
-use stor_filename instead of Dudl::mkpath
-use new mserv_tags instead of genres
-use new mserv_tags instead of random
+new db-aware dudl-rengen/dudl-rename 
+- to keep file_id and history intact.
+- to edit data from dudld (tags, albumname, artist, ...)
+
+dudl-musgen/dudl-musimport
+- add support for editing existing albums
