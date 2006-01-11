@@ -1,0 +1,9 @@
+dudl (0.0.1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Rainer Clasen <bj@zuto.de>  Thu, 25 Jul 2002 16:04:03 +0200
+
+Local variables:
+mode: debian-changelog
+End:

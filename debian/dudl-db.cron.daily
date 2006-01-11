@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+dudl-dbavcheck > /dev/null
+dudl-dbmaintenance
+

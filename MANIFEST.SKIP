@@ -1,0 +1,20 @@
+^Makefile$
+~$
+^blib/
+\bCVS/
+.cvsignore
+^bkdirs.pl$
+^checkfiles.pl$
+\bdebian/dudl-db(/|$)
+\.aux$
+\.dvi$
+\.log$
+\.bak$
+\.old$
+\.swp$
+\.tar$
+\.tar.gz$
+\.autosave$
+\bpm_to_blib\b
+\btest_[^ /]*pl$
+

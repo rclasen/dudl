@@ -7,7 +7,7 @@ rendir=/pub/fun/mp3/3ren
 do_dir () {
 	local src="$1"
 
-	if [ -r "$src/ren"]: then : ; else
+	if [ -r "$src/ren" ]; then : ; else
 		echo "skipping non-dudl dir: $src" >&2
 		return 1
 	fi

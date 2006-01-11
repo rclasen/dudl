@@ -1,5 +1,5 @@
 
-# $Id: README,v 1.4 2002-07-26 09:51:12 bj Exp $
+# $Id: README,v 1.5 2006-01-11 19:04:10 bj Exp $
 
 needed perl libs:
 
@@ -14,3 +14,11 @@ for database
 
 you may install each module with
  perl -MCPAN -e 'CPAN::Shell->install("<name>")'
+
+Database installation:
+======================
+
+cd tables
+make # ... and follow the instructions
+
+of course you can alter the Makefile to do this automatically ;-)
