@@ -1,5 +1,17 @@
 BEGIN;
 
+-- DROP FUNCTION stor_unitpath(char,integer);
+CREATE FUNCTION stor_unitpath(char,integer)
+RETURNS char AS '
+DECLARE
+	col ALIAS FOR $1;
+	colnum ALIAS FOR $2;
+BEGIN
+	return col || ''/'' || col ||
+		to_char(cast( colnum AS numeric),''FM0000'');
+END;
+' LANGUAGE 'plpgsql';
+
 -- DROP FUNCTION stor_filename(char,integer,char,char);
 CREATE FUNCTION stor_filename(char,integer,char,char)
 RETURNS char AS '

@@ -103,6 +103,8 @@ CREATE TABLE stor_file (
 
 	-- lastplay is updated automatically on update/insert in
 	-- mserv_hist. There is no need to update this column manually.
+	-- TODO: find way to get lastplay from mserv_hist quickly. Maybe
+	-- using a "last" flag per record, that's automatically updated.
 	lastplay	TIMESTAMP NOT NULL	-- mserv: last time of play
 			DEFAULT '1970-1-1 0:0:0+0'
 

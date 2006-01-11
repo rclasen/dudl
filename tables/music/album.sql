@@ -23,6 +23,7 @@ CREATE TABLE mus_album (
 -- 	publish_id	INTEGER
 -- 			DEFAULT NULL,
 	publish_date	DATE
+-- TODO: publish_date -> publish_year INTEGER;
 );
 
 GRANT SELECT ON mus_album TO PUBLIC;

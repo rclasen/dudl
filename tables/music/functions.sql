@@ -1,25 +1,6 @@
 -- BEGIN;
 
-
--- DROP FUNCTION mserv_check_file();
-CREATE FUNCTION mserv_check_file()
-RETURNS opaque AS  '
-DECLARE
-	file	RECORD;
-BEGIN
-	SELECT INTO file id 
-		FROM stor_file 
-		WHERE id = new.file_id AND title NOTNULL;
-
-	IF NOT FOUND THEN
-		RAISE EXCEPTION ''found no music file with id %'', new.file_id;
-	END IF;
-
-	RETURN new;
-END;
-' LANGUAGE 'plpgsql';
-
-
+-- TODO: rename mserv->juke
 
 -- DROP FUNCTION gettag( varchar );
 CREATE FUNCTION gettag( varchar )

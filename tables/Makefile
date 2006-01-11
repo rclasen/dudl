@@ -30,7 +30,15 @@ create+=music/xtitle
 music/xtitle.create: storage/file.create storage/unit.create \
 	storage/functions.create \
 	music/album.create music/artist.create \
-	mserv/functions.create
+	music/functions.create
+
+create+=music/tag
+
+create+=music/titletag
+music/titletag.create: storage/file.create music/tag.create
+
+create+=music/functions
+music/functions.create: music/titletag.create
 
 
 
@@ -51,12 +59,7 @@ create+=storage/functions
 
 ############################################################
 
-create+=mserv/tag
-
 create+=mserv/sfilter
-
-create+=mserv/titletag
-mserv/titletag.create: storage/file.create mserv/tag.create
 
 create+=mserv/user
 
@@ -80,10 +83,7 @@ create+=mserv/xhistory
 mserv/xhistory.create: mserv/history.create mserv/track.create
 
 create+=mserv/queue
-mserv/queue.create: storage/file.create mserv/user.create
-
-create+=mserv/functions
-mserv/functions.create: mserv/titletag.create
+mserv/queue.create: storage/file.create mserv/user.create mserv/track.create
 
 
 

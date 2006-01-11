@@ -1,5 +1,7 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
+
 -- DROP VIEW mserv_dupes;
 CREATE VIEW mserv_dupes AS
 SELECT t.*, h.added

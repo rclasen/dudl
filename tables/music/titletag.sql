@@ -1,5 +1,6 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
 -- n->m mapping of which tags are set for a title
 
 CREATE TABLE mserv_filetag (

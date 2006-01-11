@@ -1,5 +1,7 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
+
 CREATE SEQUENCE mserv_queue_id_seq;
 GRANT SELECT ON mserv_queue_id_seq TO PUBLIC;
 GRANT all ON mserv_queue_id_seq TO GROUP dudl;

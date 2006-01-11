@@ -1,5 +1,6 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
 -- list of available tags (formerly genres)
 
 CREATE SEQUENCE mserv_tag_id_seq;

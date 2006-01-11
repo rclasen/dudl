@@ -1,5 +1,7 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
+
 CREATE SEQUENCE mserv_hist_id_seq;
 GRANT SELECT ON mserv_hist_id_seq TO PUBLIC;
 GRANT all ON mserv_hist_id_seq TO GROUP dudl;
@@ -11,7 +13,9 @@ CREATE TABLE mserv_hist (
 	file_id		INTEGER NOT NULL,
 	added		TIMESTAMP NOT NULL
 			DEFAULT CURRENT_TIMESTAMP,
-	user_id		INTEGER		-- who queued this track?
+	user_id		INTEGER,	-- who queued this track?
+	completed	BOOL NOT NULL
+			DEFAULT true
 );
 
 GRANT SELECT ON mserv_hist TO PUBLIC;
@@ -43,6 +47,8 @@ ALTER TABLE mserv_hist
 
 -- trigger to update stor_file.lastplay on insert
 
+-- TODO: update stor_file only when "added" was updated or inserted
+
 -- DROP FUNCTION mserv_hist__up_lastplay();
 CREATE FUNCTION mserv_hist__up_lastplay()
 RETURNS opaque AS  '
@@ -70,9 +76,10 @@ END;
 ' LANGUAGE 'plpgsql';
 
 
+-- TODO: run trigger on update, too
 -- DROP TRIGGER mserv_hist__up ON mserv_hist;
 CREATE TRIGGER mserv_hist__up
-AFTER INSERT OR UPDATE
+AFTER INSERT
 ON mserv_hist FOR EACH ROW
 EXECUTE PROCEDURE mserv_hist__up_lastplay();
  

@@ -1,5 +1,7 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
+
 -- DROP VIEW mserv_album;
 CREATE VIEW mserv_album AS
 SELECT 

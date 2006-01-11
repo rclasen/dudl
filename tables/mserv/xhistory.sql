@@ -1,11 +1,14 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
+
 -- DROP VIEW mserv_xhist;
 CREATE VIEW mserv_xhist AS
 SELECT 
 	t.*,
 	time2unix(h.added) AS played, 
-	h.user_id
+	h.user_id,
+	h.completed
 FROM 
 	mserv_track t
 		INNER JOIN mserv_hist h

@@ -1,7 +1,10 @@
 
+-- CREATE USER reader WITH PASSWORD 'reader';
 CREATE USER dudl WITH PASSWORD 'dudl';
+CREATE USER dudld WITH PASSWORD 'dudl';
 -- CREATE USER bj
 
 CREATE GROUP dudl;
 ALTER GROUP dudl ADD USER dudl;
+ALTER GROUP dudl ADD USER dudld;
 ALTER GROUP dudl ADD USER bj;

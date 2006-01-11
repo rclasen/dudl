@@ -1,5 +1,7 @@
 BEGIN;
 
+-- TODO: rename mserv->juke
+
 -- DROP VIEW mserv_track;
 CREATE VIEW mserv_track AS
 SELECT 
@@ -26,5 +28,26 @@ WHERE
 
 GRANT SELECT ON mserv_track TO PUBLIC;
 GRANT all ON mserv_track TO GROUP dudl;
+
+
+-- DROP FUNCTION mserv_check_file();
+CREATE FUNCTION mserv_check_file()
+RETURNS opaque AS  '
+DECLARE
+	file	RECORD;
+BEGIN
+	SELECT INTO file id 
+		FROM stor_file 
+		WHERE id = new.file_id AND title NOTNULL;
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION ''found no music file with id %'', new.file_id;
+	END IF;
+
+	RETURN new;
+END;
+' LANGUAGE 'plpgsql';
+
+
 
 COMMIT;
