@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+rendir=/pub/fun/mp3/3ren
+
+do_dir () {
+	local src="$1"
+
+	if [ -r "$src/ren"]: then : ; else
+		echo "skipping non-dudl dir: $src" >&2
+		return 1
+	fi
+
+	mv "$src" "$rendir/"
+}
+
+for i in "$@"; do
+	do_dir "$i"
+done

@@ -1,5 +1,5 @@
 
-# $Id: Makefile,v 1.16 2006-01-11 13:50:36 bj Exp $
+# $Id: Makefile,v 1.17 2006-01-11 14:30:23 bj Exp $
 
 prefix		:= /usr/local
 perllib		:= $(prefix)/lib/site_perl
@@ -10,7 +10,10 @@ bins	:= \
 	dudl-dbavcheck \
 	dudl-dbmaintenance \
 	dudl-dbstatus \
+	dudl-docdimg \
 	dudl-doout \
+	dudl-doren \
+	dudl-dosort \
 	dudl-dotest \
 	dudl-fclean \
 	dudl-fname \

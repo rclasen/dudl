@@ -1,0 +1,28 @@
+#!/bin/sh
+
+: ${outdir:=.}
+
+do_cd () {
+	local src="$1"
+
+	name="`basename "$src"`"
+	num="`echo ${name} | sed -e 's/^sl0*//'`"
+
+	if echo "$num" | grep -q '^[0-9]\{1,\}$'; then : ; else
+		echo "invalid dir name: $name">&2
+		return 1
+	fi
+
+	iso="$outdir/$name.iso"
+	if [ -r "$iso" ]; then
+		echo "file exists: $iso" >&2
+		return 1
+	fi
+	echo "generating $iso ..."
+	mkisofs -q -J -r -V "_MP3_${num}_" -o "$iso" "$src"
+}
+
+for i in "$@"; do
+	do_cd "$i"
+done
+

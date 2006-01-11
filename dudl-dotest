@@ -9,7 +9,7 @@ do_dir () {
 	local src="$1"
 	if [ -d "$src" ]; then : ; else
 		echo "skipping non-dir: $src" >&2
-		continue
+		return 1
 	fi
 
 	# TODO: strip trailing 'the|die|...' from directory names
