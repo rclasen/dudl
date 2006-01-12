@@ -1,0 +1,63 @@
+#!/usr/bin/perl -w
+
+# check database layout status and replay all modifications to bring it up
+# to date
+
+use strict;
+use Dudl::DB;
+
+my $dudl = new Dudl::DB;
+my $db = $dudl->db;
+
+my $nodo = 1;
+
+my @updates = (
+{
+	ver	=> 1,
+	sql	=> q( ), # SQL command
+	chk	=> sub { }, # gets $db->do retval, returns true on success
+},
+);
+
+my( $dbexists ) = $db->selectrow_array(
+                "SELECT count(*) FROM pg_class WHERE relname = 'dbver'");
+
+if( ! $dbexists ){
+	print "creating dbver\n";
+	if( ! $db->do( "CREATE SEQUENCE dbver") ){
+		print STDERR "failed to create dbver: ", $db->errstr, "\n";
+		exit 1;
+	}
+	if( ! $db->do( "SELECT setval('dbver',1)") ){
+		print STDERR "failed to set dbver: ", $db->errstr, "\n";
+		exit 1;
+	}
+}
+
+my( $dbver ) = $db->selectrow_array(
+		"SELECT currval('dbver')");
+
+print "current dbver: $dbver\n";
+foreach my $up ( @updates ){
+	if( $up->{ver} <= $dbver ){
+		print "skipping ver=$up->{ver}\n";
+		next;
+	}
+
+	print "applying ver=$up->{ver}\n";
+	if( ! $nodo ){
+		if( ! &{$up->{chk}}( $db->do( $up->{sql} ) )){
+			print STDERR "ver=$up->{ver} failed: ", $db->errstr, "\n";
+			last;
+		}
+	}
+	$dbver = $up->{ver};
+}
+
+print "setting dbver\n";
+if( ! $db->do( "SELECT setval('dbver', $dbver)" )){
+	print STDERR "setting dbver failed: ", $db->errstr, "\n";
+	exit 1;
+}
+
+$db->commit;
