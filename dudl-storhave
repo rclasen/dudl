@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-storhave,v 1.1 2006-01-11 13:50:36 bj Exp $
+# find files in database using regexp pattern
+
+# $Id: dudl-storhave,v 1.2 2006-01-13 15:41:23 bj Exp $
 
 use strict;
 use Dudl::DB;

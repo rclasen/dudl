@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# move new album to test directory normalizing all filenames
+#  dudl-dotest <dir> ...
+#  prefix=metallica- dudl-dotest master.of.puppets
+
 set -e
 
 : ${prefix:=}

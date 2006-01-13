@@ -16,8 +16,10 @@ WriteMakefile(
 	}, # e.g., Module::Name => 1.1
     'PMLIBDIRS'		=> [qw( Dudl )],
     'EXE_FILES'		=> [qw( 
+	dudl-dbavcheck
 	dudl-dbmaintenance
 	dudl-dbstatus
+	dudl-dbupdate
 	dudl-docdimg
 	dudl-doout
 	dudl-doren

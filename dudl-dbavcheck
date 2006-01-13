@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 # check if files marked as unavailable somehow became abailable
+# update files of "autoscan" units
 
 use strict;
 use Dudl::DB;

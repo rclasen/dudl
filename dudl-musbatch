@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musbatch,v 1.1 2006-01-11 13:50:36 bj Exp $
-
 # alle auf einer CD gefundenen alben/directories aus der file-Datenbank in
 # Musik Datenbank überführen.
+
+# $Id: dudl-musbatch,v 1.2 2006-01-13 15:41:23 bj Exp $
 
 use strict;
 use Getopt::Long;

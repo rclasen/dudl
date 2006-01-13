@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# rename a bunch of files to "clean" names
+
 set -e
 
 do_file () {

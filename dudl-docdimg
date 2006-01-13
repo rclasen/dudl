@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# generate CD images for new "sl" units
+
 : ${outdir:=.}
 
 do_cd () {

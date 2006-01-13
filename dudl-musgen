@@ -1,13 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musgen,v 1.1 2006-01-11 13:50:36 bj Exp $
-
 # generate mus template for editing an adding
 
 # edit
 # - search for files in directory
 # - fetch matching mus entries (use those from search if user requested)
 # - generate template
+
+# $Id: dudl-musgen,v 1.2 2006-01-13 15:41:23 bj Exp $
 
 
 use strict;
