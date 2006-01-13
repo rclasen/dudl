@@ -1,20 +1,52 @@
 #!/bin/sh
 
+# move dirs from 2test 
+# - to 4ren using dudl-rename if "ren" file works flawlessly
+# - to 3ren otherwise
+
+# dudl-doren <genre> <dir1> [...]
+
 set -e
+rdir="/pub/fun/mp3/3ren"
+odir="/pub/fun/mp3/4out"
 
-rendir=/pub/fun/mp3/3ren
+genre="`echo "$1" | tr '[a-z]' '[A-Z]' `"
+shift
 
-do_dir () {
-	local src="$1"
+case "$genre" in
+ COMEDY|DANCE|POP|ROCK|SAMPLER)
+	:
+	;;
+ *)
+ 	echo "invalid genre: >$genre<"
+	exit 1
+	;;
+esac
 
-	if [ -r "$src/ren" ]; then : ; else
-		echo "skipping non-dudl dir: $src" >&2
-		return 1
-	fi
-
-	mv "$src" "$rendir/"
-}
 
 for i in "$@"; do
-	do_dir "$i"
+	if [ -d "$i" ]; then
+		sdir="$i"
+		ren="$sdir/ren"
+	else
+		ren="$i"
+		sdir="${i%/*}"
+	fi
+
+	echo "processing $ren"
+	if dudl-rename --test "$ren" > /dev/null 2>&1 ; then
+		gdir="$odir/$genre"
+		[ -d "$gdir" ] || mkdir "$gdir"
+
+		dudl-rename --outdir="$gdir" "$ren"
+		echo "hit ^C on error, ENTER on success"
+		read
+		rm -rf "$sdir"
+	else
+		gdir="$rdir/$genre"
+		[ -d "$gdir" ] || mkdir "$gdir"
+
+		# TODO: avoid overwriting itself
+		mv "$sdir" "$gdir/"
+	fi
 done
