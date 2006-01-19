@@ -6,6 +6,8 @@
 use strict;
 use Dudl::DB;
 
+exit; # TODO: noch nicht fertig
+
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
@@ -15,13 +17,90 @@ my @updates = (
 {
 	ver	=> 1,
 	sql	=> q( ), # SQL command
-	chk	=> sub { }, # gets $db->do retval, returns true on success
+},
+{
+	ver	=> 2,
+	sql	=> q# 
+DROP VIEW mserv_dupes;
+DROP VIEW mserv_xhist;
+DROP VIEW mserv_track;
+DROP VIEW mserv_album;
+CREATE VIEW mserv_album AS
+SELECT
+        a.id AS album_id,
+        a.publish_date AS album_publish_date,
+        date_part('year', a.publish_date) AS album_publish_year,
+        a.album AS album_name,
+        a.artist_id AS album_artist_id,
+        ar.nname AS album_artist_name
+FROM
+        mus_album a INNER JOIN mus_artist ar
+                ON a.artist_id = ar.id;
+
+GRANT SELECT ON mserv_album TO PUBLIC;
+GRANT all ON mserv_album TO GROUP dudl;
+CREATE VIEW mserv_track AS
+SELECT
+        t.id,
+        t.album_pos,
+        date_part('epoch',t.duration) AS dur,
+        time2unix(t.lastplay) AS lplay,
+        t.title,
+        stor_filename(u.collection,u.colnum,t.dir,t.fname)
+                AS filename,
+        a.*,
+        ar.*
+FROM
+        stor_file t INNER JOIN stor_unit u
+                ON t.unit_id = u.id
+        INNER JOIN mserv_album a
+                ON t.album_id = a.album_id
+        INNER JOIN mserv_artist ar
+                ON t.artist_id = ar.artist_id
+
+WHERE
+        title NOTNULL AND
+        NOT t.broken;
+GRANT SELECT ON mserv_track TO PUBLIC;
+GRANT all ON mserv_track TO GROUP dudl;
+CREATE VIEW mserv_xhist AS
+SELECT
+        t.*,
+        time2unix(h.added) AS played,
+        h.user_id,
+        h.completed
+FROM
+        mserv_track t
+                INNER JOIN mserv_hist h
+                ON h.file_id = t.id;
+GRANT SELECT ON mserv_xhist TO PUBLIC;
+GRANT all ON mserv_xhist TO GROUP dudl;
+CREATE VIEW mserv_dupes AS
+SELECT t.*, h.added
+FROM
+        ( SELECT file_id
+                FROM mserv_hist
+                WHERE user_id = 0
+                GROUP BY file_id
+                HAVING count(*) > 1) d
+        INNER JOIN mserv_track t
+                ON t.id = d.file_id
+        INNER JOIN (SELECT *
+                FROM mserv_hist
+                WHERE user_id = 0 ) h
+                ON h.file_id = d.file_id
+ORDER BY t.id, h.added;
+GRANT SELECT ON mserv_dupes TO PUBLIC;
+GRANT all ON mserv_dupes TO GROUP dudl;
+#
 },
 );
 
 my( $dbexists ) = $db->selectrow_array(
                 "SELECT count(*) FROM pg_class WHERE relname = 'dbver'");
 
+# TODO: sequence doesn't work: you tend to get "value is not initialized
+# for this session" when checking currval();
 if( ! $dbexists ){
 	print "creating dbver\n";
 	if( ! $db->do( "CREATE SEQUENCE dbver") ){
@@ -37,6 +116,8 @@ if( ! $dbexists ){
 my( $dbver ) = $db->selectrow_array(
 		"SELECT currval('dbver')");
 
+die "testen";
+
 print "current dbver: $dbver\n";
 foreach my $up ( @updates ){
 	if( $up->{ver} <= $dbver ){
@@ -46,7 +127,12 @@ foreach my $up ( @updates ){
 
 	print "applying ver=$up->{ver}\n";
 	if( ! $nodo ){
-		if( ! &{$up->{chk}}( $db->do( $up->{sql} ) )){
+		if( ! $db->do( "BEGIN" ) ){ # TODO: funktioniert test?
+			print STDERR "ver=$up->{ver} failed: ", $db->errstr, "\n";
+			last;
+		}
+		$db->do( $up->{sql} );
+		if( ! $db->do( "COMMIT" ) ){ # TODO: funktioniert test?
 			print STDERR "ver=$up->{ver} failed: ", $db->errstr, "\n";
 			last;
 		}

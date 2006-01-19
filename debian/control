@@ -9,6 +9,7 @@ Package: dudl-db
 Architecture: all
 Depends: ${shlibs:Depends}, dudl-rename, libmp3-info-perl,
  libezdbi-perl, libezdbo-perl, libdbd-pg-perl
+Recommends: postgresql
 Description: tools to manage a Database with your MP3s
  <insert long description, indented with spaces>
 

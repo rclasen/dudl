@@ -1,3 +1,9 @@
+dudl (0.0.2) unstable; urgency=low
+
+  * changed mserv_album view to have a year-only publish-date.
+
+ -- Rainer Clasen <bj@zuto.de>  Mon, 16 Jan 2006 16:34:46 +0100
+
 dudl (0.0.1) unstable; urgency=low
 
   * Initial Release.

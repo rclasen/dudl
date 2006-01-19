@@ -1,5 +1,5 @@
 
-# $Id: README,v 1.5 2006-01-11 19:04:10 bj Exp $
+# $Id: README,v 1.6 2006-01-19 09:16:56 bj Exp $
 
 needed perl libs:
 
@@ -15,6 +15,27 @@ for database
 you may install each module with
  perl -MCPAN -e 'CPAN::Shell->install("<name>")'
 
+
+Database access:
+================
+
+a) keep default ident-based pg_hba.conf 
+- add Postgres users for all who are granted access to the DB
+ CREATE USER <user>;
+- add them to the dudl group to give them write access to the DB:
+ ALTER GROUP dudl ADD USER <user>;
+
+b) authenticate on DB connect. 
+- change all "local" lines in pg_hba.conf to:
+
+# keep the following line for debian maintenance:
+local   all     postgres                ident sameuser
+# switch to password authentication for local connects:
+local   all     all                     md5
+
+- everything else is preconfigured.
+
+
 Database installation:
 ======================
 
@@ -22,3 +43,5 @@ cd tables
 make # ... and follow the instructions
 
 of course you can alter the Makefile to do this automatically ;-)
+
+

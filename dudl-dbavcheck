@@ -10,7 +10,6 @@ use Dudl::DB;
 my $dudl = Dudl::DB->new;
 my $db = $dudl->db;
 
-my ( $enc ) = $db->selectrow_array( "SHOW client_encoding" );
 my $topdir = $dudl->conf("cdpath");
 my $ukartist = &get_artist("UNKNOWN");
 
