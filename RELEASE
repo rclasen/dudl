@@ -1,0 +1,4 @@
+
+- vim debian/changelog: version/changes
+- vim Makefile.PL: adjust VERSION
+- fakeroot debian/rules clean; fakeroot debian/rules binary
