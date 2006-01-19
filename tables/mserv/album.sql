@@ -7,6 +7,7 @@ CREATE VIEW mserv_album AS
 SELECT 
 	a.id AS album_id,
 	a.publish_date AS album_publish_date,
+	date_part('year', a.publish_date) AS album_publish_year,
 	a.album AS album_name,
 	a.artist_id AS album_artist_id,
 	ar.nname AS album_artist_name
