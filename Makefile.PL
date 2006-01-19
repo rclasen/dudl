@@ -21,6 +21,7 @@ WriteMakefile(
 	dudl-dbstatus
 	dudl-dbupdate
 	dudl-docdimg
+	dudl-doedit
 	dudl-doout
 	dudl-doren
 	dudl-dosort

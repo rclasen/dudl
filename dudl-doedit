@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# automatically check jobfiles after editing them.
+# offer broken files for reedit
+
+set -e
+: ${EDITOR:=vi}
+
+checkall=true
+for i in "$@"; do
+	if $checkall; then
+		checkall=false
+		set --
+	fi
+	if [ -d "$i" ]; then
+		sdir="$i"
+		ren="$sdir/ren"
+	else
+		ren="$i"
+		sdir="${i%/*}"
+	fi
+	set -- "$@" "$ren"
+done
+
+while : ; do
+	$EDITOR "$@"
+	checkall=true
+	for i in "$@"; do
+		if $checkall; then
+			checkall=false
+			set --
+		fi
+		dudl-rename --quiet --test "$i" || set -- "$@" "$i"
+	done
+	[ $# -eq 0 ] && break
+	echo "hit enter to re-edit broken files or abort"
+	read
+done
