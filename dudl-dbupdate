@@ -4,146 +4,1203 @@
 # to date
 
 use strict;
-use Dudl::DB;
+use EzDBI;
+use Getopt::Long;
 
-exit; # TODO: noch nicht fertig
 
-my $dudl = new Dudl::DB;
-my $db = $dudl->db;
+=pod
 
-my $nodo = 1;
+tables and sequences have to be created and ALTERed
+drop all permissions, views, rules, constraints, indices, functions and re-create them
 
-my @updates = (
-{
-	ver	=> 1,
-	sql	=> q( ), # SQL command
-},
-{
-	ver	=> 2,
-	sql	=> q# 
-DROP VIEW mserv_dupes;
-DROP VIEW mserv_xhist;
-DROP VIEW mserv_track;
-DROP VIEW mserv_album;
-CREATE VIEW mserv_album AS
-SELECT
-        a.id AS album_id,
-        a.publish_date AS album_publish_date,
-        date_part('year', a.publish_date) AS album_publish_year,
-        a.album AS album_name,
-        a.artist_id AS album_artist_id,
-        ar.nname AS album_artist_name
-FROM
-        mus_album a INNER JOIN mus_artist ar
-                ON a.artist_id = ar.id;
+=cut
 
-GRANT SELECT ON mserv_album TO PUBLIC;
-GRANT all ON mserv_album TO GROUP dudl;
-CREATE VIEW mserv_track AS
-SELECT
-        t.id,
-        t.album_pos,
-        date_part('epoch',t.duration) AS dur,
-        time2unix(t.lastplay) AS lplay,
-        t.title,
-        stor_filename(u.collection,u.colnum,t.dir,t.fname)
-                AS filename,
-        a.*,
-        ar.*
-FROM
-        stor_file t INNER JOIN stor_unit u
-                ON t.unit_id = u.id
-        INNER JOIN mserv_album a
-                ON t.album_id = a.album_id
-        INNER JOIN mserv_artist ar
-                ON t.artist_id = ar.artist_id
 
-WHERE
-        title NOTNULL AND
-        NOT t.broken;
-GRANT SELECT ON mserv_track TO PUBLIC;
-GRANT all ON mserv_track TO GROUP dudl;
-CREATE VIEW mserv_xhist AS
-SELECT
-        t.*,
-        time2unix(h.added) AS played,
-        h.user_id,
-        h.completed
-FROM
-        mserv_track t
-                INNER JOIN mserv_hist h
-                ON h.file_id = t.id;
-GRANT SELECT ON mserv_xhist TO PUBLIC;
-GRANT all ON mserv_xhist TO GROUP dudl;
-CREATE VIEW mserv_dupes AS
-SELECT t.*, h.added
-FROM
-        ( SELECT file_id
-                FROM mserv_hist
-                WHERE user_id = 0
-                GROUP BY file_id
-                HAVING count(*) > 1) d
-        INNER JOIN mserv_track t
-                ON t.id = d.file_id
-        INNER JOIN (SELECT *
-                FROM mserv_hist
-                WHERE user_id = 0 ) h
-                ON h.file_id = d.file_id
-ORDER BY t.id, h.added;
-GRANT SELECT ON mserv_dupes TO PUBLIC;
-GRANT all ON mserv_dupes TO GROUP dudl;
-#
-},
-);
+my $opt_view = 0;
+my $opt_verbose = 0;
+my $opt_check = 1;
+my $opt_droptrigger = 0;
 
-my( $dbexists ) = $db->selectrow_array(
-                "SELECT count(*) FROM pg_class WHERE relname = 'dbver'");
 
-# TODO: sequence doesn't work: you tend to get "value is not initialized
-# for this session" when checking currval();
-if( ! $dbexists ){
-	print "creating dbver\n";
-	if( ! $db->do( "CREATE SEQUENCE dbver") ){
-		print STDERR "failed to create dbver: ", $db->errstr, "\n";
-		exit 1;
-	}
-	if( ! $db->do( "SELECT setval('dbver',1)") ){
-		print STDERR "failed to set dbver: ", $db->errstr, "\n";
-		exit 1;
-	}
+# TODO: grant/revoke
+
+my $opt_dbname = "dudl";
+my $opt_dbhost = "";
+my $opt_dbuser = "postgres";
+my $opt_dbpass = "";
+
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"view!"		=> \$opt_view,
+	"verbose!"	=> \$opt_verbose,
+	"check!"	=> \$opt_check,
+	"droptrigger!"	=> \$opt_droptrigger,
+	"dbname=s"	=> \$opt_dbname,
+	"dbhost=s"	=> \$opt_dbhost,
+	"dbuser=s"	=> \$opt_dbuser,
+	"dbpass=s"	=> \$opt_dbpass,
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
 }
 
-my( $dbver ) = $db->selectrow_array(
-		"SELECT currval('dbver')");
-
-die "testen";
-
-print "current dbver: $dbver\n";
-foreach my $up ( @updates ){
-	if( $up->{ver} <= $dbver ){
-		print "skipping ver=$up->{ver}\n";
-		next;
-	}
-
-	print "applying ver=$up->{ver}\n";
-	if( ! $nodo ){
-		if( ! $db->do( "BEGIN" ) ){ # TODO: funktioniert test?
-			print STDERR "ver=$up->{ver} failed: ", $db->errstr, "\n";
-			last;
-		}
-		$db->do( $up->{sql} );
-		if( ! $db->do( "COMMIT" ) ){ # TODO: funktioniert test?
-			print STDERR "ver=$up->{ver} failed: ", $db->errstr, "\n";
-			last;
-		}
-	}
-	$dbver = $up->{ver};
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt>
+TODO: usage
+EOF
+	exit 0;
 }
 
-print "setting dbver\n";
-if( ! $db->do( "SELECT setval('dbver', $dbver)" )){
-	print STDERR "setting dbver failed: ", $db->errstr, "\n";
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
 	exit 1;
 }
 
-$db->commit;
+my $cmd = "dbi:Pg:".  
+	"dbname=template1";
+$cmd .= ";host=". $opt_dbhost if $opt_dbhost;
+
+my $tdb = EzDBI->connect( $cmd,
+	$opt_dbuser, $opt_dbpass, { 
+		'AutoCommit' => 1,
+		#'RaiseError' => 1,
+		'PrintError' => 0,
+		'ShowErrorStatement' => 0,
+		'FetchHashKeyName' => 'NAME_lc',
+		'ChopBlanks' => 1,
+	}) || die $DBI::errstr;
+
+my $dbver;
+my $mver = 0;
+my @tmpdrop;
+my @tdi;
+my @chadd;
+my @indices;
+my @recreate;
+
+my( $dbexists ) = $tdb->selectrow_array( 
+	"SELECT count(*) ".
+	"FROM pg_database ".
+	"WHERE datname = '$opt_dbname'" );
+if( ! $dbexists ){
+	if( $opt_view ){
+		$opt_check = 0;
+	} else {
+		print "creating database $opt_dbname ...\n";
+		$tdb->do( "CREATE DATABASE $opt_dbname" )
+			or die $tdb->errstr;
+	}
+}
+
+my $db;
+if( $opt_check ){
+	$cmd = "dbi:Pg:".  
+		"dbname=". $opt_dbname;
+	$cmd .= ";host=". $opt_dbhost if $opt_dbhost;
+
+	$db = EzDBI->connect( $cmd,
+		$opt_dbuser, $opt_dbpass, { 
+			'AutoCommit' => 1,
+			#'RaiseError' => 1,
+			'PrintError' => 0,
+			'ShowErrorStatement' => 0,
+			'FetchHashKeyName' => 'NAME_lc',
+			'ChopBlanks' => 1,
+		}) || die $DBI::errstr;
+
+	if( ($db->selectrow_array("SELECT count(*) ".
+		"FROM pg_class ".
+		"WHERE relname = 'dbver' "))[0] ){
+
+		( $dbver ) = $db->selectrow_array( 
+			"SELECT ver ".
+			"FROM dbver ".
+			"WHERE item = 'schema'");
+	}
+}
+
+if( ! $dbexists ){
+	$dbver = -1;
+
+	if( ! $opt_view ){
+		# TODO: catch this error:
+		$db->do( "
+CREATE FUNCTION plpgsql_call_handler() RETURNS language_handler
+	AS '/usr/lib/postgresql/lib/plpgsql.so', 'plpgsql_call_handler'
+	LANGUAGE c
+");
+		$db->do("
+CREATE TRUSTED PROCEDURAL LANGUAGE plpgsql HANDLER plpgsql_call_handler;
+");
+	}
+} elsif( ! defined $dbver ){
+	$dbver = 0;
+}
+
+sub mver {
+	my( $ver ) = @_;
+	$mver = $ver if $ver > $mver;
+}
+
+sub add_group {
+	my( $ver, $name ) = @_;
+	&mver( $ver );
+	if( ! ($db->selectrow_array("SELECT count(*) ".
+		"FROM pg_group ".
+		"WHERE groname = '$name' "))[0] ){
+		push @chadd, "CREATE GROUP $name" if $ver > $dbver;
+	}
+}
+
+sub add_user {
+	my( $ver, $name, $opt ) = @_;
+	&mver( $ver );
+	if( ! ($db->selectrow_array("SELECT count(*) ".
+		"FROM pg_user ".
+		"WHERE usename = '$name' "))[0] ){
+		push @chadd, "CREATE USER $name $opt" if $ver > $dbver;
+	}
+}
+
+sub add_member {
+	my( $ver, $group, $user ) = @_;
+	&mver( $ver );
+	push @chadd, "ALTER GROUP $group ADD USER $user" if $ver > $dbver;
+}
+
+sub add_sequence {
+	my( $ver, $name ) = @_;
+	&mver( $ver );
+	push @chadd, "CREATE SEQUENCE $name" if $ver > $dbver;
+}
+
+sub set_table {
+	my( $ver, $name, $cols, $alter ) = @_; 
+	&mver( $ver );
+	push @chadd, "CREATE TABLE $name (". join(",\n", @$cols ). ")" if $ver > $dbver;
+}
+
+sub chg {
+	my( $ver, $cmd ) = @_;
+	push @chadd, $cmd if $ver > $dbver;
+}
+	
+
+sub add_data {
+	my $ver = shift;
+	my $table = shift;
+	my $cols = shift;
+
+	&mver( $ver );
+	return unless $ver > $dbver;
+	foreach my $data ( @_ ){
+		push @chadd, "INSERT INTO $table ($cols) VALUES( $data )";
+	}
+}
+
+sub add_index {
+	my( $ver, $name, $def ) = @_;
+	&mver( $ver );
+	unshift @tdi, "DROP INDEX $name";
+	push @indices, "CREATE INDEX $name ON $def" if $def;
+}
+
+sub add_uindex {
+	my( $ver, $name, $def ) = @_;
+	&mver( $ver );
+	unshift @tdi, "DROP INDEX $name";
+	push @indices, "CREATE UNIQUE INDEX $name ON $def" if $def;
+}
+
+sub add_constraint {
+	my( $ver, $table, $name, $def ) = @_;
+	&mver( $ver );
+	unshift @tmpdrop, "ALTER TABLE $table DROP CONSTRAINT $name";
+	push @recreate, "ALTER TABLE $table ADD CONSTRAINT $name $def" if $def;
+}
+
+sub add_trigger {
+	my( $ver, $name, $when, $table, $def ) = @_;
+	&mver( $ver );
+	unshift @tmpdrop, "DROP TRIGGER $name ON $table";
+	push @recreate, "CREATE TRIGGER $name $when ON $table $def" if $def;
+}
+
+sub add_func {
+	my( $ver, $func, $ret, $lang, $def ) = @_;
+	&mver( $ver );
+	unshift @tmpdrop, "DROP FUNCTION $func";
+	push @recreate, "CREATE FUNCTION $func RETURNS $ret AS '$def' LANGUAGE '$lang'" if $def;
+}
+
+sub add_view {
+	my( $ver, $name, $def ) = @_;
+	&mver( $ver );
+	unshift @tmpdrop, "DROP VIEW $name";
+	push @recreate, "CREATE VIEW $name AS $def" if $def;
+}
+
+#----------------------------------------------------------
+#
+# droptrigger
+#
+#----------------------------------------------------------
+
+$opt_droptrigger++ if $dbver == 0;
+
+if( $db && $opt_droptrigger ){
+	my $sth = $db->prepare( 
+		"SELECT tgname,relname ".
+		"FROM pg_trigger t INNER JOIN pg_class c ON c.oid = t.tgrelid ".
+		"WHERE tgname LIKE 'RI_ConstraintTrigger%' ".
+			"AND NOT EXISTS ( ".
+				"SELECT oid ".
+				"FROM pg_constraint ".
+				"WHERE conname = t.tgconstrname )") 
+		or die $db->errstr;
+	$sth->execute or die $sth->errst;
+
+	my( $trig, $rel );
+	$sth->bind_columns( \( $trig, $rel ) );
+
+	while( defined $sth->fetch ){
+		push @tmpdrop, "DROP TRIGGER \"$trig\" ON $rel";
+	}
+}
+
+#----------------------------------------------------------
+#
+# dbver
+#
+#----------------------------------------------------------
+
+# schema version tracking
+
+&set_table( 1, "dbver", [
+	"item	VARCHAR(32) NOT NULL",
+	"ver	INTEGER NOT NULL DEFAULT 0",
+]);
+&add_uindex( 1, "dbver__item", "dbver(item)" );
+&add_data( 1, "dbver", "item,ver", "'schema',1" );
+
+#----------------------------------------------------------
+#
+# user
+#
+#----------------------------------------------------------
+
+# write permissions
+&add_group( 0, "dudl");
+
+&add_user( 0, "reader", "WITH PASSWORD 'reader'");
+
+&add_user( 0, "dudl", "WITH PASSWORD 'dudl'");
+&add_member( 0, "dudl", "dudl" );
+&add_user( 0, "dudld", "WITH PASSWORD 'dudld'");
+&add_member( 0, "dudl", "dudld" );
+#&add_user( 0, "bj", "");
+#&add_member( 0, "dudl", "bj" );
+
+
+#----------------------------------------------------------
+#
+# pgx_triggers
+#
+# lists all stored triggers
+#
+#----------------------------------------------------------
+
+&add_view( 0, "pgx_trigger", "
+SELECT
+	r1.relname		AS table_name,
+	t.tgtype		AS trigger_type,
+	t.tgisconstraint	AS is_constr,
+	CASE 
+		WHEN t.tgisconstraint THEN t.tgconstrname
+		ELSE t.tgname	
+		END		AS func_or_constr,
+	t.tgenabled		AS enabled,
+	f.proname		AS trigger_function
+FROM   
+	pg_class	r1, 
+	pg_trigger	t, 
+	pg_proc		f
+WHERE  
+	r1.oid = t.tgrelid AND
+	t.tgfoid = f.oid
+");
+
+
+#----------------------------------------------------------
+#
+# pgx_refint
+#
+# lists declared referential integrity
+#
+#----------------------------------------------------------
+
+&add_view( 0, "pgx_refint", "
+SELECT
+	r1.relname		AS table_name,
+	t.tgtype		AS trigger_type,
+	t.tgenabled		AS enabled,
+	f.proname		AS trigger_function,
+	t.tgargs		AS trigger_args
+FROM   
+	pg_class	r1, 
+	pg_trigger	t, 
+	pg_proc		f
+WHERE  
+	r1.oid = t.tgrelid AND
+	t.tgfoid = f.oid AND
+	t.tgisconstraint
+");
+
+#----------------------------------------------------------
+#
+# pgx_proc
+#
+# list source of your own stored procedures
+#
+#----------------------------------------------------------
+
+&add_view( 0, "pgx_proc", "
+SELECT
+	proname,
+	prosrc
+FROM
+	pg_proc
+WHERE
+	oid > 9000
+"); # bis zu welcher OID macht sich postgresql breit?
+
+#----------------------------------------------------------
+#
+# misc functions
+#
+#----------------------------------------------------------
+
+&add_func( 0, "bool(NUMERIC)", "boolean", "sql", "
+SELECT \$1 != 0;
+");
+
+&add_func( 0, "trigger_update_modified()", "opaque", "plpgsql", "
+BEGIN
+	new.modified := now();
+	RETURN new;
+END;
+");
+
+&add_func( 0, "unix2time(INTEGER)", "timestamp", "plpgsql", "
+BEGIN
+	return timestamp ''epoch'' + cast(\$1 || ''seconds'' as interval);
+END;
+");
+
+&add_func( 0, "time2unix(TIMESTAMP)", "integer", "plpgsql", "
+BEGIN
+	return trunc(date_part(''epoch'', \$1));
+END;
+");
+
+&add_func( 0, "time2unix(TIME)", "integer", "plpgsql", "
+BEGIN
+	return trunc(date_part(''epoch'', \$1));
+END;
+");
+
+#----------------------------------------------------------
+#
+# stor_unit
+#
+#----------------------------------------------------------
+
+&add_sequence( 0, "stor_unit_id_seq");
+&set_table( 0, "stor_unit", [
+	"id		INTEGER NOT NULL DEFAULT nextval('stor_unit_id_seq')",
+
+	"collection	VARCHAR(8)",	# sl, kr, mm, ...
+	"colnum		SMALLINT NOT NULL DEFAULT 0",# 1, 2, 3, ...
+
+	"volname	VARCHAR(12)",	# Volume name
+	"size		INTEGER",	# disk size - in bytes
+
+	"autoscan	BOOLEAN NOT NULL DEFAULT false",  # automagically scan this unit  for new/deleted files
+]);
+&add_uindex( 0,  "stor_unit__id", "stor_unit(id)");
+&add_uindex( 0,  "stor_unit__col_num", "stor_unit( collection, colnum )");
+&add_data( 0, "stor_unit", "collection,colnum", "'local', 0" );
+
+#----------------------------------------------------------
+#
+# stor_file
+#
+#----------------------------------------------------------
+
+
+&add_sequence( 0, "stor_file_id_seq" );
+&set_table( 0, "stor_file", [
+	"id		INTEGER NOT NULL DEFAULT nextval('stor_file_id_seq')",
+
+	##--------------------------
+	# information related to each file
+	
+	"unit_id	INTEGER	NOT NULL", # -> ref
+
+	"dir		VARCHAR(255) NOT NULL DEFAULT ''", # directory on this unit
+	"fname		VARCHAR(255)", # filename (without directory)
+	#"ftype		INTEGER	NOT NULL", # TODO: file type
+	#	0	unknown
+	#	1	mp3
+			 
+
+	"fsize		INTEGER",	# File size in byte
+
+
+	"fsum		CHAR(32)",	# md5 hex checksum for whole file
+	"dsum		CHAR(32)",	# md5 hex Checksum for data
+	"id3v1		BOOLEAN",	# id3 tag version1 present
+	"id3v2		BOOLEAN",	# id3 tag version2 present
+	"riff		BOOLEAN",	# riff header present
+
+	"duration	TIME",
+	"channels	SMALLINT NOT NULL DEFAULT 2",
+
+	##--------------------------
+	# ID Tag information
+
+	"id_title	VARCHAR(30)",	# title of track
+	"id_artist	VARCHAR(30)",	# artist of track
+	"id_album	VARCHAR(30)",	# album this track belongs to
+	
+	"id_tracknum	SMALLINT NOT NULL DEFAULT 0", # index on the above album 
+	"id_comment	VARCHAR(30)",	# additional info
+	
+	"id_year	SMALLINT",	# year of release
+	"id_genre	VARCHAR(10)",	# genre of this track
+	
+	#----------------------------
+	# MP3 specific data
+
+	"freq		INTEGER	DEFAULT 44100",	# sampling frequency in HZ usually 44100
+	"bits		SMALLINT DEFAULT 16",
+	"mpeg_ver	SMALLINT DEFAULT 2",		# mpeg version 1, 2
+	"mpeg_lay	SMALLINT DEFAULT 3",		# mpeg layer within mpeg_ver 1, 2, 3
+	"mpeg_brate	INTEGER",	# encoded with this bitrate
+	"mpeg_mode	SMALLINT",	# mpeg mode ?
+	"vbr		BOOLEAN",	# variable bitrate? 
+
+
+	#----------------------------
+	# status
+
+	"available	BOOLEAN	NOT NULL DEFAULT 'true'", # file is readable
+	"broken		BOOLEAN	NOT NULL DEFAULT 'false'", # is this file damaged?
+	"cmnt		TEXT",		# Comment
+
+	#----------------------------
+	# music part of DB
+
+	"album_id	INTEGER",	# -> ref
+	"album_pos	INTEGER CHECK( album_pos > 0 )",
+	"title		VARCHAR(255)",
+	"artist_id	INTEGER	DEFAULT 0 NOT NULL",	# -> ref
+
+	#----------------------------
+	# mserv data:
+
+	# lastplay is updated automatically on update/insert in
+	# mserv_hist. There is no need to update this column manually.
+	# TODO: find way to get lastplay from mserv_hist quickly. Maybe
+	# using a "last" flag per record, that's automatically updated.
+	"lastplay	TIMESTAMP NOT NULL DEFAULT '1970-1-1 0:0:0+0'" # mserv: last time of play
+]);
+
+&add_uindex( 0, "stor_file__id", "stor_file(id)" );
+&add_uindex( 0, "stor_file__unit_file", "stor_file( unit_id, dir, fname )");
+&add_uindex( 0, "stor_file__album_pos", "stor_file( album_id, album_pos )");
+
+&add_constraint( 0, "stor_file", "stor_file__mus", "
+CHECK( (
+	album_id ISNULL AND 
+	album_pos ISNULL AND 
+	title ISNULL AND
+	artist_id = 0
+) OR (
+	album_id NOTNULL AND 
+	album_pos NOTNULL AND 
+	title NOTNULL
+))
+");
+			
+			
+# referential integrity
+&add_constraint( 0, "stor_file", "ri__stor_file__stor_unit","
+FOREIGN KEY ( unit_id )
+REFERENCES stor_unit(id)
+	DEFERRABLE
+");
+&add_constraint( 0, "stor_file", "ri__stor_file__mus_album","
+FOREIGN KEY( album_id )
+REFERENCES mus_album(id)
+	DEFERRABLE
+");
+&add_constraint( 0, "stor_file", "ri__stor_file__mus_artist","
+FOREIGN KEY( artist_id )
+REFERENCES mus_artist(id)
+	DEFERRABLE
+");
+
+
+
+# sequence for unsorted files:
+&add_sequence( 0, "stor_file_unknown_pos_seq");
+# UPDATE stor_file SET album_id = 0, title = fname, album_pos = NEXTVAL('stor_file_unknown_pos_seq') WHERE unit_id =351 AND dir = 'diverses';
+
+
+#----------------------------------------------------------
+#
+# stor_functions
+#
+#----------------------------------------------------------
+
+&add_func( 0, "stor_unitpath(char,integer)", "char", "plpgsql", "
+DECLARE
+	col ALIAS FOR \$1;
+	colnum ALIAS FOR \$2;
+BEGIN
+	return col || ''/'' || col ||
+		to_char(cast( colnum AS numeric),''FM0000'');
+END;
+");
+
+&add_func( 0, "stor_filename(char,integer,char,char)", "char", "plpgsql", "
+DECLARE
+	col ALIAS FOR \$1;
+	colnum ALIAS FOR \$2;
+	dir ALIAS FOR \$3;
+	fname ALIAS FOR \$4;
+
+	pdir VARCHAR;
+BEGIN
+	IF dir IS NULL OR dir = '''' THEN
+		pdir := '''';
+	ELSE
+		pdir := dir || ''/'';
+	END IF;
+
+	return col || ''/'' || col ||
+		to_char(cast( colnum AS numeric),''FM0000'') || ''/'' ||
+		pdir || fname;
+END;
+");
+
+# trigger to check file validity
+&add_func( 0, "mserv_check_file()", "trigger", "plpgsql", "
+DECLARE
+	file	RECORD;
+BEGIN
+	SELECT INTO file id 
+		FROM stor_file 
+		WHERE id = new.file_id AND title NOTNULL;
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION ''found no music file with id %'', new.file_id;
+	END IF;
+
+	RETURN new;
+END;
+");
+
+#----------------------------------------------------------
+#
+# stor_views
+#
+#----------------------------------------------------------
+
+&add_view( 0, "stor_xfile", "
+SELECT
+	f.id,
+	f.unit_id,
+	u.collection		as col,
+	u.colnum,
+	f.dir,
+	f.fname,
+	f.broken,
+	f.cmnt,
+	f.freq
+FROM
+	stor_unit u,
+	stor_file f
+WHERE
+	u.id = f.unit_id
+");
+
+
+
+#----------------------------------------------------------
+#
+# mus_artist
+#
+#----------------------------------------------------------
+
+&add_sequence( 0, "mus_artist_id_seq");
+&set_table( 0, "mus_artist",  [
+	"id		INTEGER NOT NULL DEFAULT nextval( 'mus_artist_id_seq' )",
+
+	"nname		VARCHAR(255) NOT NULL CHECK( nname <> '' )",
+]);
+&add_uindex( 0,  "mus_artist__id", "mus_artist(id)");
+&add_uindex( 0,  "mus_artist__names", "mus_artist(lower(nname))");
+&add_data( 0, "mus_artist", "id, nname", "0, 'UNKNOWN'");
+
+
+# select id, nname, case when nname ~* '^(die|the) ' then substr(lower(nname),5) else lower(nname) end  from mus_artist order by case when nname ~* '^(die|the) ' then substr(lower(nname),5) else lower(nname) end;
+
+#----------------------------------------------------------
+#
+# mus_album
+#
+#----------------------------------------------------------
+
+&add_sequence( 0, "mus_album_id_seq");
+&set_table( 0, "mus_album",  [
+	"id		INTEGER NOT NULL DEFAULT nextval('mus_album_id_seq')",
+
+	"album		VARCHAR(255) NOT NULL CONSTRAINT mus_album__album CHECK( album <> '' )",
+	"artist_id	INTEGER DEFAULT NULL",
+	"publish_date	DATE",
+	# TODO: publish_date -> publish_year INTEGER;
+]);
+&add_uindex( 0,  "mus_album__id", "mus_album(id)");
+&add_uindex( 0,  "mus_album__artist_album", "mus_album(artist_id, album)");
+
+# referential integrity
+&add_constraint( 0, "mus_album", "ri__mus_album__mus_artist","
+FOREIGN KEY ( artist_id )
+REFERENCES mus_artist(id)
+	DEFERRABLE
+");
+
+#----------------------------------------------------------
+#
+# mus_tag / mserv_tag
+#
+#----------------------------------------------------------
+
+# list of available tags (formerly genres)
+&add_sequence( 0, "mserv_tag_id_seq");
+&set_table( 0, "mserv_tag",  [
+	"id		INTEGER NOT NULL DEFAULT nextval('mserv_tag_id_seq')",
+	"name		VARCHAR(32)",
+	"cmnt		TEXT",
+]);
+&add_uindex( 0,  "mserv_tag__id", "mserv_tag(id)");
+&add_uindex( 0,  "mserv_tag__name", "mserv_tag( lower(name) )");
+
+&add_func( 0, "gettag(varchar)", "integer", "plpgsql", "
+DECLARE
+	tag RECORD;
+BEGIN
+	SELECT INTO tag id 
+	FROM mserv_tag
+	WHERE name = lower(\$1);
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION ''tag not found: %'', \$1;
+	END IF;
+
+	RETURN tag.id;
+END;
+");
+
+
+#----------------------------------------------------------
+#
+# mus_filetag / mserv_filetag
+#
+#----------------------------------------------------------
+
+# n->m mapping of which tags are set for a title
+&set_table( 0, "mserv_filetag",  [
+	"tag_id		INTEGER NOT NULL",
+	"file_id	INTEGER NOT NULL",
+]);
+&add_uindex( 0,  "mserv_filetag__tag_file", "mserv_filetag(tag_id, file_id)");
+&add_index( 0, "mserv_filetag__mserv_tag", "mserv_filetag(tag_id)");
+&add_index( 0, "mserv_filetag__stor_file", "mserv_filetag(file_id)");
+
+# refererential integrity
+&add_constraint( 0, "mserv_filetag", "ri__mserv_filetag__mserv_tag","
+FOREIGN KEY ( tag_id )
+REFERENCES mserv_tag( id )
+	ON UPDATE CASCADE
+	DEFERRABLE
+");
+&add_constraint( 0, "mserv_filetag", "ri__mserv_filetag__stor_file", "
+FOREIGN KEY ( file_id )
+REFERENCES stor_file( id )
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
+	DEFERRABLE
+");
+
+# check that it's a real file
+&add_trigger( 0, "mserv_filetag__up", "AFTER INSERT OR UPDATE", 
+	"mserv_filetag", "FOR EACH ROW EXECUTE PROCEDURE mserv_check_file()");
+
+
+
+&add_func( 0, "mserv_tags(integer)", "char", "plpgsql", "
+DECLARE
+	tag RECORD;
+	tags VARCHAR := '''';
+BEGIN
+	FOR tag IN SELECT name 
+		FROM 
+			mserv_filetag tt 
+				INNER JOIN mserv_tag ta
+				ON tt.tag_id = ta.id
+		WHERE
+			tt.file_id = \$1
+		ORDER BY
+			ta.id
+	LOOP
+		IF tags = '''' THEN
+			tags := tag.name; 
+		ELSE
+			tags := tags || '','' || tag.name;
+		END IF;
+	END LOOP;
+
+	RETURN tags;
+END;
+");
+
+&add_func( 0, "mserv_tagids(integer)", "char", "plpgsql", "
+DECLARE
+	tag RECORD;
+	tags VARCHAR := '''';
+BEGIN
+	FOR tag IN SELECT tag_id AS id
+		FROM 
+			mserv_filetag tt 
+		WHERE
+			tt.file_id = \$1
+		ORDER BY
+			tt.tag_id
+	LOOP
+		IF tags = '''' THEN
+			tags := tag.id; 
+		ELSE
+			tags := tags || '','' || tag.id;
+		END IF;
+	END LOOP;
+
+	RETURN tags;
+END;
+");
+
+
+&add_func( 0, "mserv_tagged(integer, integer )", "boolean", "plpgsql", "
+DECLARE
+	id record;
+BEGIN
+	SELECT INTO id tag_id
+	FROM mserv_filetag 
+	WHERE file_id = \$1 AND tag_id = \$2;
+
+	IF NOT FOUND THEN
+		RETURN 0;
+	END IF;
+
+	RETURN 1;
+END;
+");
+
+
+&add_func( 0, "mserv_tagged(integer, varchar )", "boolean", "plpgsql", "
+BEGIN
+	RETURN mserv_tagged(\$1, gettag(\$2));
+END;
+");
+
+
+
+&add_func( 0, "mserv_set_tag( integer, integer )", "boolean", "plpgsql", "
+BEGIN
+	IF mserv_tagged(\$1,\$2) THEN
+		RETURN 1;
+	END IF;
+
+	INSERT INTO mserv_filetag( file_id, tag_id )
+	VALUES( \$1, \$2 );
+
+	RETURN 1;
+END;
+");
+
+
+&add_func( 0, "mserv_set_tag( integer, varchar )", "boolean", "plpgsql", "
+BEGIN
+	RETURN mserv_set_tag( \$1, gettag(\$2) );
+END;
+");
+
+
+&add_func( 0, "mserv_del_tag( integer, integer )", "boolean", "plpgsql", "
+BEGIN
+	DELETE FROM mserv_filetag 
+		WHERE file_id = \$1 AND tag_id = \$2;
+
+	RETURN 1;
+END;
+");
+
+
+&add_func( 0, "mserv_del_tag( integer, varchar )", "boolean", "plpgsql", "
+BEGIN
+	RETURN mserv_del_tag( \$1, gettag(\$2) );
+END;
+");
+
+
+
+#----------------------------------------------------------
+#
+# mus_xtitle
+#
+#----------------------------------------------------------
+
+# view mus_xtitle
+&add_view( 0, "mus_xtitle", "
+SELECT
+	aa.id			AS album_artist_id,
+	aa.nname		AS album_artist,
+	t.album_id,
+	a.album,
+	a.publish_date,
+	t.id,
+	t.album_pos		AS pos,
+	t.title,
+	ta.id			AS title_artist_id,
+	ta.nname		AS title_artist,
+	mserv_tags(t.id)	AS tags,
+	mserv_tagids(t.id)	AS tid,
+	t.cmnt,
+	stor_filename( u.collection, u.colnum, t.dir, t.fname )
+				AS filename
+FROM
+	mus_album a 
+		INNER JOIN mus_artist aa
+		ON a.artist_id = aa.id
+
+		INNER JOIN stor_file t
+		ON t.album_id = a.id
+
+		INNER JOIN mus_artist ta
+		ON t.artist_id = ta.id
+		
+		INNER JOIN stor_unit u
+		ON t.unit_id = u.id
+
+WHERE
+	t.title NOTNULL
+");
+
+
+
+# select id, title_artist, substr(title,0,40), album, album_id from mus_xtitle where not exists (select file_id from mserv_filetag where tag_id = 29 and file_id = id) order by title_artist, title;
+
+
+&add_view( 0, "mus_xalbum", "
+SELECT
+	a.id,
+	a.album,
+	aa.nname,
+	a.publish_date
+FROM
+	mus_album a 
+		INNER JOIN mus_artist aa
+		ON a.artist_id = aa.id
+");
+
+
+
+#----------------------------------------------------------
+#
+# juke_user / mserv_user
+#
+#----------------------------------------------------------
+
+&add_sequence( 0, "mserv_user_id_seq");
+&set_table( 0, "mserv_user",  [
+	"id		INTEGER NOT NULL DEFAULT nextval('mserv_user_id_seq')",
+	"name		VARCHAR(16)",
+	"pass		VARCHAR NOT NULL",
+	"lev		INTEGER NOT NULL",	# see below
+]);
+&add_uindex( 0,  "mserv_user__id", "mserv_user(id)");
+&add_uindex( 0,  "mserv_user__name", "mserv_user( lower(name) )");
+
+
+#----------------------------------------------------------
+#
+# juke_sfilter
+#
+#----------------------------------------------------------
+
+# saved filters
+&add_sequence( 0, "juke_sfilter_id_seq");
+&set_table( 0, "juke_sfilter",  [
+	"id		INTEGER NOT NULL DEFAULT nextval('juke_sfilter_id_seq')",
+	"name		VARCHAR(32)",
+	"filter		TEXT",
+]);
+&add_uindex( 0,  "juke_sfilter__id", "juke_sfilter(id)");
+&add_uindex( 0,  "juke_sfilter__name", "juke_sfilter( lower(name) )");
+
+
+#----------------------------------------------------------
+#
+# juke_queue / mserv_queue
+#
+#----------------------------------------------------------
+
+&add_sequence( 0, "mserv_queue_id_seq");
+&set_table( 0, "mserv_queue",  [
+	"id		INTEGER NOT NULL DEFAULT nextval('mserv_queue_id_seq')",
+	"file_id	INTEGER NOT NULL",
+	"added		TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+	"user_id	INTEGER",		# who queued this track?
+]);
+&add_uindex( 0,  "mserv_queue__id", "mserv_queue(id)");
+
+# referential integrity
+&add_constraint( 0, "mserv_queue", "ri__mserv_queue__stor_file", "
+FOREIGN KEY ( file_id )
+REFERENCES stor_file( id )
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
+	DEFERRABLE
+");
+
+&add_constraint( 0, "mserv_queue", "ri__mserv_queue__mserv_user", "
+FOREIGN KEY ( user_id )
+REFERENCES mserv_user( id )
+	ON DELETE SET NULL
+	ON UPDATE CASCADE
+	DEFERRABLE
+");
+
+
+&add_trigger( 0, "mserv_queue__up", "AFTER INSERT OR UPDATE",
+	"mserv_queue", "FOR EACH ROW EXECUTE PROCEDURE mserv_check_file()");
+ 
+
+#----------------------------------------------------------
+#
+# juke_hist / mserv_hist
+#
+#----------------------------------------------------------
+
+
+&add_sequence( 0, "mserv_hist_id_seq");
+&set_table( 0, "mserv_hist", [
+	"id		INTEGER NOT NULL DEFAULT nextval('mserv_hist_id_seq')",
+	"file_id	INTEGER NOT NULL",
+	"added		TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+	"user_id	INTEGER",	# who queued this track?
+	"completed	BOOL NOT NULL DEFAULT true",
+]);
+&add_uindex( 0,  "mserv_hist__id", "mserv_hist(id)");
+
+# referential integrity
+&add_constraint( 0, "mserv_hist", "ri__mserv_hist__stor_file", "
+FOREIGN KEY ( file_id )
+REFERENCES stor_file( id )
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
+	DEFERRABLE
+");
+
+&add_constraint( 0, "mserv_hist", "ri__mserv_hist__mserv_user", "
+FOREIGN KEY ( user_id )
+REFERENCES mserv_user( id )
+	ON DELETE SET NULL
+	ON UPDATE CASCADE
+	DEFERRABLE
+");
+
+
+# trigger to update stor_file.lastplay on insert
+
+# TODO: update stor_file only when "added" was updated or inserted
+&add_func( 0, "mserv_hist__up_lastplay()", "trigger", "plpgsql", "
+DECLARE
+	file	RECORD;
+BEGIN
+	SELECT INTO file lastplay 
+		FROM stor_file 
+		WHERE id = new.file_id AND title NOTNULL;
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION ''found no music file with id %'', new.file_id;
+	END IF;
+
+	IF file.lastplay > new.added THEN
+		RAISE NOTICE ''lastplay for file % is newer - no update'', 
+			new.file_id;
+		RETURN new;
+	END IF;
+
+	UPDATE stor_file SET lastplay = new.added WHERE id = new.file_id;
+
+	RETURN new;
+END;
+");
+
+
+# TODO: run trigger on update, too
+&add_trigger( 0, "mserv_hist__up", " AFTER INSERT",
+	"mserv_hist", "FOR EACH ROW EXECUTE PROCEDURE mserv_hist__up_lastplay()");
+ 
+
+
+
+
+
+#----------------------------------------------------------
+#
+# juke_artist / mserv_artist
+#
+#----------------------------------------------------------
+
+
+&add_view( 0, "mserv_artist", "
+SELECT 
+	id AS artist_id,
+	nname AS artist_name
+FROM 
+	mus_artist a
+");
+
+
+#----------------------------------------------------------
+#
+# juke_album / mserv_album
+#
+#----------------------------------------------------------
+
+
+&add_view( 1, "mserv_album", "
+SELECT 
+	a.id AS album_id,
+	a.publish_date AS album_publish_date,
+	date_part('year', a.publish_date) AS album_publish_year,
+	a.album AS album_name,
+	a.artist_id AS album_artist_id,
+	ar.nname AS album_artist_name
+FROM 
+	mus_album a INNER JOIN mus_artist ar
+		ON a.artist_id = ar.id
+");
+
+#----------------------------------------------------------
+#
+# juke_track / mserv_track
+#
+#----------------------------------------------------------
+
+&add_view( 0, "mserv_track", "
+SELECT 
+	t.id,
+	t.album_pos,
+	date_part('epoch',t.duration) AS dur,
+	time2unix(t.lastplay) AS lplay,
+	t.title,
+	stor_filename(u.collection,u.colnum,t.dir,t.fname) 
+		AS filename,
+	a.*,
+	ar.*
+FROM 
+	stor_file t INNER JOIN stor_unit u  
+		ON t.unit_id = u.id 
+	INNER JOIN mserv_album a
+		ON t.album_id = a.album_id
+	INNER JOIN mserv_artist ar
+		ON t.artist_id = ar.artist_id
+
+WHERE 
+	title NOTNULL AND
+	NOT t.broken
+");
+
+#----------------------------------------------------------
+#
+# juke_xhist / mserv_xhist
+#
+#----------------------------------------------------------
+
+&add_view( 0, "mserv_xhist", "
+SELECT 
+	t.*,
+	time2unix(h.added) AS played, 
+	h.user_id,
+	h.completed
+FROM 
+	mserv_track t
+		INNER JOIN mserv_hist h
+		ON h.file_id = t.id
+");
+
+#----------------------------------------------------------
+#
+# juke_dupes / mserv_dupes
+#
+#----------------------------------------------------------
+
+&add_view( 0, "mserv_dupes", "
+SELECT t.*, h.added
+FROM 
+	( SELECT file_id 
+		FROM mserv_hist
+		WHERE user_id = 0
+		GROUP BY file_id
+		HAVING count(*) > 1) d 
+	INNER JOIN mserv_track t
+		ON t.id = d.file_id
+	INNER JOIN (SELECT * 
+		FROM mserv_hist
+		WHERE user_id = 0 ) h
+		ON h.file_id = d.file_id
+ORDER BY t.id, h.added
+");
+
+
+
+
+print "-- upgrading DB from Version $dbver to $mver\n";
+if( $opt_view ){
+	print "BEGIN;\n";
+	print join ";\n", @tmpdrop, @tdi, @chadd, @indices, @recreate;
+	print "UPDATE dbver SET ver = $mver WHERE item = 'schema';";
+	print ";\nCOMMIT;\n";
+	exit;
+} else {
+	foreach my $cmd ( @tmpdrop, @tdi ){
+		print "$cmd;\n" if $opt_verbose;
+		if( ! $db->do( $cmd ) && $opt_verbose ){
+			print STDERR "ignored: $cmd\n", $db->errstr, "\n";
+		}
+	}
+	foreach my $cmd ( @chadd, @indices, @recreate ){
+		print "$cmd;\n" if $opt_verbose;
+		$db->do( $cmd ) or die "failed: $cmd\n", $db->errstr;
+	}
+	$db->do("UPDATE dbver SET ver = $mver WHERE item = 'schema'");
+}
+

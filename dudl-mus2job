@@ -1,0 +1,141 @@
+#!/usr/bin/perl -w
+
+# (re-)generate archive jobfiles from database contents.
+
+use strict;
+use Dudl::DB;
+use Dudl::Job::Archive;
+
+my $dudl = new Dudl::DB;
+my $db = $dudl->db;
+
+my $cdpath = $dudl->conf("cdpath");
+my $archive = $dudl->conf("write_jname");
+
+my $sth = $db->prepare(" 
+SELECT
+	a.id AS album_id,
+	a.album AS album_name,
+	aa.nname AS album_artist,
+	date_part('year',a.publish_date) AS album_year,
+	f.id AS file_id,
+	stor_unitpath(u.collection, u.colnum) || '/' || f.dir AS file_dir,
+	f.fname AS file_name,
+	f.broken AS file_broken,
+	f.cmnt AS file_cmt,
+	f.title AS title_name,
+	ta.nname AS title_artist,
+	f.album_pos AS title_num,
+	mserv_tags(f.id) AS title_genres
+FROM
+	stor_file f INNER JOIN stor_unit u
+		ON f.unit_id = u.id
+	INNER JOIN mus_artist ta
+		ON f.artist_id = ta.id
+	INNER JOIN mus_album a
+		ON f.album_id = a.id
+	INNER JOIN mus_artist aa
+		ON a.artist_id = aa.id
+WHERE
+	NOT u.autoscan
+ORDER BY
+	u.collection,
+	u.colnum,
+	f.dir,
+	aa.nname,
+	a.album,
+	f.album_pos
+") or die $db->errstr;
+
+my $res = $sth->execute 
+	or die $sth->errstr;
+
+my(
+	$album_id,
+	$album_name,
+	$album_artist,
+	$album_year,
+	$file_id,
+	$file_dir,
+	$file_name,
+	$file_broken,
+	$file_cmt,
+	$title_name,
+	$title_artist,
+	$title_num,
+	$title_genres,
+);
+
+$sth->bind_columns( \( 
+	$album_id,
+	$album_name,
+	$album_artist,
+	$album_year,
+	$file_id,
+	$file_dir,
+	$file_name,
+	$file_broken,
+	$file_cmt,
+	$title_name,
+	$title_artist,
+	$title_num,
+	$title_genres,
+)) or die $sth->errstr;
+
+my $job;
+my( $odir, $oalb );
+my( $jobs, $albums );
+while( defined $sth->fetch ){
+	if( ! defined $odir || $odir ne $file_dir ){
+		&finish( $odir, $job ) if defined $job;
+		$job = new Dudl::Job::Archive( naming => $dudl->naming );
+		$odir = $file_dir;
+		$oalb = undef;
+		$jobs++;
+	}
+
+	if( ! defined $oalb || $oalb != $album_id ){
+		$job->add_album(
+			name	=> $album_name,
+			artist	=> $album_artist,
+			type	=> $album_artist =~ /^(VARIOUS|UNKNOWN)$/ 
+				? "sampler" : "album",
+			year	=> $album_year,
+		);
+		$oalb = $album_id;
+		$albums++;
+	}
+
+	$job->add_file( 
+		id	=> $file_id, 
+		mp3	=> $file_name,
+		broken	=> $file_broken,
+		cmt	=> $file_cmt,
+	);
+
+	$job->add_title(
+		id	=> $file_id,
+		name	=> $title_name,
+		artist	=> $title_artist, 
+		num	=> $title_num, 
+		genres	=> $title_genres, 
+	);
+}
+&finish( $odir, $job ) if defined $job;
+print "wrote $albums albums to $jobs job files\n";
+
+sub finish {
+	my( $dir, $job ) = @_;
+
+	return unless -d "$cdpath/$dir";
+	my $fname = "$cdpath/$dir/$archive";
+
+	print "writing $fname\n";
+	local *J;
+	open( J, ">$fname" ) or die "open failed: $!";
+	$job->write( \*J );
+	close( J );
+	#$job->write( \*STDOUT );
+}
+
+

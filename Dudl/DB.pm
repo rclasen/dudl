@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: DB.pm,v 1.3 2002-07-30 16:04:37 bj Exp $
+# $Id: DB.pm,v 1.4 2006-01-23 12:57:17 bj Exp $
 
 package Dudl::DB;
 
@@ -78,7 +78,7 @@ sub db {
 		my $cmd = "dbi:Pg:".
 			"dbname=". $self->conf("db_name");
 		if( $self->conf("db_host") ){
-			$cmd .= ";host=". $self->conf("db_host"),
+			$cmd .= ";host=". $self->conf("db_host");
 		}
 
 		$self->{DB} = EzDBI->connect( $cmd,

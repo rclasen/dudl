@@ -1,5 +1,5 @@
 
-# $Id: README,v 1.6 2006-01-19 09:16:56 bj Exp $
+# $Id: README,v 1.7 2006-01-23 12:57:06 bj Exp $
 
 needed perl libs:
 
@@ -32,6 +32,10 @@ b) authenticate on DB connect.
 local   all     postgres                ident sameuser
 # switch to password authentication for local connects:
 local   all     all                     md5
+
+- create ~root/.dudlrc that's used by cron jobs:
+ echo "db_user=dudl" >> ~root/.dudlrc
+ echo "db_pass=dudl" >> ~root/.dudlrc
 
 - everything else is preconfigured.
 

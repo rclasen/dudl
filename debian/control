@@ -1,5 +1,5 @@
 Source: dudl
-Section: unknown
+Section: sound
 Priority: optional
 Maintainer: Rainer Clasen <bj@zuto.de>
 Build-Depends: debhelper (>> 3.0.0)
@@ -10,6 +10,7 @@ Architecture: all
 Depends: ${shlibs:Depends}, dudl-rename, libmp3-info-perl,
  libezdbi-perl, libezdbo-perl, libdbd-pg-perl
 Recommends: postgresql
+Provides: dudl-dbschema0.0
 Description: tools to manage a Database with your MP3s
- <insert long description, indented with spaces>
+ Database maintenance scripts for the Dudl Music Database
 

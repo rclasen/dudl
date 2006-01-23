@@ -2,7 +2,8 @@
 
 case "$1" in
  configure)
- 	dudl-dbupdate > /dev/null
+	echo "updating database schema ..."
+ 	su postgres -c dudl-dbupdate > /dev/null
 	;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
