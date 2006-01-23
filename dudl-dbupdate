@@ -22,8 +22,6 @@ my $opt_check = 1;
 my $opt_droptrigger = 0;
 
 
-# TODO: grant/revoke
-
 my $opt_dbname = "dudl";
 my $opt_dbhost = "";
 my $opt_dbuser = "postgres";
@@ -174,13 +172,18 @@ sub add_member {
 sub add_sequence {
 	my( $ver, $name ) = @_;
 	&mver( $ver );
-	push @chadd, "CREATE SEQUENCE $name" if $ver > $dbver;
+	push @chadd, "CREATE SEQUENCE $name",
+		"GRANT SELECT ON $name TO PUBLIC",
+		"GRANT all ON $name TO GROUP dudl" if $ver > $dbver;
 }
 
 sub set_table {
 	my( $ver, $name, $cols, $alter ) = @_; 
 	&mver( $ver );
-	push @chadd, "CREATE TABLE $name (". join(",\n", @$cols ). ")" if $ver > $dbver;
+	return unless $ver > $dbver;
+	push @chadd, "CREATE TABLE $name (". join(",\n", @$cols ). ")";
+	push @recreate, "GRANT SELECT ON $name TO PUBLIC",
+		"GRANT all ON $name TO GROUP dudl";
 }
 
 sub chg {
@@ -240,8 +243,13 @@ sub add_view {
 	my( $ver, $name, $def ) = @_;
 	&mver( $ver );
 	unshift @tmpdrop, "DROP VIEW $name";
-	push @recreate, "CREATE VIEW $name AS $def" if $def;
+	push @recreate, "CREATE VIEW $name AS $def",
+		"GRANT SELECT ON $name TO PUBLIC",
+		"GRANT all ON $name TO GROUP dudl" if $def;
 }
+
+# TODO: GRANT ... ON DATABASE
+# TODO: REVOKE
 
 #----------------------------------------------------------
 #

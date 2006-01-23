@@ -3,7 +3,7 @@ dudl (0.0.4) unstable; urgency=low
   * provide dudl-dbschema for finer grained dudld dependency
   * (re-)wrote dudl-dbupdate to upate database schema automagically
 
- -- Rainer Clasen <bj@zuto.de>  Mon, 23 Jan 2006 13:42:11 +0100
+ -- Rainer Clasen <bj@zuto.de>  Mon, 23 Jan 2006 14:27:23 +0100
 
 dudl (0.0.3) unstable; urgency=low
 
