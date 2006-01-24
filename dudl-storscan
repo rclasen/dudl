@@ -1,8 +1,6 @@
 #! /usr/bin/perl -w
 
-# TODO: BUG: adds empty filenames when scanning /cdrom with --sum --add
-
-# $Id: dudl-storscan,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-storscan,v 1.3 2006-01-24 16:41:33 bj Exp $
 
 use strict;
 use File::Find;
@@ -11,122 +9,202 @@ use Dudl::DB;
 use Dudl::Misc;
 use Dudl::StorUnit;
 
-# Dudl::File elements to update
-my @want;
-#my @want = qw{ FSUM DSUM };
+=pod
 
-my $dir;
-my $dev;
-my $cd;
+=head1 NAME
 
-my $disc;
-my @files;
+dudl-storscan - scan files on units to add their info to the DB
 
-sub usage {
-	print "usage: ", $0,
-		" [opts] <cdpath> [\"<collection><discid>\"] ...\n",
-		" scan one CD mounted at <topdir> for mp3s\n",
- 		" get IDtag and add infos to database\n",
-		"options:\n",
-		"  --eject   open tray when done with CD\n",
-		"  --unit    do not scan files\n",
-		"  --mp3     scan mp3 information\n",
-		"  --sum     calculate md5 sum\n",
-		"  --add     add missing files although CD is already in DB\n",
-		" if none is specified, --mp3 --sum is assumed.\n",
-		"\n",
-		"uses cdpath' basename when no discname is specified\n";
-}
+=head1 SYNOPSIS
 
+dudl-storscan [<opts>] <topdir> [<unit> ...]
+
+=head1 DESCRIPTION
+
+scans files on storage units and adds this info the DB.
+
+If I<topdir> is found in /etc/fstab, you can scan multiple CD/DVD/whatever
+units. Otherwise a a single directory is scanned.
+
+=over 4
+
+=item scanning CDs:
+
+you have to specify the names of the units you're going to scan. It's
+attempted to mount/unmount the CD before/after the scan and retrieve unit
+information (unit size, unit name, ...).
+
+=item scanning a directory:
+
+you may specify a single unit name. If you don't, it's taken from the last
+directorie's name.
+
+=back 
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--eject>
+
+open the CD/DVD/whatever tray after scanning a unit.
+
+=cut
 
 my $opt_eject;
-my $opt_mp3;
-my $opt_sum;
-my $opt_unit;
+
+=pod
+
+=item B<--mp3>
+
+also scan mp3 attributes (bitrate, channels, duration, ID3Tags, ...)
+
+=cut
+
+my $opt_mp3 = 1;
+
+=pod
+
+=item B<--sum>
+
+also generate checksums for duplicate detection.
+
+=cut
+
+my $opt_sum = 1;
+
+=pod
+
+=item B<--files>
+
+scan for files on units.
+
+=cut
+
+my $opt_file = 1;
+
+=pod
+
+=item B<--add>
+
+Once a unit was scanned, only MP3 info and MD5sums are updated. Newly
+found files are not added. With this switch you can add files that missed
+on the first run.
+
+=back
+
+You can negate all options by prefixing them with "no"
+
+=cut
+
 my $opt_add;
 
-my $result = GetOptions(
-	"eject"		=> \$opt_eject,
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"eject!"	=> \$opt_eject,
 	"mp3!"		=> \$opt_mp3,
 	"sum!"		=> \$opt_sum,
-	"unit!"		=> \$opt_unit,
+	"files!"	=> \$opt_file,
 	"add|a"		=> \$opt_add,
-	);
-if( ! $result ){
-	&usage();
-	exit 1;
+	"help!"		=> \$wanthelp,
+)){
+	$needhelp++;
 }
 
-if( !( $opt_mp3 || $opt_sum || $opt_unit )){
-	$opt_mp3=1;
-	$opt_sum=1;
-}
-
-if( $opt_mp3 || $opt_sum ){
-	push @want, Dudl::File::acquires( "base" );
-	push @want, Dudl::File::acquires( "file" );
-}
-
-if( $opt_mp3 ){
-	push @want, Dudl::File::acquires( "info" );
-	push @want, Dudl::File::acquires( "tag" );
-}
-
-if( $opt_sum ){
-	push @want, Dudl::File::acquires( "sum" );
-}
-
-
-$cd = shift || '';
+my $cd = shift || '';
 $cd =~ s:/+$::;
 if( ! $cd ){
 	print STDERR "missing device/cdpath\n";
-	&usage();
-	exit 1;
+	$needhelp++;
 }
 
-if( ! @ARGV && ($cd =~ /([^\/]+)$/) ){
-	push @ARGV, $1;
+my( $dev, $dir ) = get_fstab( $cd );
+$dir ||= $cd;
+$dir .= "/";
+$dir =~ s:/+:/:g;
+
+if( ! $dev ){
+	if( ! @ARGV && ($cd =~ /([^\/]+)$/) ){
+		push @ARGV, $1;
+
+	} elsif( $#ARGV > 0 ){
+		print STDERR "cannot scan multiple units when $cd is no CD-ROM\n";
+		$needhelp++;
+	}
 }
 
 if( ! @ARGV ){
 	print STDERR "missing collection name(s)\n";
-	&usage();
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 [opts] <cdpath> ["<collection><discid>"] ...
+ scan one CD mounted at <topdir> for mp3s
+ get IDtag and add infos to database
+options:
+  --eject   open tray when done with CD
+  --files   do not scan files (default)
+  --mp3     scan mp3 information (default)
+  --sum     calculate md5 sum (default)
+  --add     add missing files although CD is already in DB
+ you can negate all options by prefixing them with 'no'
+
+uses cdpath' basename when no discname is specified
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
 	exit 1;
 }
 
-print "scanning:", 
-	( $opt_mp3 ? " files" : ""),
-	( $opt_sum ? " chksum" : ""),
-	( $opt_unit ? " unit" : ""),
-	"\n";
-	
-my $dudl = new Dudl::DB;
+# Dudl::File elements to update
+my @want;
+#my @want = qw{ FSUM DSUM };
 
-( $dev, $dir ) = get_fstab( $cd );
-if( ! $dir ){
-	$dir = $cd;
-	if( $#ARGV > 0 ){
-		print STDERR 
-			"cannot scan multiple units when $cd is no CD-ROM\n";
-		exit 1;
-	}
+if( $opt_mp3 ){
+	push @want, Dudl::File::acquires( "info" );
+	push @want, Dudl::File::acquires( "tag" );
+	$opt_file ++;
 }
 
-$dir .= "/";
-$dir =~ s:/+:/:g;
+if( $opt_sum ){
+	push @want, Dudl::File::acquires( "sum" );
+	$opt_file ++;
+}
 
-print "going to scan ". ($#ARGV +1) ." CDs in \"". $dir ."\"\n";
+if( $opt_file ){
+	push @want, Dudl::File::acquires( "base" );
+	push @want, Dudl::File::acquires( "file" );
+}
+
+print "scanning:", 
+	( $dev ? " ". ($#ARGV +1) ." units" : ""),
+	( $opt_file ? " files" : ""),
+	( $opt_mp3 ? " mp3" : ""),
+	( $opt_sum ? " sum" : ""),
+	"\n";
+	
+
+
+
+my @files;
+my $dudl = new Dudl::DB;
 
 
 
 &cd_umount( $dev, 0 );
 
-foreach $disc ( @ARGV ){
+foreach my $disc ( @ARGV ){
 	print "scaning unit: ", $disc,"\n";
 	&cd_mount( $dev, $disc );
 
-	&scan( $dev, $dir, $disc, ! $opt_unit );
+	&scan( $dev, $dir, $disc, $opt_file );
 	$dudl->commit || die;
 
 	&cd_umount( $dev, $opt_eject );
@@ -150,8 +228,6 @@ sub scan {
 		print STDERR "invalid collection or id: $disc\n";
 		return;
 	}
-
-
 
 
 	my $unit;
@@ -259,5 +335,27 @@ sub want_file {
 	return 1;
 }
 
+
+=pod
+
+=head1 EXAMPLES
+
+dudl-storscan /cdrom sl1 sl2 sl3 # scan 3 units
+
+dudl-storscan foo sl4 # scan single dir with alternate unit name
+
+dudl-storscan /pub/fun/mp3/CD/sl/sl5 # scan single dir
+
+dudl-storscan --nofile --nomp3 --nosum /cdrom sl4 # add unit information
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 
