@@ -1,11 +1,21 @@
 #!/usr/bin/perl -w
 
-# check if files marked as unavailable somehow became abailable
-# update files of "autoscan" units
-
 use strict;
 use Dudl::DB;
 
+=pod
+
+=head1 NAME
+
+dudl-dbavcheck - update informatation about available files in dudl DB
+
+=head1 DESCRIPTION
+
+dudl-dbavcheck basically does 2 things
+
+=over 4
+
+=cut
 
 my $dudl = Dudl::DB->new;
 my $db = $dudl->db;
@@ -13,12 +23,33 @@ my $db = $dudl->db;
 my $topdir = $dudl->conf("cdpath");
 my $ukartist = &get_artist("UNKNOWN");
 
+=pod
+
+=item *
+
+It updates the I<available> flag for files within the DB. This flag is
+used by serveral tools to avoid spending time on accessing files that
+aren't accessible. This script scans for files that vanished or
+reappeared. BTW: the jukebox also clears the available flag in case it
+cannot access a file.
+
+=cut
 
 print "step 1: find files that reapeared...\n";
 &check_reapear;
 
 print "\nstep 2: find files that vanished...\n";
 &check_vanish;
+
+=pod
+
+=item *
+
+It scans I<autoscan> units for new files and turns them into Albums and
+Tracks.  This gives you the chance to use the B<dudld> jukebox to access
+files that are not yet properly entered into the Database.
+
+=cut
 
 print "\nstep 3: find new files...\n";
 &check_autoscan;
@@ -128,6 +159,7 @@ sub check_unew {
 
 
 	print "checking mp3s in \"$udir\"\n";
+	-d $udir || return;
 	my @files = `find '$udir' -type f -iname '*.mp3' -follow | sort`;
 
 	my $dlen = length($udir);
@@ -276,3 +308,31 @@ sub check_files {
 	$db->commit || die $db->errstr;
 }
 
+=pod
+
+=back
+
+It is recommended to run this script from a daily cron job.
+
+=head1 FILES
+
+=over 4
+
+=item I</pub/fun/mp3/CD/> - or whatever is set as I<cdpath> in dudlrc
+
+=back
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>,
+I<Dudl::DBOverview>,
+I<Dudl::Config>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+
+
+# TODO: GetOptions + usage

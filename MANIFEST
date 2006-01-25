@@ -38,6 +38,7 @@ Dudl/DB.pm
 Dudl/DBo.pm
 Dudl/File.pm
 Dudl/Job/Music.pm
+Dudl/Overview.pm
 Dudl/StorUnit.pm
 Makefile.PL
 MANIFEST			This list of files

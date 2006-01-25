@@ -17,3 +17,5 @@ fi
 
 echo "$1" | sed -e "s/[^][A-Za-z0-9הצüײִÜß.^,_/'%!&\$(){}+-]/./g;s/\.\.*/./g" \
 	| tr '[A-ZײִÜ]' '[a-zצהü]'
+# TODO: GetOptions + usage or perlify
+# TODO: manpage

@@ -1,11 +1,46 @@
 #!/usr/bin/perl -w
 
-# show some statistics
-
-# $Id: dudl-dbstatus,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-dbstatus,v 1.3 2006-01-25 16:37:28 bj Exp $
 
 use strict;
 use Dudl::DB;
+
+=pod
+
+=head1 NAME
+
+dudl-dbstatus - show some Database statistics
+
+=head1 DESCRIPTION
+
+This script shows some statistics for the Dudl Database. The output is
+split into 3 columns:
+
+=over 4
+
+=item 1
+
+Description.
+
+=item 2
+
+Number.
+
+=item 3
+
+Size in GigaByte.
+
+=back
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
@@ -49,3 +84,4 @@ sub col {
 
 
 
+# TODO: GetOptions + usage

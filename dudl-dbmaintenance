@@ -1,23 +1,49 @@
 #!/usr/bin/perl -w
 
-# do periodic maintenance
-
-# $Id: dudl-dbmaintenance,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-dbmaintenance,v 1.3 2006-01-25 16:37:28 bj Exp $
 
 use strict;
 use Dudl::DB;
 
+=pod
+
+=head1 NAME
+
+dudl-dbmaintenance - periodic database maintenance
+
+=head1 DESCRIPTION
+
+This script takes care of cleaning the dudl Database. Namely it does
+
+
+=over 4
+
+=cut
+
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
-# clear history
+=pod
+
+=item *
+
+purge old jukebox history entries.
+
+=cut
 $db->do( 
 "DELETE FROM mserv_hist ".
 "WHERE age(added) > interval '6 month'" )
 	or die $db->errstr;
 $db->commit;
 
-# delete albums without titles (except UNSORTED)
+=pod
+
+=item *
+
+delete albums without titles (except UNSORTED)
+
+=cut
+
 $db->do(
 "DELETE FROM mus_album ".
 "WHERE id IN ( ".
@@ -31,7 +57,14 @@ $db->do(
 	or die $db->errstr;
 $db->commit;
 
-# delete artists without titles/albums (except UNKNOWN, VARIOUS)
+=pod
+
+=item *
+
+delete artists without titles/albums (except UNKNOWN, VARIOUS)
+
+=cut
+
 $db->do(
 "DELETE FROM mus_artist ".
 "WHERE id IN ( ".
@@ -53,3 +86,22 @@ $db->commit;
 #$sth = $db->do( "VACUUM ANALYZE" )
 #	or die $db->errstr;
 
+
+=pod
+
+=back
+
+It is recommended to run this script from a daily cron job.
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+
+
+# TODO: GetOptions + usage

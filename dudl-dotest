@@ -42,3 +42,5 @@ else
 	done
 fi
 
+# TODO: GetOptions + usage or perlify
+# TODO: manpage

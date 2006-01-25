@@ -1,11 +1,63 @@
 #!/usr/bin/perl -w
 
-# find files in database using regexp pattern
-
-# $Id: dudl-storhave,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-storhave,v 1.3 2006-01-25 16:37:28 bj Exp $
 
 use strict;
 use Dudl::DB;
+
+=pod
+
+=head1 NAME
+
+dudl-storhave - find files in file database
+
+=head1 SYNOPSIS
+
+dudl-storhave <what> <arg>
+
+=head1 DESCRIPTION
+
+find files in file database.
+
+<arg> depends on <what>. Valid choices are:
+
+=over 4
+
+=item B<dir>|B<fname> <regexp>
+
+find files where regexp matches specified field.
+
+=item B<file> <regexp>
+
+find files where regexp matches the full path incl. filename.
+
+=item B<all>|B<any> <regexp>
+
+find files where regexp matches I<dir> or I<fname>.
+
+=item B<sql>|B<select> <where>
+
+find files where the specified SQL I<where> statements matches.
+
+=back
+
+=head1 EXAMPLES
+
+dudl-storhave any foo
+
+dudl-storhave fname bar
+
+dudl-storhave sql "fname ~* 'foo' AND dir ~* 'bar' AND collection = 'sl'"
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 my @attribs = qw( dir fname );
 my $filesql = "TRIM( both ' ' FROM collection ) || ".
@@ -103,3 +155,4 @@ $sth->finish;
 
 
 
+# TODO: GetOptions + usage

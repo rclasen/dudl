@@ -1,15 +1,56 @@
 #!/usr/bin/perl -w
 
-# alle auf einer CD gefundenen alben/directories aus der file-Datenbank in
-# Musik Datenbank überführen.
-
-# $Id: dudl-musbatch,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-musbatch,v 1.3 2006-01-25 16:37:28 bj Exp $
 
 use strict;
 use Getopt::Long;
 use Dudl::DB;
 use Dudl::StorUnit;
 use File::Temp qw( tempfile );
+
+# TODO: optionally use one jobfile for all directories
+
+=pod
+
+=head1 NAME
+
+dudl-musbatch - assist you in adding music DB entries for one stor_unit
+
+=head1 SYNOPSIS
+
+dudl-musbatch [<opts>] <unit>
+
+=head1 DESCRIPTION
+
+This is basically a wrapper around B<dudl-musdirs>, B<dudl-musgen> and
+B<dudl-musimport>.
+
+Using these tools you can pick the directories of one unit you want to
+work on, edit the jobfile, that's generated from these files and import
+this jobfile to your music DB.
+
+Existing arhive jobfiles are used.
+
+When all files in a directory are already part of the music DB, the
+directory is skipped.
+
+If there were failures propagating the jobfile to the music DB, you're
+asked, what to do next (including re-editing the jobfile).
+
+=over 4
+
+=item <unit>
+
+The name of the unit - combined from "collection" and "colnum". For
+example "ab2".
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=cut
 
 $ENV{EDITOR} ||= "vi";
 $ENV{TMPDIR} ||= "/tmp";
@@ -19,7 +60,30 @@ my $cdpath = $dudl->conf("cdpath");
 my $afile = $dudl->conf("write_jname");
 
 my $unit;
+
+=pod
+
+=item B<--pickdirs>
+
+Lets you edit the list of directories you want to add to your music DB.
+By default all directories are processed.
+
+=cut
+
 my $opt_pickdirs;
+
+=pod
+
+=item B<--manual>
+
+Usually a directory is automatically propagated to the music DB if an
+archive jobfile was found. With this option you get the chance to edit the
+jobfile before it is imported. If you know, the import is going to fail,
+anyways, you can skip one failed attempt and the following "what shall I
+do prompt".
+
+=cut
+
 my $opt_manual;
 
 my $needhelp;
@@ -47,6 +111,9 @@ if( $#ARGV == 0 ){
 if( $wanthelp ){
 	print <<EOF;
 usage: $0 <unit>
+--manual      also edit jobfiles generated from archive jobfile before import
+--pickdirs    select directories to import
+--help        this crap
 EOF
 	exit 0;
 }
@@ -191,4 +258,26 @@ EOP
 
 	return( $doexit ? 1 : 0 );
 }
+
+=pod
+
+=back
+
+=head1 EXAMPLES
+
+dudl-musbatch sl143
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>,
+I<dudl-musdirs>,
+I<dudl-musgen>,
+I<dudl-musimport>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+
 

@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
 
-# generate symlink farm with music information
 
-# $Id: dudl-muslinks,v 1.5 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-muslinks,v 1.6 2006-01-25 16:37:28 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
@@ -11,6 +10,48 @@
 use strict;
 use Getopt::Long;
 use Dudl::DB;
+
+=pod
+
+=head1 NAME
+
+dudl-muslinks - generate symlink farm from music DB
+
+=head1 SYNOPSIS
+
+dudl-musdirs [<opts>]
+
+=head1 DESCRIPTION
+
+This script generates a directory structure according to the music DB
+information pointing to the actual files.
+
+Symlinks are named <dir>/<artist>/<album>/<num>.<artist>.<title>.mp3 and
+point to the file below "cdpath" (as retrieved from dudlrc).
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help>
+
+short usage info.
+
+=item B<--dir>=<dir>
+
+where to create directory structure with symlinks.
+
+=back
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 my $opt_help = 0;
 my $opt_dir = "./tracks";

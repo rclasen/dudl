@@ -28,3 +28,5 @@ for i in "$@"; do
 	do_cd "$i"
 done
 
+# TODO: GetOptions + usage or perlify
+# TODO: manpage

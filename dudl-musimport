@@ -1,14 +1,40 @@
 #!/usr/bin/perl -w
 
-# add music entries from template file
-
-# $Id: dudl-musimport,v 1.3 2006-01-19 09:16:56 bj Exp $
+# $Id: dudl-musimport,v 1.4 2006-01-25 16:37:28 bj Exp $
 
 # TODO: modify existing entries
 
 use strict;
 use Dudl::DB;
 use Dudl::Job::Music;
+
+=pod
+
+=head1 NAME
+
+dudl-musimport - import data jobfile(s) into music DB
+
+=head1 SYNOPSIS
+
+dudl-musimport <jobfile> ...
+
+=head1 DESCRIPTION
+
+This script imports data from jobfiles into the music DB. You can use
+dudl-musgen to generate jobfiles.
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>,
+I<Dudl::Job::Music>,
+I<dudl-musgen>,
+I<dudl-musbatch>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 my $dudl = new Dudl::DB;
 my $job = new Dudl::Job::Music( naming => $dudl->naming );
@@ -243,3 +269,4 @@ sub save_genres {
 	}
 }
 
+# TODO: GetOptions + usage

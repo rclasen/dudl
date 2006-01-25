@@ -1,10 +1,33 @@
 #!/usr/bin/perl -w
 
-# set ID tags according to data from music database
 
 use strict;
 use Dudl::DB;
 use MP3::Tag;
+
+=pod
+
+=head1 NAME
+
+dudl-mus2id - set ID3v1 tags according to data from music database
+
+=head1 DESCRIPTION
+
+This script takes your tediously maintained music Database and sets the
+ID3v1 Tags of those files you've already included.
+
+You may want to run this on a periodic basis.
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>,
+I<dudl-mus2job>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
@@ -47,5 +70,8 @@ while( defined $sth->fetch ){
 	$t->year( $year );
 
 	$t->write_tag() || next;
+
+	# TODO: ID3v2?
 }
 
+# TODO: GetOptions + usage

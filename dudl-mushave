@@ -1,17 +1,96 @@
 #!/usr/bin/perl -w
 
-# search music database
-
-# $Id: dudl-mushave,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-mushave,v 1.3 2006-01-25 16:37:28 bj Exp $
 
 use strict;
 use Getopt::Long;
 use Dudl::DB;
 
+=pod
+
+=head1 NAME
+
+dudl-mushave - search music database
+
+=head1 SYNOPSIS
+
+dudl-mushave [<opts>] [<what> ...]
+
+=head1 DESCRIPTION
+
+searches the music Database. Searches for all <what> that match all
+supplied regexps.
+
+=over 4
+
+=item <what>
+
+What information are you interested in? Pick one or many from:
+
+=over 4
+
+=item artist
+
+=item album
+
+=item title
+
+=item genre
+
+=back
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help>
+
+short usage information.
+
+=cut
+
 my $opt_help = 0;
+
+=pod
+
+=item B<--artist>=<artistRE>
+
+regexp to match against artist name.
+
+=cut
+
 my $opt_artist = "";
+
+=pod
+
+=item B<--album>=<albumRE>
+
+regexp to match agains album name.
+
+=cut
+
 my $opt_album = "";
+
+=pod
+
+=item B<--title>=<titleRE>
+
+regexp to match against title name
+
+=cut
+
 my $opt_title = "";
+
+=pod
+
+=item B<--debug>
+
+show debug information.
+
+=cut
+
 my $opt_debug = 0;
 my $needhelp = 0;
 
@@ -239,5 +318,25 @@ sub query {
 	}	
 	$sth->finish;
 } 
+
+=pod
+
+=back
+
+=head1 EXAMPLES
+
+dudl-mushave --artist foo album
+
+dudl-mushave --artist foo.fig --album color genres
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 

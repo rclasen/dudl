@@ -36,3 +36,5 @@ while : ; do
 	echo "hit enter to re-edit broken files or abort"
 	read
 done
+# TODO: GetOptions + usage or perlify
+# TODO: manpage

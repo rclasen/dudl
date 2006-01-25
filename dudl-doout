@@ -62,3 +62,5 @@ else
 
 	do_genre "$genre" "$@"
 fi
+# TODO: GetOptions + usage or perlify
+# TODO: manpage

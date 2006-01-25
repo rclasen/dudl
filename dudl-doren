@@ -50,3 +50,5 @@ for i in "$@"; do
 		mv "$sdir" "$gdir/"
 	fi
 done
+# TODO: GetOptions + usage or perlify
+# TODO: manpage

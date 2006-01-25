@@ -1,10 +1,32 @@
 #!/usr/bin/perl -w
 
-# find albums without a publish_date and prompt user to complete this
-# info.
 
 use strict;
 use Dudl::DB;
+
+=pod
+
+=head1 NAME
+
+dudl-musyearadd - find albums without a publish_date and prompt user to complete this
+
+=head1 SYNOPSIS
+
+dudl-musyearadd 
+
+=head1 DESCRIPTION
+
+finds albums without a publish_date and prompt user to complete this.
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 $|=1;
 
@@ -33,15 +55,19 @@ my $res = $lst->execute or die $db->errstr."\nquery: $query";
 $lst->bind_columns( \( $id, $artist, $album ));
 
 LST: while( defined $lst->fetch ){
-	print "$id $artist: $album\n";
-
 	my $date;
 	IN: while(1){
+		print "\n";
+		print "$id $artist: $album\n";
+
+		print " n - for next\n";
+		print " q - to quit\n";
 		print "date: ";
 		$date = <>;
 		chomp $date;
 
 		next LST if $date =~ /^n$/i;
+		last LST if $date =~ /^q$/i;
 
 		$date .= "-1" if $date =~ /^\d+-\d+$/;
 		$date .= "-1-1" if $date =~ /^\d+$/;
@@ -55,3 +81,4 @@ LST: while( defined $lst->fetch ){
 	$dudl->commit;
 }
 
+# TODO: GetOptions + usage

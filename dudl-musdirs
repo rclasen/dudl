@@ -1,15 +1,49 @@
 #!/usr/bin/perl -w
 
-# list directories of a unit
-
-# show number of files
-# show if all/some files in directory have links in mus_
-
-# $Id: dudl-musdirs,v 1.2 2006-01-13 15:41:23 bj Exp $
+# $Id: dudl-musdirs,v 1.3 2006-01-25 16:37:28 bj Exp $
 
 use strict;
 use Dudl::DB;
 use Dudl::StorUnit;
+
+=pod
+
+=head1 NAME
+
+dudl-musdirs - show directories of a unit
+
+=head1 SYNOPSIS
+
+dudl-musdirs <unit>
+
+=head1 DESCRIPTION
+
+shows all directories of a unit including the number of files in each
+directory and how many of them are already part of the music DB.
+
+=over 4
+
+=item <unit>
+
+The name of the unit - combined from "collection" and "colnum". For
+example "ab2".
+
+=back
+
+=head1 EXAMPLES
+
+dudl-musdirs sl1
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+I<dudl-musbatch>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
 
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
@@ -58,3 +92,4 @@ while( defined $sth->fetch ){
 $sth->finish;
 
 
+# TODO: GetOptions + usage

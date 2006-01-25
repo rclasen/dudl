@@ -1,31 +1,145 @@
 #!/usr/bin/perl -w
 
-# check database layout status and replay all modifications to bring it up
-# to date
-
 use strict;
 use EzDBI;
 use Getopt::Long;
 
+=cut
 
 =pod
 
-tables and sequences have to be created and ALTERed
-drop all permissions, views, rules, constraints, indices, functions and re-create them
+=head1 NAME
+
+dudl-dbupdate - bring Database Layout up to date.
+
+=head1 SYNOPSIS
+
+dudl-dbupdate [<opts>]
+
+=head1 DESCRIPTION
+
+In case the ongoing dudl development requires Database Layout changes,
+this script will update your current Database to the new layout.
+
+First it drops all non-data elements (views, rules, constraints, indices,
+functions). Then tables are UPDATEd, ALTERed or CREATEd. Afterwards the
+non-data elements are re-created.
+
+The necessary changes are determined using the "Database Version", that is
+stored in the I<dbver> table.
+
+It is safe to run this script even when your DB is up to date. It's just
+going to recreate all the non-data elements.
+
+You have to ensure, that this script has access as Postgres superuser
+"postgres". Usually this means, this script has to run as "postgres" user.
+
+Please note, that this script does *NOT* look at at B<dudlrc> and won't
+pick up changes you made there. You should also be very careful in case
+you've made your own changes to the DB.
+
+Usually this script is run from Package installation scripts. If you're
+not installing a package
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--view>
+
+Don't access the DB and don't perform the changes. Instead the necessary
+SQL statements are shown.
 
 =cut
 
-
 my $opt_view = 0;
+
+=pod
+
+=item B<--verbose>
+
+Be *very* verbose about what this script does.
+
+=cut
+
 my $opt_verbose = 0;
-my $opt_check = 1;
+
+=pod
+
+=item B<--check>
+
+check which non-data elements really exists before they're dropped.
+Unfortunatly this is incomplete.
+
+=cut
+
+my $opt_check = 1; # TODO: remove, opt_view is sufficient.
+
+=pod
+
+=item B<--droptrigger>
+
+Some historic postgres versions didn't list foreign key constraints as
+such - this script was unable to drop these constraints.
+
+Usually there's no need to specify this option yourself.
+
+=cut
+
 my $opt_droptrigger = 0;
 
 
+
+=pod
+
+=item B<--dbname>=<name>
+
+Database name to use in case your database is named differently than
+"dudl";
+
+=cut
+
 my $opt_dbname = "dudl";
+
+=pod
+
+=item B<--dbhost>=<host>
+
+Database host to connect to.
+
+=cut
+
 my $opt_dbhost = "";
+
+=pod
+
+=item B<--dbuser>=<username>
+
+username for authenticating to the DB host. This user has to have superuser
+privileges (CREATE DB, access to system catalogs). 
+
+=cut
+
 my $opt_dbuser = "postgres";
+
+=pod
+
+=item B<--dbpass>=<password>
+
+password for authenticating to the DB host.
+
+=cut
+
 my $opt_dbpass = "";
+
+
+=pod
+
+=item B<--help>
+
+a short usage information.
+
+=cut
 
 my $wanthelp;
 my $needhelp;
@@ -47,7 +161,15 @@ if( ! GetOptions(
 if( $wanthelp ){
 	print <<EOF;
 usage: $0 <opt>
-TODO: usage
+--view                  Just view SQL statements, don't access the DB
+--verbose               Be *very* verbose about what this script does.
+--check			drop only existing non-data elements. 
+--droptrigger           drop "unnamed" constraint trigger
+--dbname=<name>         Database name
+--dbhost=<host>         Database host to connect to.
+--dbuser=<username>     Database username
+--dbpass=<password>     Database password
+--help                  tihs short usage information.
 EOF
 	exit 0;
 }
@@ -1211,4 +1333,23 @@ if( $opt_view ){
 	}
 	$db->do("UPDATE dbver SET ver = $mver WHERE item = 'schema'");
 }
+
+=pod
+
+=back
+
+=head1 EXAMPLES
+
+su postgres -c "dudl-dbupdate"
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+
 
