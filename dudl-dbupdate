@@ -1312,6 +1312,10 @@ ORDER BY t.id, h.added
 
 
 
+if( $dbver == $mver ){
+	print "nothing to do\n";
+	exit 0;
+}
 
 print "-- upgrading DB from Version $dbver to $mver\n";
 if( $opt_view ){
