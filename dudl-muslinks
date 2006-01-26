@@ -1,15 +1,15 @@
 #!/usr/bin/perl -w
 
 
-# $Id: dudl-muslinks,v 1.6 2006-01-25 16:37:28 bj Exp $
+# $Id: dudl-muslinks,v 1.7 2006-01-26 17:55:55 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
-# TODO: generate job-files
 
 use strict;
 use Getopt::Long;
 use Dudl::DB;
+use Dudl::Job::Archive;
 
 =pod
 
@@ -26,8 +26,9 @@ dudl-musdirs [<opts>]
 This script generates a directory structure according to the music DB
 information pointing to the actual files.
 
-Symlinks are named <dir>/<artist>/<album>/<num>.<artist>.<title>.mp3 and
-point to the file below "cdpath" (as retrieved from dudlrc).
+Symlinks are named according to your Dudl::Naming module and placed below
+<dir>/<artist>/<naming_dir>/<naming_fname>. They point to the file below
+"cdpath" (as retrieved from dudlrc).
 
 =head1 OPTIONS
 
@@ -81,6 +82,7 @@ if( $needhelp ){
 
 my $dudl = Dudl::DB->new;
 my $db = $dudl->db;
+my $nam = $dudl->naming;
 
 my %sym;
 if( ! -d $opt_dir ){
@@ -94,15 +96,17 @@ print "adding links ...\n";
 
 my $query = "
 SELECT 
-	ala.nname, 
-	al.album, 
-	fi.id, 
-	fi.album_pos, 
-	fi.title, 
-	tia.nname, 
-	mserv_tags(fi.id) AS tags,
-	stor_filename(su.collection, su.colnum, fi.dir, fi.fname) as file,
-	time2unix(fi.duration) AS dur
+	al.id AS al_id,
+	ala.nname AS al_artist,
+	al.album AS al_album, 
+	date_part('year',al.publish_date) AS al_year,
+	fi.id AS fi_id, 
+	fi.album_pos AS fi_pos,  
+	fi.title AS fi_title, 
+	tia.nname AS fi_artist, 
+	mserv_tags(fi.id) AS fi_tags,
+	stor_filename(su.collection, su.colnum, fi.dir, fi.fname) AS fi_name,
+	fi.cmnt AS fi_cmnt
 FROM 
 	mus_album al 
 		INNER JOIN mus_artist ala
@@ -136,83 +140,112 @@ if( ! $res ){
 }
 
 my (
+	$al_id,
 	$al_artist, 
 	$al_album, 
+	$al_year,
 	$fi_id, 
 	$fi_pos, 
 	$fi_title, 
 	$fi_artist, 
 	$fi_tags,
 	$fi_name, 
-	$fi_dur,
+	$fi_cmnt,
 );
 $sth->bind_columns( \( 
+	$al_id,
 	$al_artist, 
 	$al_album, 
+	$al_year,
 	$fi_id, 
 	$fi_pos, 
 	$fi_title, 
 	$fi_artist, 
 	$fi_tags,
 	$fi_name,
-	$fi_dur,
+	$fi_cmnt,
 ) );
 
-my $old_apath = "";
-my $old_basepath = ""; 
-my $old_id = 0;
-
-sub normalize {
-	my( $fn ) = @_;
-	$fn =~ s/[^a-zäöüßA-ZÖÄÜ0-9_\$()=+-]+/./g;
-	$fn =~ s/^\.*//;
-	$fn =~ s/\.*$//;
-	return $fn;
-}
+my $old_artistd;
+my $old_aid; 
+my $albumd;
+my $job;
 
 while( defined $sth->fetch ){
-	my $apath = &normalize( $al_artist );
+	my $artistd = $nam->fnormalize( $al_artist );
 
-	if( $old_apath ne $apath ){
-		delete $sym{$apath};
-		mkdir "$opt_dir/$apath", 0777 ||
-			die "mkdir('$opt_dir/$apath'): $!";
-		$old_apath = $apath;
+	if( ! defined $old_artistd or $old_artistd ne $artistd ){
+		delete $sym{$artistd};
+		mkdir "$opt_dir/$artistd", 0777 ||
+			die "mkdir('$opt_dir/$artistd'): $!";
+		$old_artistd = $artistd;
 	}
 
-	my $basepath = &normalize( $al_album );
-	$basepath = $apath ."/". $basepath;
 
-	if( $old_basepath ne $basepath ){
-		delete $sym{$basepath};
-		mkdir "$opt_dir/$basepath", 0777 ||
-			die "mkdir('$opt_dir/$basepath'): $!";
-		$old_basepath = $basepath;
+	if( ! defined $old_aid or $old_aid != $al_id ){
+		&finish( $albumd, $job ) if defined $job;
+		$job = new Dudl::Job::Archive( naming => $dudl->naming );
 
-	} elsif( $old_id == $fi_id ){
-		# skip duplicate files for titles
-		next;
+		$job->add_album(
+			name	=> $al_album,
+			artist	=> $al_artist,
+			type	=> $al_artist =~ /^(VARIOUS|UNKNOWN)$/ 
+				? "sampler" : "album",
+			year	=> $al_year || 1000,
+		);
 
-	}
-	$old_id = $fi_id;
+		$albumd = $artistd ."/". $nam->dir( $job->album );
+		delete $sym{$albumd};
+		mkdir "$opt_dir/$albumd", 0777 ||
+			die "mkdir('$opt_dir/$albumd'): $!";
 
-	$fi_pos = sprintf "%02d", $fi_pos;
+		$old_aid = $al_id;
 
-	my $relpath = &normalize( "$fi_pos.$fi_artist.$fi_title.mp3" );
-	$relpath = $basepath ."/". $relpath;
+	} 
+	
+	$job->add_file( 
+		id	=> $fi_id, 
+		mp3	=> "-",
+		broken	=> 0,
+		cmt	=> $fi_cmnt,
+	);
 
-	my $file = $dudl->conf("cdpath") . "/". $fi_name;
-	delete $sym{$relpath};
-	symlink $file, "$opt_dir/$relpath";
+	$job->add_title(
+		id	=> $fi_id,
+		name	=> $fi_title,
+		artist	=> $fi_artist, 
+		num	=> $fi_pos, 
+		genres	=> $fi_tags, 
+	);
+
+	my $lname = $nam->fname( $job->album, $job->title );
+	$job->file->{mp3} = $lname;
+
+	$lname = $albumd ."/". $lname;
+	my $dst = $dudl->conf("cdpath") . "/". $fi_name;
+	delete $sym{$lname};
+	symlink $dst, "$opt_dir/$lname";
 }	
 
 $sth->finish;
+&finish( $albumd, $job ) if defined $job;
 
 print "cleaning old stuff ...\n";
 &cleanup( $opt_dir, \%sym );
 
 exit 0;
 
+sub finish {
+	my( $dir, $job ) = @_;
+
+	my $jname = "$dir/". $dudl->conf("write_jname");
+	delete $sym{$jname};
+
+	local *J;
+	open( J, ">$opt_dir/$jname" ) or die "open failed: $!";
+	$job->write( \*J );
+	close( J );
+}
 
 sub find {
 	my $dir = shift;
