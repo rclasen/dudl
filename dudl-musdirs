@@ -1,10 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musdirs,v 1.3 2006-01-25 16:37:28 bj Exp $
+# $Id: dudl-musdirs,v 1.4 2006-01-27 13:06:19 bj Exp $
 
 use strict;
 use Dudl::DB;
 use Dudl::StorUnit;
+use Getopt::Long;
+
 
 =pod
 
@@ -48,7 +50,35 @@ Rainer Clasen
 my $dudl = new Dudl::DB;
 my $db = $dudl->db;
 
-my $unitname = shift || die "need a unit name";
+my $wanthelp;
+my $needhelpt;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+my $unitname = shift;
+if( ! $unitname ){
+	print STDERR "need a unit name";
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt> <unit>
+ show directories of a unit
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
 
 my $unit = Dudl::StorUnit->load_path( dudl => $dudl, path => $unitname );
 if( ! $unit ){
@@ -91,5 +121,22 @@ while( defined $sth->fetch ){
 }	
 $sth->finish;
 
+# TODO: show number of titles/files for all units
+#	"SELECT ".
+#		"trim(collection), ".
+#		"colnum, ".
+#		"dir, ".
+#		"COUNT(title) as titles, ".
+#		"COUNT(dir) as files ".
+#	"FROM ".
+#		"stor_file f, ".
+#		"stor_unit u ".
+#	"WHERE ".
+#		"f.unit_id = u.id ".
+#	"GROUP BY ".
+#		"dir ".
+#	"ORDER BY ".
+#		"collection, ".
+#		"colnum, ".
+#		"dir ";
 
-# TODO: GetOptions + usage

@@ -1,0 +1,173 @@
+#! /usr/bin/perl -w
+
+# $Id: dudl-doarchive,v 1.1 2006-01-27 13:06:19 bj Exp $
+
+use strict;
+use Getopt::Long;
+use Dudl::Config;
+use Dudl::Misc;
+
+=pod
+
+=head1 NAME
+
+dudl-doarchive - add directories to archive
+
+=head1 SYNOPSIS
+
+dudl-doarchive [<opts>] <dir> [...]
+
+=head1 DESCRIPTION
+
+You've prepared a new unit for you archive in a temporary directory. Now
+you're happy with it and want to add it to your archive. That's what this
+tool is supposed to do.
+
+For proper processing the directories have to be named <collection><num>. 
+
+=head1 OPTIONS
+
+you may negate Options by prefixing them with "no".
+
+=over 4
+
+=item B<--move>
+
+move source directories instead of copying.
+
+=cut
+my $opt_move = 1;
+
+=pod
+
+=item B<--stor>
+
+run dudl-storscan to add files to storage database.
+
+=cut
+
+my $opt_stor = 1;
+
+=pod
+
+=item B<--mus>
+
+run dudl-musbatch to add titles to music database. Implies --stor.
+
+=cut
+
+my $opt_mus = 1;
+
+=pod
+
+=item B<--help>
+
+display short usage info.
+
+=cut
+
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"move!"		=> \$opt_move,
+	"stor!"		=> \$opt_stor,
+	"mus!"		=> \$opt_mus,
+	"help!"		=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $#ARGV < 0 ){
+	print "missing source directories\n";
+	$needhelp++;
+}
+
+foreach my $dir ( @ARGV ){
+	if( ! &unitsplit($dir) ){
+		print STDERR "invalid dir name: $dir\n";
+		$needhelp++;
+	}
+
+	unless( -d $dir ){
+		print STDERR "no such dir: $dir\n";
+		$needhelp++;
+	}
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opts> <dir> ...
+ add directories to archive
+options:
+ --move	                 move directories instead of copy. (default)
+ --stor                  run dudl-storscan, too. (default)
+ --mus                   run dudl-mubatc, too. (default)
+ --help                  this short usage information.
+ you may negate options by prefixing them with "no"
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+$opt_stor++ if $opt_mus;
+
+
+my $dudl = new Dudl::Config;
+
+foreach my $dir ( @ARGV ){
+	my( $col, $num ) = &unitsplit( $dir );
+
+	my $unit = sprintf "\%s%04d", $col, $num;
+	my $coldir = $dudl->conf("cdpath") ."/$col";
+	my $dst = "$coldir/$unit";
+
+	if( -e $dst ){
+		print STDERR "unit already exists in archive: $dir\n";
+		exit 1;
+	}
+
+	-d $coldir || mkdir 0777, $coldir 
+		or die "mkdir $coldir failed: $!";;
+
+	if( &samedir( &parentdir($dir), &parentdir($dst) )){
+		print STDERR "source is already part of the archive: $dir\n";
+		exit 1;
+	}
+
+	my $cmd = $opt_move ? "mv" : "cp -pR";
+	if( 0 != system( "echo $cmd '$dir' '$dst'" ) ){
+		print STDERR "failed to ", 
+			($opt_move ? "move" : "copy" ),
+			"dir $dir\n";
+		exit 1;
+	}
+
+	if( $opt_stor && 0 != system( "dudl-storscan $dst" ) ){
+		print STDERR "failed to run dudl-storscan for $dir\n";
+		next;
+	}
+
+	if( $opt_mus && 0 != system( "dudl-musbatch $unit" ) ){
+		print STDERR "failed to run dudl-musbatch for $dir\n";
+		next;
+	}
+
+}
+
+=pod
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+

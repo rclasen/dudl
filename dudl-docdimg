@@ -1,32 +1,113 @@
-#!/bin/sh
+#! /usr/bin/perl -w
 
-# generate CD images for new "sl" units
+# $Id: dudl-docdimg,v 1.4 2006-01-27 13:06:19 bj Exp $
 
-: ${outdir:=.}
+use strict;
+use Getopt::Long;
+use Dudl::Config;
+use Dudl::Misc;
 
-do_cd () {
-	local src="$1"
+=pod
 
-	name="`basename "$src"`"
-	num="`echo ${name} | sed -e 's/^sl0*//'`"
+=head1 NAME
 
-	if echo "$num" | grep -q '^[0-9]\{1,\}$'; then : ; else
-		echo "invalid dir name: $name">&2
-		return 1
-	fi
+dudl-docdimg - generate CD images for storage units
 
-	iso="$outdir/$name.iso"
-	if [ -r "$iso" ]; then
-		echo "file exists: $iso" >&2
-		return 1
-	fi
-	echo "generating $iso ..."
-	mkisofs -q -J -r -V "_MP3_${num}_" -o "$iso" "$src"
+=head1 SYNOPSIS
+
+dudl-docdimg [<opts>] <dir> ...
+
+=head1 DESCRIPTION
+
+TODO man desc
+
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--out> <dir>
+
+where to place generated images. default=.
+
+=cut
+
+my $opt_out = ".";
+
+=pod
+
+=item B<--help>
+
+display short usage info.
+
+=cut
+
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"help!"		=> \$wanthelp,
+	"out=s"		=> \$opt_out,
+)){
+	$needhelp++;
 }
 
-for i in "$@"; do
-	do_cd "$i"
-done
+if( $#ARGV < 0 ){
+	print STDERR "missing input directories\n";
+	$needhelp++;
+}
 
-# TODO: GetOptions + usage or perlify
-# TODO: manpage
+foreach my $dir ( @ARGV ){
+	if( ! &unitsplit($dir) ){
+		print STDERR "invalid dir name: $dir\n";
+		$needhelp++;
+	}
+
+	unless( -d $dir ){
+		print STDERR "no such dir: $dir\n";
+		$needhelp++;
+	}
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opts> <dir> ...
+ generate CD images for storage units
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $dudl = new Dudl::Config;
+
+foreach my $dir ( @ARGV ){
+	my( $col, $num ) = &unitsplit( $dir );
+
+	my $unit = sprintf "\%s%04d", $col, $num;
+	my $iso = "$opt_out/$unit.iso";
+
+	-r $iso && die "image already exists: $iso";
+	
+	print "generating $iso ...\n";
+	system( "mkisofs -q -J -r -V _MP3_${num}_ -o \"$iso\" \"$dir\"" )
+		and die "mkisofs failed: $!";
+}
+
+=pod
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+

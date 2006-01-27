@@ -1,54 +1,133 @@
-#!/bin/sh
+#! /usr/bin/perl -w
 
-# move dirs from 2test 
-# - to 4ren using dudl-rename if "ren" file works flawlessly
-# - to 3ren otherwise
+# $Id: dudl-doren,v 1.5 2006-01-27 13:06:19 bj Exp $
 
-# dudl-doren <genre> <dir1> [...]
+use strict;
+use Getopt::Long;
+use Dudl::Config;
+use Dudl::Misc;
 
-set -e
-rdir="/pub/fun/mp3/3ren"
-odir="/pub/fun/mp3/4out"
+=pod
 
-genre="`echo "$1" | tr '[a-z]' '[A-Z]' `"
-shift
+=head1 NAME
 
-case "$genre" in
- COMEDY|DANCE|POP|ROCK|SAMPLER)
-	:
-	;;
- *)
- 	echo "invalid genre: >$genre<"
-	exit 1
-	;;
-esac
+dudl-doren - move dirs from 2test to 3ren or possibly 4out
 
+=head1 SYNOPSIS
 
-for i in "$@"; do
-	if [ -d "$i" ]; then
-		sdir="$i"
-		ren="$sdir/ren"
-	else
-		ren="$i"
-		sdir="${i%/*}"
-	fi
+dudl-doren [<opts>] <genre> <dir> ...
 
-	echo "processing $ren"
-	if dudl-rename --test "$ren" > /dev/null 2>&1 ; then
-		gdir="$odir/$genre"
-		[ -d "$gdir" ] || mkdir "$gdir"
+=head1 DESCRIPTION
 
-		dudl-rename --outdir="$gdir" "$ren"
-		echo "hit ^C on error, ENTER on success"
-		read
-		rm -rf "$sdir"
-	else
-		gdir="$rdir/$genre"
-		[ -d "$gdir" ] || mkdir "$gdir"
+TODO: man desc
+move dirs from 2test 
 
-		# TODO: avoid overwriting itself
-		mv "$sdir" "$gdir/"
-	fi
-done
-# TODO: GetOptions + usage or perlify
-# TODO: manpage
+=over 2
+
+=item *
+
+to 4ren using dudl-rename if "ren" file works flawlessly
+
+=item *
+
+to 3ren otherwise
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help>
+
+display short usage info.
+
+=cut
+
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"help!"		=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+my $genre = &checkgenre( shift );
+if( ! defined $genre ){
+	print STDERR "invalid/missing genre\n";
+	$needhelp++;
+}
+
+if( $#ARGV < 0 ){
+	print STDERR "missing directory\n";
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opts> <genre> <dir> ...
+ move dirs from 2test to 3ren or possibly 4out
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $dudl = new Dudl::Config;
+my $rdir = $dudl->conf("workpath") . "/3ren";
+my $odir = $dudl->conf("workpath") . "/4out";
+
+for my $arg ( @ARGV ){
+	my( $dir, $ren );
+	if( -d $arg ){
+		$dir = $arg;
+		$ren = "$dir/ren";
+	} elsif( $arg =~ /^(.+)\/([^\/]+)$/ ){
+		$dir = $1;
+		$ren = $arg;
+	} else {
+		print STDERR "no such directory: $arg\n";
+		return;
+	}
+
+	if( 0 != system("dudl-rename --test \"$ren\"" )){
+		system("dudl-rename --outdir \"$odir/$genre\" \"$ren\"") == 0
+			or die "rename failed: $!";
+	
+		print "hit ENTER to continue";
+		$_ = <>;
+		exit if /^q$/i;
+
+		system("rm -rf \"$dir\"") == 0
+			or die "rm failed: $!";
+	
+	} else {
+		-d "$rdir/$genre" or mkdir 0777, "$rdir/$genre";
+		if( &samedir( "$rdir/$genre", &parentdir($dir)) ){
+			print STDERR "directory is alredy in 3ren: $dir\n";
+			next;
+		}
+
+		system("mv \"$dir\" \"$rdir/$genre\"") == 0
+			or die "mv failed: $!";
+	}
+}
+
+=pod
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+

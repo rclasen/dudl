@@ -1,66 +1,148 @@
-#!/bin/sh
+#! /usr/bin/perl -w
 
-# try to move dirs from 3ren to 4out using dudl-rename
-#  dudl-doout <genre> <dir1> ...
-#  dudl-doout   # automagically picks all from 3ren
+# $Id: dudl-doout,v 1.4 2006-01-27 13:06:19 bj Exp $
+
+use strict;
+use Getopt::Long;
+use Dudl::Config;
+use Dudl::Misc;
+
+=pod
+
+=head1 NAME
+
+dudl-doout - rename MP3s from 3ren and place them in 4out
+
+=head1 SYNOPSIS
+
+dudl-doout [<opts>] [<genre> <dir> ...]
+
+=head1 DESCRIPTION
+
+TODO man desc
 
 
-set -e
+=head1 OPTIONS
 
-rdir="/pub/fun/mp3/3ren"
-odir="/pub/fun/mp3/4out"
+=over 4
 
-do_genre() {
-	local genre="$1"
-	shift
+=item B<--help>
 
-	case "$genre" in
-	 COMEDY|DANCE|POP|ROCK|SAMPLER)
-		:
-		;;
-	 *)
-		echo "invalid genre: >$genre<"
-		exit 1
-		;;
-	esac
+display short usage info.
 
-	gdir="$odir/$genre"
-	[ -d "$gdir" ] || mkdir "$gdir"
+=cut
 
-	for i in "$@"; do
-		if [ "$i"x = "*/"x ]; then
-			break
-		fi
+my $wanthelp;
+my $needhelp;
 
-		if [ -d "$i" ]; then
-			sdir="$i"
-			ren="$sdir/ren"
-		else
-			ren="$i"
-			sdir="${i%/*}"
-		fi
-
-		dudl-rename --outdir="$gdir" $ren
-		echo "hit ^C on error, ENTER on success"
-		read
-		rm -rf "$sdir"
-	done
+if( ! GetOptions(
+	"help!"		=> \$wanthelp,
+)){
+	$needhelp++;
 }
 
-if [ $# -eq 0 ]; then
-	cd "$rdir"
-	for sdir in */; do
-		( 
-		cd "$sdir"
-		genre=${sdir%%/}
-		do_genre "$genre" */
-		) || exit 1
-	done
-else
-	genre="`echo "$1" | tr '[a-z]' '[A-Z]' `"
-	shift
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opts> [<genre> <dir> ...]
+ rename MP3s from 3ren and place them in 4out
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
 
-	do_genre "$genre" "$@"
-fi
-# TODO: GetOptions + usage or perlify
-# TODO: manpage
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $dudl = new Dudl::Config;
+
+my $rdir = $dudl->conf("workpath") . "/3ren";
+my $odir = $dudl->conf("workpath") . "/4out";
+
+if( $#ARGV < 0 ){
+	opendir(R, $rdir)
+		or die "opendir: $!";
+	while ( defined (my $gdir = readdir(R)) ){
+		&do_gdir( $gdir ) or exit 1;
+	}
+	closedir(R);
+
+} elsif( $#ARGV < 1 ){
+	print STDERR "missing directories\n";
+	exit 1;
+
+} else {
+	my $genre = shift;
+
+	foreach my $dir (@ARGV){
+		&do_dir( $genre, $dir )
+			or exit 1;
+	}
+}
+
+sub do_gdir {
+	my( $gdir ) = @_;
+
+	&checkgenre($gdir) or return 1;
+
+	opendir(G, "$rdir/$gdir" )
+		or die "opendir: $!";
+	while ( defined (my $dir = readdir(G)) ){
+		next if $dir =~ /^\./;
+		&do_dir( $gdir, "$rdir/$gdir/$dir" ) or return;
+	}
+	closedir(G);
+
+	return 1;
+}
+
+sub do_dir {
+	my( $garg, $arg ) = @_;
+
+	print $arg, "\n";
+
+	my $genre = &checkgenre($garg);
+	if( ! defined $genre ){
+		print STDERR "invalid genre: $garg\n";
+		return;
+	}
+	
+	my( $dir, $ren );
+	if( -d $arg ){
+		$dir = $arg;
+		$ren = "$dir/ren";
+	} elsif( $arg =~ /^(.+)\/([^\/]+)$/ ){
+		$dir = $1;
+		$ren = $arg;
+	} else {
+		print STDERR "no such directory: $arg\n";
+		return;
+	}
+
+	-d "$odir/$genre" or mkdir 0777, "$odir/$genre";
+	system("dudl-rename --outdir \"$odir/$genre\" \"$ren\"") == 0
+		or die "rename failed: $!";
+	
+	print "hit ENTER to continue";
+	$_ = <>;
+	exit if /^q$/i;
+
+	system("rm -rf \"$dir\"") == 0
+		or die "rm failed: $!";
+}
+
+
+=pod
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+

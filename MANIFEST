@@ -14,14 +14,13 @@ dudl-dbavcheck
 dudl-dbmaintenance
 dudl-dbstatus
 dudl-dbupdate
+dudl-doarchive
 dudl-docdimg
 dudl-doedit
 dudl-doout
 dudl-doren
 dudl-dosort
 dudl-dotest
-dudl-fclean
-dudl-fname
 dudl-mus2id
 dudl-mus2job
 dudl-musbatch
@@ -36,6 +35,7 @@ dudl-storhave
 dudl-storscan
 Dudl/DB.pm
 Dudl/DBo.pm
+Dudl/DBOverview.pm
 Dudl/File.pm
 Dudl/Job/Music.pm
 Dudl/Overview.pm

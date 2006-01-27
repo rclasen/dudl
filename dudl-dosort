@@ -3,5 +3,3 @@
 # generate listing of directories to test that have no outstanding TODOs
 # sorted by size
 du -cs ` grep -L TODO..edit */ren | sed -e 's/.ren$//' ` | sort -n
-# TODO: GetOptions + usage or perlify
-# TODO: manpage

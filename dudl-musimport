@@ -1,12 +1,38 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musimport,v 1.4 2006-01-25 16:37:28 bj Exp $
+# $Id: dudl-musimport,v 1.5 2006-01-27 13:06:19 bj Exp $
 
 # TODO: modify existing entries
 
 use strict;
 use Dudl::DB;
 use Dudl::Job::Music;
+use Getopt::Long;
+
+my $wanthelp;
+my $needhelpt;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt> <jobfile> ...
+ import data jobfile(s) into music DB
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
 
 =pod
 
@@ -269,4 +295,3 @@ sub save_genres {
 	}
 }
 
-# TODO: GetOptions + usage

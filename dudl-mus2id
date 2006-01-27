@@ -4,6 +4,32 @@
 use strict;
 use Dudl::DB;
 use MP3::Tag;
+use Getopt::Long;
+
+my $wanthelp;
+my $needhelpt;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt>
+ set ID3v1 tags according to data from music database
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
 
 =pod
 
@@ -74,4 +100,3 @@ while( defined $sth->fetch ){
 	# TODO: ID3v2?
 }
 
-# TODO: GetOptions + usage

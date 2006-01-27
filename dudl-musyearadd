@@ -3,6 +3,32 @@
 
 use strict;
 use Dudl::DB;
+use Getopt::Long;
+
+my $wanthelp;
+my $needhelpt;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt>
+ find albums without a publish_date and prompt user to complete this
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
 
 =pod
 
@@ -81,4 +107,3 @@ LST: while( defined $lst->fetch ){
 	$dudl->commit;
 }
 
-# TODO: GetOptions + usage

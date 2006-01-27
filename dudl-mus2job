@@ -4,6 +4,32 @@
 use strict;
 use Dudl::DB;
 use Dudl::Job::Archive;
+use Getopt::Long;
+
+my $wanthelp;
+my $needhelpt;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt>
+ (re-)generate archive jobfiles from music database
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
 
 =pod
 
@@ -162,5 +188,3 @@ sub finish {
 	#$job->write( \*STDOUT );
 }
 
-
-# TODO: GetOptions + usage

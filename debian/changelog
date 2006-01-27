@@ -1,3 +1,14 @@
+dudl (0.0.6) unstable; urgency=low
+
+  * muslinks: name directories and files according to Dudl::Naming
+  * muslinks: create Archive Jobfiles
+  * added --help to all perl executables
+  * added dudl-doarchive
+  * perlified dudl-do* tools, giving them Getopt for usage and pod for
+    manpages
+
+ -- Rainer Clasen <bj@zuto.de>  Fri, 27 Jan 2006 14:00:26 +0100
+
 dudl (0.0.5) unstable; urgency=low
 
   * added tons of pod for manpages

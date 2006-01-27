@@ -2,6 +2,32 @@
 
 use strict;
 use Dudl::DB;
+use Getopt::Long;
+
+my $wanthelp;
+my $needhelpt;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt>
+ update informatation about available files in dudl DB
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
 
 =pod
 
@@ -334,5 +360,3 @@ Rainer Clasen
 
 =cut
 
-
-# TODO: GetOptions + usage

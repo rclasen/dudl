@@ -1,40 +1,103 @@
-#!/bin/sh
+#! /usr/bin/perl -w
 
-# automatically check jobfiles after editing them.
-# offer broken files for reedit
+# $Id: dudl-doedit,v 1.3 2006-01-27 13:06:19 bj Exp $
 
-set -e
-: ${EDITOR:=vi}
+use strict;
+use Getopt::Long;
+use Dudl::Config;
 
-checkall=true
-for i in "$@"; do
-	if $checkall; then
-		checkall=false
-		set --
-	fi
-	if [ -d "$i" ]; then
-		sdir="$i"
-		ren="$sdir/ren"
-	else
-		ren="$i"
-		sdir="${i%/*}"
-	fi
-	set -- "$@" "$ren"
-done
+=pod
 
-while : ; do
-	$EDITOR "$@"
-	checkall=true
-	for i in "$@"; do
-		if $checkall; then
-			checkall=false
-			set --
-		fi
-		dudl-rename --quiet --test "$i" || set -- "$@" "$i"
-	done
-	[ $# -eq 0 ] && break
-	echo "hit enter to re-edit broken files or abort"
-	read
-done
-# TODO: GetOptions + usage or perlify
-# TODO: manpage
+=head1 NAME
+
+dudl-doedit - edit rename jobfiles
+
+=head1 SYNOPSIS
+
+dudl-doedit [<opts>] <renfile|dir> ...
+
+=head1 DESCRIPTION
+
+Edit dudl-rename jobfiles and check them afterwards. Offer broken files
+for reedit.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help>
+
+display short usage info.
+
+=cut
+
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"help!"		=> \$wanthelp,
+)){
+	$needhelp++;
+}
+
+if( $#ARGV < 0 ){
+	print STDERR "missing jobfiles\n";
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opts> <renfile|dir> ...
+ edit rename jobfiles
+options:
+ --help                  this short usage information.
+EOF
+	exit 0;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $dudl = new Dudl::Config;
+
+$ENV{EDITOR} ||= "vi";
+
+my @jobs = map {
+	-d $_ and $_ .= "/ren";
+	$_;
+} @ARGV;
+
+do {
+	system( "$ENV{EDITOR}", @jobs ) == 0
+		or die "editor died: $!";
+	
+	my @fjobs;
+	foreach my $job ( @jobs ){
+		system( "dudl-rename --quiet --test $job" ) == 0
+			or push @fjobs, $job;
+	}
+
+	if( $#fjobs >= 0 ){
+		print "hit ENTER to re-edit broken files\n";
+		$_ = <>;
+		exit if /^q$/i;
+	}
+
+	@jobs = @fjobs;
+
+} while( $#jobs >= 0 );
+
+
+=pod
+
+=head1 SEE ALSO
+
+I<Dudl::Overview>
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
