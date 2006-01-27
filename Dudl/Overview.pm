@@ -49,6 +49,12 @@ execute other repetetive tasks. These tools are not yet configurable and
 rely on a hard-coded directory structure with the subdirectories 0grab
 1encode 2test 3ren/<genre> 4out/<genre> 5done.
 
+=cut
+
+# TODO: include /pub/fun/mp3/README.txt
+
+=pod
+
 =item B<archive>
 
 Files are expected to reside in

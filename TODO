@@ -4,3 +4,49 @@ new db-aware dudl-rengen/dudl-rename
 
 dudl-musgen/dudl-musimport
 - add support for editing existing albums
+
+musbatch
+- pick files ids from DB
+- use musgen
+- let user edit
+- run import
+musdirs
+- helper for musbatch
+musgen
+- get specified files by id from DB
+- create suggestions
+  - from Dudl::Job::Archive
+  - from stored ID tags
+  - from stored filename
+- pick best suggestion
+- generate Dudl::Job::Music
+musimport
+- read Dudl::Job::Music
+- add music data to DB
+
+rengen
+- create suggestions
+  - from files' IDtag
+  - from filenam
+- pick best suggestion
+- generate Dudl::Job::Rename
+rename
+- read Dudl::Job::Rename
+- optionally check against DB
+- rename files
+- set id tags
+- generate Dudl::Job::Archive
+
+dotest
+- run rengen
+doout
+- run rename
+doren
+- run rename
+
+file_id3		Suggester	Dudl::Job::Rename	Rename		Dudl::Job::Archive
+filename									processed files
+
+Dudl::Job::Archive	Suggester	Dudl::Job::Music	Import		musicDB
+db_id3
+db_fname
