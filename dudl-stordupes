@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-stordupes,v 1.4 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-stordupes,v 1.5 2006-01-27 23:14:31 bj Exp $
 
 # TODO: move database access to module
 
@@ -9,7 +9,7 @@ use Dudl::DB;
 use Getopt::Long;
 
 my $wanthelp;
-my $needhelpt;
+my $needhelp;
 
 if( ! GetOptions(
 	"help|h!"	=> \$wanthelp,

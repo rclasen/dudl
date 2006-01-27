@@ -2,7 +2,7 @@
 
 case "$1" in
  configure)
-	echo "updating database schema ..."
+	echo "checking database schema version ..."
  	su postgres -c dudl-dbupdate > /dev/null
 	;;
 

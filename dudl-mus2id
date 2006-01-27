@@ -7,7 +7,7 @@ use MP3::Tag;
 use Getopt::Long;
 
 my $wanthelp;
-my $needhelpt;
+my $needhelp;
 
 if( ! GetOptions(
 	"help|h!"	=> \$wanthelp,

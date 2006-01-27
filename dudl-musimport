@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musimport,v 1.5 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-musimport,v 1.6 2006-01-27 23:14:30 bj Exp $
 
 # TODO: modify existing entries
 
@@ -10,7 +10,7 @@ use Dudl::Job::Music;
 use Getopt::Long;
 
 my $wanthelp;
-my $needhelpt;
+my $needhelp;
 
 if( ! GetOptions(
 	"help|h!"	=> \$wanthelp,

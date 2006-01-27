@@ -1,8 +1,9 @@
 dudl (0.0.7) unstable; urgency=low
 
   * properly read input from user
+  * some minor but fatal bug fixes
 
- -- Rainer Clasen <bj@zuto.de>  Fri, 27 Jan 2006 20:32:15 +0100
+ -- Rainer Clasen <bj@zuto.de>  Fri, 27 Jan 2006 21:57:05 +0100
 
 dudl (0.0.6) unstable; urgency=low
 

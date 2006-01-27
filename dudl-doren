@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-doren,v 1.6 2006-01-27 19:31:59 bj Exp $
+# $Id: dudl-doren,v 1.7 2006-01-27 23:14:30 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -96,7 +96,7 @@ for my $arg ( @ARGV ){
 		return;
 	}
 
-	if( 0 != system("dudl-rename --test \"$ren\"" )){
+	if( 0 == system("dudl-rename --test \"$ren\" > /dev/null 2>&1" )){
 		system("dudl-rename --outdir \"$odir/$genre\" \"$ren\"") == 0
 			or die "rename failed: $!";
 	
