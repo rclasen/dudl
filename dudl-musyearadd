@@ -89,7 +89,7 @@ LST: while( defined $lst->fetch ){
 		print " n - for next\n";
 		print " q - to quit\n";
 		print "date: ";
-		$date = <>;
+		$date = <STDIN>;
 		chomp $date;
 
 		next LST if $date =~ /^n$/i;

@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-doedit,v 1.3 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-doedit,v 1.4 2006-01-27 19:31:59 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -78,14 +78,14 @@ do {
 		system( "dudl-rename --quiet --test $job" ) == 0
 			or push @fjobs, $job;
 	}
+	@jobs = @fjobs;
 
-	if( $#fjobs >= 0 ){
+	if( $#jobs >= 0 ){
 		print "hit ENTER to re-edit broken files\n";
-		$_ = <>;
+		$_ = <STDIN>;
 		exit if /^q$/i;
 	}
 
-	@jobs = @fjobs;
 
 } while( $#jobs >= 0 );
 

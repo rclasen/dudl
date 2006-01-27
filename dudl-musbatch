@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musbatch,v 1.4 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-musbatch,v 1.5 2006-01-27 19:31:59 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -223,7 +223,7 @@ what shall I do?
  x - exit
 EOP
 
-				$reply = <>;
+				$reply = <STDIN>;
 				chomp $reply;
 			} until $reply =~ /^[reinx]$/;
 		}
@@ -243,7 +243,7 @@ EOP
 				$donext++;
 			} else {
 				print "press ENTER to continue\n";
-				<>;
+				<STDIN>;
 			}
 
 		} elsif( $reply eq "n" ){

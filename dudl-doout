@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-doout,v 1.4 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-doout,v 1.5 2006-01-27 19:31:59 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -126,7 +126,7 @@ sub do_dir {
 		or die "rename failed: $!";
 	
 	print "hit ENTER to continue";
-	$_ = <>;
+	$_ = <STDIN>;
 	exit if /^q$/i;
 
 	system("rm -rf \"$dir\"") == 0
