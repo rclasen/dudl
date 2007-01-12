@@ -23,7 +23,7 @@ sub load_path {
 	my $a = ref $_[0] eq "HASH" ? shift : { @_ };
 
 	croak "missing path argument" unless exists $a->{path};
-	$a->{path} =~ /([^\d\/]+)(\d+)$/
+	$a->{path} =~ /([^\d\/]+)(\d+)\/*$/
 		or croak "invalid path";
 	$a->{where} = {
 		collection => "'$1'", # TODO: quote properly 
