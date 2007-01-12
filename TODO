@@ -1,3 +1,8 @@
+merge dudl-rename + dudl-grab back into this module
+
+dudl-do* deal with jobs from dudl-encode (TRACKS.dudl_encode not ren)
+dudl-do* automagically run dudl-dbavcheck and friends (limited to once/5min)
+
 new db-aware dudl-rengen/dudl-rename 
 - to keep file_id and history intact.
 - to edit data from dudld (tags, albumname, artist, ...)
@@ -36,6 +41,7 @@ rename
 - rename files
 - set id tags
 - generate Dudl::Job::Archive
+- if file is part of autoscan DB unit: update DB
 
 dotest
 - run rengen
@@ -46,6 +52,7 @@ doren
 
 file_id3		Suggester	Dudl::Job::Rename	Rename		Dudl::Job::Archive
 filename									processed files
+tmp_db										DB update
 
 Dudl::Job::Archive	Suggester	Dudl::Job::Music	Import		musicDB
 db_id3

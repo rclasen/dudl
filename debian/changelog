@@ -1,3 +1,12 @@
+dudl (0.0.8) unstable; urgency=low
+
+  * lowercase dudl-dotest filenames
+  * progress indication for dudl-doarchive
+  * optionally check that unit doesnt exist in dudl-docdimg
+  * improved filename quoting
+
+ -- Rainer Clasen <bj@zuto.de>  Thu, 25 May 2006 21:54:46 +0200
+
 dudl (0.0.7) unstable; urgency=low
 
   * properly read input from user
