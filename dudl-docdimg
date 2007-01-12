@@ -1,11 +1,13 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-docdimg,v 1.4 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-docdimg,v 1.5 2007-01-12 09:11:14 bj Exp $
 
 use strict;
 use Getopt::Long;
-use Dudl::Config;
+use Dudl::DB;
 use Dudl::Misc;
+use Dudl::StorUnit;
+use Dudl::Job::Archive;
 
 =pod
 
@@ -36,6 +38,26 @@ my $opt_out = ".";
 
 =pod
 
+=item B<--check>
+
+check if unit already exists
+
+=cut
+
+my $opt_check = 1;
+
+=pod
+
+=item B<--dupcheck>
+
+check if albums already exist
+
+=cut
+
+my $opt_dupcheck = 1;
+
+=pod
+
 =item B<--help>
 
 display short usage info.
@@ -48,6 +70,8 @@ my $needhelp;
 if( ! GetOptions(
 	"help!"		=> \$wanthelp,
 	"out=s"		=> \$opt_out,
+	"check!"	=> \$opt_check,
+	"dupcheck!"	=> \$opt_dupcheck,
 )){
 	$needhelp++;
 }
@@ -74,7 +98,10 @@ if( $wanthelp ){
 usage: $0 <opts> <dir> ...
  generate CD images for storage units
 options:
+ --out=<dir>             specify location to place images in
  --help                  this short usage information.
+ --check                 check DB, if unit already exists (default)
+ --dupcheck              check DB if albums do already exist
 EOF
 	exit 0;
 }
@@ -84,10 +111,19 @@ if( $needhelp ){
 	exit 1;
 }
 
-my $dudl = new Dudl::Config;
+my $dudl = new Dudl::DB;
+my $db = $dudl->db;
 
 foreach my $dir ( @ARGV ){
 	my( $col, $num ) = &unitsplit( $dir );
+
+	if( $opt_check && &unit_exists( $dir )){
+		die "unit already exists: $dir";
+	}
+
+	if( $opt_dupcheck && &albums_find( $dir )){
+		die "some albums already exist in $dir";
+	}
 
 	my $unit = sprintf "\%s%04d", $col, $num;
 	my $iso = "$opt_out/$unit.iso";
@@ -95,8 +131,75 @@ foreach my $dir ( @ARGV ){
 	-r $iso && die "image already exists: $iso";
 	
 	print "generating $iso ...\n";
-	system( "mkisofs -q -J -r -V _MP3_${num}_ -o \"$iso\" \"$dir\"" )
+	# TODO: escape $dir and $iso or pass array to system()
+	system( "mkisofs -q -J -r -V _MP3_${num}_ -o '$iso' '$dir'" )
 		and die "mkisofs failed: $!";
+}
+
+sub album_exists {
+	my $alb = shift;
+
+	my $album = $db->quote( $alb->{name}, 1 ); # TODO: DBI::CHAR );
+	my $artist = $db->quote( $alb->{artist}, 1 ); # TODO: DBI::CHAR );
+
+	my( $artistid )= $db->selectrow_array( 
+		"SELECT ".
+                        "id ".
+                "FROM mus_artist ".
+                "WHERE ".
+                        "LOWER(nname) = LOWER($artist) ".
+                "LIMIT 1" );
+	return 0 unless $artistid;
+
+	my( $albumid ) = $db->selectrow_array( 
+		"SELECT ".
+			"id ".
+		"FROM mus_album ".
+		"WHERE ".
+			"LOWER(album) = LOWER($album) ".
+			"AND artist_id = $artistid ".
+		"LIMIT 1");
+	if( $albumid ){
+		print STDERR "ERROR: album $alb->{artist} - $alb->{name} already present as id $albumid\n";
+		return 1;
+	}
+
+	return 0;
+}
+
+
+sub albums_find {
+	my $dir = shift;
+
+	opendir(D, $dir ) or die "opendir: $!";
+	my @dirs = grep { ! /^\./ && -f "$dir/$_/TRACKS.dudl_archive" } readdir D;
+	closedir(D);
+
+	my $job = new Dudl::Job::Archive( naming => $dudl->naming );
+	foreach my $d ( @dirs ){
+		$job->read( "$dir/$d/TRACKS.dudl_archive" ); # ignore failures
+	}
+	
+	my $found = 0;
+	$job->rewind;
+	my $oalb;
+	while( my( $alb, $fil, $tit) = $job->next ){
+		if( $oalb != $alb ){
+			&album_exists( $alb ) && $found++;
+			$oalb = $alb;
+		}
+	}
+
+	return $found;
+}
+
+sub unit_exists {
+	my $dir = shift;
+
+	my $unit;
+	eval { $unit = Dudl::StorUnit->load_path( dudl => $dudl, 
+		path => $dir ); };
+	return $unit;
 }
 
 =pod
