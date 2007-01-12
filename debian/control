@@ -10,7 +10,7 @@ Architecture: all
 Depends: ${shlibs:Depends}, dudl-rename (>= 0.1.14), libmp3-info-perl,
  libezdbi-perl, libezdbo-perl, libdbd-pg-perl
 Recommends: postgresql
-Provides: dudl-dbschema0.0
+Provides: dudl-dbschema0.1
 Description: tools to manage a Database with your MP3s
  Database maintenance scripts for the Dudl Music Database
 

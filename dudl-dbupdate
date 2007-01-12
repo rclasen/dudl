@@ -183,6 +183,7 @@ my $cmd = "dbi:Pg:".
 	"dbname=template1";
 $cmd .= ";host=". $opt_dbhost if $opt_dbhost;
 
+# TODO: no autocommit, put everything in transaction
 my $tdb = EzDBI->connect( $cmd,
 	$opt_dbuser, $opt_dbpass, { 
 		'AutoCommit' => 1,
@@ -1146,6 +1147,21 @@ REFERENCES mserv_user( id )
 	"user_id	INTEGER",	# who queued this track?
 	"completed	BOOL NOT NULL DEFAULT true",
 ]);
+if( $dbver < 2 ){
+	push @chadd, 
+		"ALTER TABLE mserv_hist ADD COLUMN last BOOL",
+		"ALTER TABLE mserv_hist ALTER COLUMN last SET DEFAULT true",
+		"UPDATE mserv_hist SET last = false WHERE last ISNULL",
+		"UPDATE mserv_hist SET last = true WHERE id IN ( ".
+			"SELECT ".
+				"h.id ".
+			"FROM ".
+				"mserv_hist AS h, ".
+				"( SELECT file_id, max(added) AS m ".
+					"FROM mserv_hist GROUP BY file_id) AS m ".
+			"WHERE h.file_id = m.file_id AND h.added = m.m ) ",
+		"ALTER TABLE mserv_hist ALTER COLUMN last SET NOT NULL",
+}
 &add_uindex( 0,  "mserv_hist__id", "mserv_hist(id)");
 
 # referential integrity
@@ -1168,8 +1184,8 @@ REFERENCES mserv_user( id )
 
 # trigger to update stor_file.lastplay on insert
 
-# TODO: update stor_file only when "added" was updated or inserted
-&add_func( 0, "mserv_hist__up_lastplay()", "trigger", "plpgsql", "
+# TODO: update stor_file on insert *and* update (when "added" was changed)
+&add_func( 2, "mserv_hist__up_lastplay()", "trigger", "plpgsql", "
 DECLARE
 	file	RECORD;
 BEGIN
@@ -1188,6 +1204,8 @@ BEGIN
 	END IF;
 
 	UPDATE stor_file SET lastplay = new.added WHERE id = new.file_id;
+	UPDATE mserv_hist SET last = false WHERE id != new.id AND file_id = new.file_id;
+	new.last = true;
 
 	RETURN new;
 END;
