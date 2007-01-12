@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 
-# $Id: dudl-muslinks,v 1.7 2006-01-26 17:55:55 bj Exp $
+# $Id: dudl-muslinks,v 1.8 2007-01-12 09:04:52 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
@@ -73,6 +73,12 @@ generate mserv directory trees
  --help
 EOF
 	exit 0;
+}
+
+# TODO: remove check, when ' in directory names is supported
+if( $opt_dir =~ /'/ ){
+	print STDERR "unsupported characters in directory name\n";
+	$needhelp++;
 }
 
 if( $needhelp ){
@@ -255,8 +261,9 @@ sub find {
 
 	%$h = ();
 
+	# TODO: escape ' in $dir
 	print "scanning $dir...\n";
-	open( F, "cd \"$dir\" && find . |" ) || die "find failed: $!";
+	open( F, "cd '$dir' && find . |" ) || die "find failed: $!";
 	while( <F> ){
 		chomp;
 		s/^\.\///;
