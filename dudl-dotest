@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-dotest,v 1.5 2006-01-27 13:06:19 bj Exp $
+# $Id: dudl-dotest,v 1.6 2007-01-12 09:15:38 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -72,6 +72,8 @@ if( $needhelp ){
 	exit 1;
 }
 
+my @jobnames = qw( /ren /TRACKS.dudl_rename /TRACKS.dudl_archive);
+
 my $dudl = new Dudl::Config;
 my $nam = $dudl->naming;
 my $tdir = $dudl->conf("workpath"). "/2test";
@@ -92,11 +94,19 @@ foreach my $src ( @ARGV ){
 	}
 
 	$src =~ /([^\/]+)\/*$/;
-	my $dst = $tdir . "/". $nam->fnormalize( $opt_prefix.$1 );
-	system( "mv \"$src\" \"$dst\"" ) == 0
+	my $dst = $tdir . "/". $nam->fnormalize( lc $opt_prefix.$1 );
+	system( "mv",  $src, $dst ) == 0
 		or die "mv failed: $1";
 
-	-e "$dst/ren" || &mkren( $dst )
+	my $found;
+	foreach my $f ( @jobnames ){
+		if( -f "$dst$f" ){
+			$found++;
+			last;
+		}
+	}
+
+	$found || &mkren( $dst ) 
 		or die "creating jobfile failed";
 }
 
@@ -106,7 +116,7 @@ sub mkren {
 	# TODO: re-user M3U playlists
 
 	# TODO: perlify jobfile generation
-	system( "cd \"$dst\" && find . -type f -iname \\*.mp3 | sort | ( printf \"TODO: edit\\n# TODO: year\\n\"; dudl-rengen - ) > ren 2>/dev/null") == 0
+	system( "cd '$dst' && find . -type f -iname \\*.mp3 | sort | ( printf \"TODO: edit\\n# TODO: year\\n\"; dudl-rengen - ) > ren 2>/dev/null") == 0
 		or return;
 
 	return 1;
