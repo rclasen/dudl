@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musbatch,v 1.5 2006-01-27 19:31:59 bj Exp $
+# $Id: dudl-musbatch,v 1.6 2007-01-12 09:09:40 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -130,7 +130,7 @@ if( $needhelp ){
 # TODO: make dudl-musdirs a module and use it directly
 my($tit, $fil, $unitid, $dir);
 my( $tfh, $tfn ) = tempfile;
-open( DFH, "dudl-musdirs $unit|" ) or die "open(dudl-musdirs): $!";
+open( DFH, "dudl-musdirs '$unit'|" ) or die "open(dudl-musdirs): $!";
 # header:
 $_ = <DFH>; 
 print $tfh $_;
@@ -149,7 +149,7 @@ close(DFH);
 close($tfh);
 
 if( $opt_pickdirs ){
-	system( "$ENV{EDITOR} \"$tfn\"" ) and die "open(editor): $!";
+	system( $ENV{EDITOR}, $tfn ) and die "open(editor): $!";
 }
 
 # step2:
@@ -196,7 +196,7 @@ sub dodir {
 		if( ! $tfn ){
 			my $tfh;
 			( $tfh, $tfn ) = tempfile;
-			open( GFH, "dudl-musgen \"$unitid\" \"$dir\"|" ) 
+			open( GFH, "dudl-musgen '$unitid' '$dir'|" ) 
 				or die "open(dudl-musgen): $!";
 			while( <GFH> ){
 				print $tfh $_;
@@ -212,7 +212,7 @@ sub dodir {
 			$needuser++;
 
 		} else {
-			system( "$ENV{EDITOR} \"$tfn\"" ) and die "open(editor): $!";
+			system( $ENV{EDITOR}, $tfn ) and die "open(editor): $!";
 			do {
 				print <<EOP;
 what shall I do?

@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-doarchive,v 1.2 2006-01-27 23:14:30 bj Exp $
+# $Id: dudl-doarchive,v 1.3 2007-01-12 09:09:40 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -131,7 +131,7 @@ foreach my $dir ( @ARGV ){
 		exit 1;
 	}
 
-	-d $coldir || mkdir 0777, $coldir 
+	-d $coldir || mkdir $coldir, 0777
 		or die "mkdir $coldir failed: $!";;
 
 	if( &samedir( &parentdir($dir), &parentdir($dst) )){
@@ -139,20 +139,21 @@ foreach my $dir ( @ARGV ){
 		exit 1;
 	}
 
-	my $cmd = $opt_move ? "mv" : "cp -pR";
-	if( 0 != system( "$cmd '$dir' '$dst'" ) ){
+	print "adding dir $dir...\n";
+	my @cmd = $opt_move ? ( "mv" ) : ( "cp", "-pR" );
+	if( 0 != system( @cmd, $dir, $dst ) ){
 		print STDERR "failed to ", 
 			($opt_move ? "move" : "copy" ),
 			"dir $dir\n";
 		exit 1;
 	}
 
-	if( $opt_stor && 0 != system( "dudl-storscan $dst" ) ){
+	if( $opt_stor && 0 != system( "dudl-storscan", $dst ) ){
 		print STDERR "failed to run dudl-storscan for $dir\n";
 		next;
 	}
 
-	if( $opt_mus && 0 != system( "dudl-musbatch $unit" ) ){
+	if( $opt_mus && 0 != system( "dudl-musbatch", $unit ) ){
 		print STDERR "failed to run dudl-musbatch for $dir\n";
 		next;
 	}
