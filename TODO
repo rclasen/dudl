@@ -7,8 +7,38 @@ new db-aware dudl-rengen/dudl-rename
 - to keep file_id and history intact.
 - to edit data from dudld (tags, albumname, artist, ...)
 
+mserv_history:
+- keep track of termination cause: error/user/normal
+- keep start and end time
+
 dudl-musgen/dudl-musimport
 - add support for editing existing albums
+
+keep track, when a mus_album/_title was added
+
+manpages
+- Dudl::Job::Rename
+- Dudl::Job::Archive
+- Dudl::Job::Base
+
+make Suggester more intelligent...
+
+make dudl-rename a module/integrate it in Job::Rename
+
+rename:
+- lowercasing stuff should be optional
+- fixups should be configurable
+- replacing [._] by spaces should be optional
+- check integrity with mpg123/mp3asm
+- scan for silence
+- take suggestions from freedb (manually specified id)
+
+GUI frontend for rengen
+
+Suggester: 
+- automatically group files to albums
+- guess freedb ID
+
 
 musbatch
 - pick files ids from DB

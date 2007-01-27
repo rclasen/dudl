@@ -1,3 +1,27 @@
+Changes
+Dudl/Config.pm
+Dudl/DB.pm
+Dudl/DBOverview.pm
+Dudl/DBo.pm
+Dudl/File.pm
+Dudl/Job/Archive.pm
+Dudl/Job/Base.pm
+Dudl/Job/Music.pm
+Dudl/Job/Rename.pm
+Dudl/Misc.pm
+Dudl/Naming/Default.pm
+Dudl/Overview.pm
+Dudl/StorUnit.pm
+Dudl/Suggester.pm
+MANIFEST
+MANIFEST			This list of files
+MANIFEST.SKIP
+META.yml
+META.yml                                 Module meta-data (added by MakeMaker)
+Makefile.PL
+README
+RELEASE
+TODO
 debian/changelog
 debian/control
 debian/copyright
@@ -30,20 +54,9 @@ dudl-mushave
 dudl-musimport
 dudl-muslinks
 dudl-musyearadd
+dudl-rename
+dudl-rengen
 dudl-stordupes
 dudl-storhave
 dudl-storscan
-Dudl/DB.pm
-Dudl/DBo.pm
-Dudl/DBOverview.pm
-Dudl/File.pm
-Dudl/Job/Music.pm
-Dudl/Overview.pm
-Dudl/StorUnit.pm
-Makefile.PL
-MANIFEST			This list of files
-MANIFEST.SKIP
-META.yml
-README
-RELEASE
-TODO
+dudlrc.pod

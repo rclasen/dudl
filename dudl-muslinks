@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 
-# $Id: dudl-muslinks,v 1.8 2007-01-12 09:04:52 bj Exp $
+# $Id: dudl-muslinks,v 1.9 2007-01-27 16:19:41 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
@@ -263,6 +263,7 @@ sub find {
 
 	# TODO: escape ' in $dir
 	print "scanning $dir...\n";
+	# TODO: don't fork external find
 	open( F, "cd '$dir' && find . |" ) || die "find failed: $!";
 	while( <F> ){
 		chomp;

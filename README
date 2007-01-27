@@ -1,7 +1,28 @@
 
-# $Id: README,v 1.7 2006-01-23 12:57:06 bj Exp $
+# $Id: README,v 1.8 2007-01-27 16:19:41 bj Exp $
 
-needed perl libs:
+dudl
+====
+
+consists of several parts:
+- dudl-grab: grab and encode audio CDs
+- dudl-rename: rename the encoded files and set their Tags
+- dudl-do*: tools helping you to process the files
+- dudl-db: keep track of your music files
+
+other parts not in this package:
+- dudld: a jukebox daemon that's controlled over the network. It uses the DB.
+- dudlc: various clients for connecting to the dudld daemon
+
+As you process your files with dudl-grab/-encode/... the metadata is
+passed in so called job files you are supposed to adjust in your favourite
+editor. This means you don't need the Database for these tools to work.
+
+
+DEPENDENCIES
+============
+
+This module requires these other modules and libraries:
 
 basic
  MP3::Tag	debian: libmp3-tag-perl		(local)
@@ -16,16 +37,26 @@ you may install each module with
  perl -MCPAN -e 'CPAN::Shell->install("<name>")'
 
 
-Database access:
-================
+INSTALLATION
+============
 
-a) keep default ident-based pg_hba.conf 
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+Database
+========
+
+a1) keep default ident-based pg_hba.conf 
 - add Postgres users for all who are granted access to the DB
  CREATE USER <user>;
 - add them to the dudl group to give them write access to the DB:
  ALTER GROUP dudl ADD USER <user>;
 
-b) authenticate on DB connect. 
+a2) authenticate on DB connect. 
 - change all "local" lines in pg_hba.conf to:
 
 # keep the following line for debian maintenance:
@@ -39,13 +70,17 @@ local   all     all                     md5
 
 - everything else is preconfigured.
 
+b) the actual Database is created (and updated) with dudl-dbupdate
 
-Database installation:
+
+
+COPYRIGHT AND LICENCE:
 ======================
 
-cd tables
-make # ... and follow the instructions
+GPL
 
-of course you can alter the Makefile to do this automatically ;-)
+Copyright (C) 2002 Rainer Clasen
+
+
 
 

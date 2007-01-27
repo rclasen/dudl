@@ -1,0 +1,25 @@
+=head1 NAME
+
+F</etc/dudl.rc>, F<$HOME/.dudlrc> - configs for dudl applications
+
+=head1 DESCRIPTION
+
+Configs for all dudl applications.
+
+=head1 SYNTAX
+
+ key = value
+
+Keys consist only of alphanumeric chars and '_'. 
+
+Everything starting with a hash '#' is ignored. Empty lines are ignored.
+
+See the individual program's manpage on what keys are used.
+
+=head1 SEE ALSO
+
+I<Dudl::Config>, I<dudl-rengen(1)>, I<dudl-rename(1)>, I<dudl-storscan(1)>.
+
+=head1 AUTHOR
+
+Rainer Clasen

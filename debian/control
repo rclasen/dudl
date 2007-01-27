@@ -2,8 +2,20 @@ Source: dudl
 Section: sound
 Priority: optional
 Maintainer: Rainer Clasen <bj@zuto.de>
-Build-Depends: debhelper (>> 3.0.0)
+Build-Depends: debhelper (>= 3.0.5), perl (>= 5.6.0-17)
 Standards-Version: 3.5.2
+
+Package: dudl-rename
+Architecture: all
+Depends: ${perl:Depends}, libmp3-digest-perl, libmp3-tag-perl
+Description: rename MP3 files, set ID tags and strip unwanted headers
+ dudl-rename is part of my dudl Music Database. This Package basically
+ combines two different tasks:
+ .
+ guessing information for a mp3 from filename, idtag and what else is 
+ available. 
+ .
+ consistently rename mp3s.
 
 Package: dudl-db
 Architecture: all

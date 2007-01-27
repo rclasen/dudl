@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-storscan,v 1.3 2006-01-24 16:41:33 bj Exp $
+# $Id: dudl-storscan,v 1.4 2007-01-27 16:19:41 bj Exp $
 
 use strict;
 use File::Find;
@@ -259,6 +259,7 @@ sub scan {
 		print "searching for mp3s in \"$dir\"\n";
 		#@files = ();
 		#&finddepth(\&want_file, $dir );
+		# TODO: don't fork external find
 		@files = `find $dir -type f -iname "*.mp3"`;
 
 

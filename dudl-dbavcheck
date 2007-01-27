@@ -186,6 +186,7 @@ sub check_unew {
 
 	print "checking mp3s in \"$udir\"\n";
 	-d $udir || return;
+	# TODO: don't fork external find
 	my @files = `find '$udir' -type f -iname '*.mp3' -follow | sort`;
 
 	my $dlen = length($udir);

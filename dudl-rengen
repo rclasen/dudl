@@ -1,0 +1,426 @@
+#!/usr/bin/perl -w
+
+# $Id: dudl-rengen,v 1.1 2007-01-27 16:19:41 bj Exp $
+
+# TODO: suggest album, too
+# TODO: get suggestions from freedb
+
+=pod
+
+=head1 NAME
+
+dudl-rengen - generate template job file for dudl-rename.
+
+=head1 SYNOPSIS
+
+ dudl-rengen [opt] <input> > <jobfile>
+
+=head1 DESCRIPTION
+
+dudl-rengen picks a list of mp3 files, analyzes them and offers what is
+most likely the correct information for dudl-rename. The output written to
+stdout is apropriate to be fed into dudl-rename. 
+
+Unfortunatly it is quite hard to guess the correct information from ID3v1,
+ID3v2 Tag and filename. Therefore you are doomed to adjust the jobfile
+with your favourite text editor.
+
+=head2 input
+
+The input to build the suggestions can be specified in three different ways:
+
+=over 4
+
+=item a filename
+
+ dudl-rengen *.mp3
+
+=item standard input
+
+ find . -type f -name '*.mp3' | dudl-rengen -
+
+=item directory
+
+ dudl-rengen .
+
+this picks all .mp3 and .wav files from the specified directory. The case
+of the extenstion is ignored.
+
+=head1 OPTIONS
+
+=cut
+
+use strict;
+use Getopt::Long;
+use Dudl::Config;
+use Dudl::Misc;
+use Dudl::Suggester;
+use Dudl::Job::Rename;
+
+my $dudl = new Dudl::Config;
+
+=pod 
+
+=item B<--max>=I<n>
+
+Maximum number of suggestions to make for each file.
+
+=cut
+my $opt_max = $dudl->conf("sug_max");
+
+=pod 
+
+=item B<--minscore>=I<score>
+
+Minimum score for a suggestion. Suggestions with a lower score are
+discarded.
+
+=cut
+my $opt_minscore = $dudl->conf("sug_score");
+
+=pod 
+
+=item B<--id>, B<--noid>
+
+Pick suggestions from ID3 tags.
+
+=cut
+my $opt_id;
+
+=pod 
+
+=item B<--stored>, B<--nostored>
+
+(dont't) use stored regular expressions for suggestions based on the filename.
+
+=cut
+my $opt_stored;
+
+=pod 
+
+=item B<--regexp>=I<fields>=I<match>
+
+manually supply a regular expression for filename matching. Perl
+Compatible regexps are allowed. See examples for details.
+
+When this option is specified, --id and --stored default to "no". 
+
+=cut
+my $opt_regexp;
+
+=pod 
+
+=item B<--genres>=I<genres>
+
+comma seperated list of genres to fill in by default. Maybe a
+search/replace in your editor is easier.
+
+=cut
+my $opt_genres = "";
+
+=pod
+
+=item B<--checkdb>
+
+With this option dudl-rename connects to your dudl database to check 
+artist name syntax and duplicate albums.
+
+=cut
+my $opt_checkdb = $dudl->conf("ren_checkdb") || 0;
+
+=pod
+
+=item B<--num>
+
+generate new title numbers according to the sequence files are specified.
+
+=cut
+my $opt_num;
+
+my $opt_help = 0;
+my $needhelp = 0;
+
+my $regexp;
+
+if( !GetOptions(
+	"max=i"		=> \$opt_max,
+	"minscore=i"	=> \$opt_minscore,
+	"genres=s"	=> \$opt_genres,
+	"regexp|re=s"	=> \$opt_regexp,
+	"stored!"	=> \$opt_stored,
+	"id!"		=> \$opt_id,
+	"checkdb!"	=> \$opt_checkdb,
+	"num!"		=> \$opt_num,
+	"help|h!"	=> \$opt_help,
+)){
+	$needhelp++;
+}
+
+if( $opt_help ){
+	print <<EOF;
+$0 [opts] <input> ...
+generate job file for dudl_rename.pl
+optons:
+ --help          this help
+ --max <n>       maximum number of suggestions per file
+ --minscore <n>  minimum score suggestions must have
+ --genres <g>    list default genres to use
+ --re|regexp <r> use this regexp for suggestions. 
+ --[no]stored    use stored regexps for suggestions
+ --[no]id        use ID tag for suggestions
+ --checkdb       contact DB for some checks
+
+input:
+ <filename>      add this file to jobfile.
+ <directory>     add all .mp3 and .wav from this directory.
+ -               read filenames from stdin.
+
+regexp example:
+ titles: <artist>.--.<album>/<artist>.--._<num>_<title>.mp3
+ regexp: album,artist,titlenum,title=\\.--\\.(.*)/(.*)\\.--\\.(..)_(.*)
+
+use (?:<pattern>) to group without marking results or use ',,' in the 
+field list to ignore a match.
+EOF
+	exit 0;
+}
+
+if( $opt_regexp ){
+	$regexp = &get_regexp( $opt_regexp );
+	if( ! $regexp ){
+		print STDERR "invalid regexp\n";
+		$needhelp++;
+	}
+	$opt_id = 0 unless defined $opt_id;
+	$opt_stored = 0 unless defined $opt_stored;
+} else {
+	$opt_id = $dudl->conf("sug_id3") unless defined $opt_id; 
+	$opt_stored = $dudl->conf("sug_int") unless defined $opt_stored;
+}
+
+if( $#ARGV < 0 ){
+	print STDERR "need at least one file as argument\n";
+	$needhelp++;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $dudldb;
+if( $opt_checkdb && eval "require Dudl::DB" ){
+	$dudldb = "Dudl::DB"->new( @_ );
+}
+
+my $files = fnames_arg( \@ARGV );
+
+my %album;
+my $job = new Dudl::Job::Rename( naming => $dudl->naming );
+
+
+$job->add_album(
+	name	=> "",
+	artist	=> "VARIOUS",
+	type	=> "sampler",
+); # ignore retval, user edits this anyways
+
+my $fnum;
+foreach my $f ( @$files ){
+	$job->add_file( mp3 => $f ) or die;
+	$fnum++;
+
+	my $sug = new Dudl::Suggester;
+
+	$sug->add( source => "empty" );
+	if( $opt_stored ){
+		$sug->add_stor( $f );
+	}
+	if( $regexp ){
+		$sug->add_regexp( $f, $regexp->{re}, 
+			$regexp->{fields}, "cmdline" );
+	}
+
+	if( $opt_id ){
+		$sug->add_id3( $f );
+	}
+
+	$sug->order;
+
+	my $dat;
+	my $sugnum = 0;
+	while( (!$opt_max || $sugnum < $opt_max ) &&
+	    defined( $dat = $sug->get ) ){
+		
+		next if $sugnum && $dat->{sug_quality} < $opt_minscore;
+
+		$job->add_title( 
+			source	=> $dat->{source}.
+				" score: ". $dat->{sug_quality},
+			num	=> $opt_num ? $fnum : $dat->{titlenum},
+			name	=> $dat->{title},
+			artist	=> &checkdb_artist( $dat->{artist} ),
+			year	=> $dat->{year},
+			genres	=> $opt_genres,
+		); # ignore retval, incomplete data
+
+		$album{name}{$dat->{album}}++ if $dat->{album};
+		$album{artist}{$dat->{artist}}++ if $dat->{artist};
+
+		$sugnum++;
+	}
+}
+
+# TODO: move album- name/artist guessing to suggester
+@_ = sort { $album{name}{$b} <=> $album{name}{$a} } keys %{$album{name}};
+if( @_ && 3* $album{name}{$_[0]} >= scalar @_ ){
+	$job->album->{name} = $_[0];
+}
+
+@_ = sort { $album{artist}{$b} <=> $album{artist}{$a} } keys %{$album{artist}};
+if( @_ && 3* $album{artist}{$_[0]} >= scalar @_ ){
+	$job->album->{artist} = &checkdb_artist($_[0]);
+	$job->album->{type} = 'album';
+}
+
+
+$job->write( \*STDOUT );
+
+sub get_artist {
+	my( $db, $artist ) = @_;
+	my $sartist = $db->quote( $artist, 1 ); # TODO: DBI::CHAR );
+
+	my( $rartist )= $db->selectrow_array( 
+		"SELECT ".
+                        "nname ".
+                "FROM mus_artist ".
+                "WHERE ".
+                        "LOWER(nname) = LOWER($sartist) ".
+                "LIMIT 1" );
+	return $rartist;
+}
+
+sub checkdb_artist {
+	my( $artist ) = @_;
+
+	return $artist unless $dudldb;
+	my $db = $dudldb->db;
+
+	my $res;
+	if( defined ($res = get_artist( $db, $artist ) )){
+		return $res;
+	}
+	if( $artist =~ s/^(die|the)\s// ){
+		if( defined ($res = get_artist( $db, $artist ) )){
+			return $res;
+		}
+	} else {
+		if( defined ($res = get_artist( $db, "die $artist" ) )){
+			return $res;
+		}
+		if( defined ($res = get_artist( $db, "the $artist" ) )){
+			return $res;
+		}
+	}
+
+	return $artist;
+}
+
+
+sub get_regexp {
+	my $re = shift;
+
+	my $regexp = {};
+
+	my( $fields, $pattern ) = $re =~ /([^=]*)=(.*)/;
+
+	my $dummy ="";
+	eval { $dummy =~ /$pattern/ };
+	if( $@ ){
+		print $@;
+		return;
+	}
+
+	$regexp->{re} = $pattern;
+
+	my @f = split /\s*,\s*/, $fields;
+	foreach( 0..$#f ){
+		next unless( defined $f[$_] && $f[$_] );
+
+		if( $f[$_] eq "title" ){
+		} elsif( $f[$_] eq "titlenum" ){
+		} elsif( $f[$_] eq "album" ){
+		} elsif( $f[$_] eq "artist" ){
+		} else {
+			return;
+		}
+
+		$regexp->{fields}{$f[$_]} = $_;
+	}
+
+	return $regexp;
+}
+
+__END__
+
+=head1 EXAMPLES
+
+to match files named like <artist>.--.<album>/<artist>.--._<num>_<title>.mp3
+use this:
+
+ dudl-rengen --noid --nostored --regexp \
+ 	album,artist,titlenum,title=\\.--\\.(.*)/(.*)\\.--\\.(..)_(.*) \
+	.
+
+use (?:<pattern>) to group without marking results or use ',,' in the 
+field list to ignore a match.
+
+=head1 FILES
+
+=item  F</etc/dudl.rc>, F<$HOME/.dudlrc>
+
+The config for all dudl applications. See I<dudlrc(5)> for details.
+dudl-rename uses these keys:
+
+=over 4
+
+=item sug_max (int)
+
+default for --max
+
+=item sug_score (int)
+
+default for --miscore
+
+=item sug_id3 (bool)
+
+default for --id
+
+=item sug_int (bool)
+
+default for --stored
+
+=back
+
+=head1 BUGS
+
+The scoring is *uhm* improvable.
+
+This manpage doesn't explain the --regexp usage properly
+
+It's not as easy as it should be to add your own regexps to the list
+used by --stored
+
+=head1 SEE ALSO
+
+I<dudl-rename(1)>, 
+I<dudlrc(5)>, 
+I<Dudl::Job::Rename>.
+
+=head1 AUTHOR
+
+Rainer Clasen
+
+=cut
+
+

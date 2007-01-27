@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-dotest,v 1.6 2007-01-12 09:15:38 bj Exp $
+# $Id: dudl-dotest,v 1.7 2007-01-27 16:19:41 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -113,9 +113,11 @@ foreach my $src ( @ARGV ){
 sub mkren {
 	my( $dst ) = @_;
 
-	# TODO: re-user M3U playlists
+	# TODO: re-use playlists (m3u, pls)
 
+	# TODO: don't fork external find
 	# TODO: perlify jobfile generation
+	# TODO: warn when no feasable files were found
 	system( "cd '$dst' && find . -type f -iname \\*.mp3 | sort | ( printf \"TODO: edit\\n# TODO: year\\n\"; dudl-rengen - ) > ren 2>/dev/null") == 0
 		or return;
 

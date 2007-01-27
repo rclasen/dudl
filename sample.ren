@@ -1,0 +1,339 @@
+#
+# imagine, you have a directory full of mp3s:
+#
+#  localhost:/pub/fun/mp3/in/lenny$ ls
+#  Lenny Kravitz - Lenny - 01 - Battlefield Of Love.mp3
+#  Lenny Kravitz - Lenny - 02 - If I Could Fall In Love.mp3
+#  Lenny Kravitz - Lenny - 03 - Yesterday Is Gone (My Dear Kay).mp3
+#  Lenny Kravitz - Lenny - 04 - Stillness Of Heart.mp3
+#  Lenny Kravitz - Lenny - 05 - Believe In Me.mp3
+#  Lenny Kravitz - Lenny - 06 - Pay To Pay.mp3
+#  Lenny Kravitz - Lenny - 07 - A Million Miles Away.mp3
+#  Lenny Kravitz - Lenny - 08 - God Save Us All.mp3
+#  Lenny Kravitz - Lenny - 09 - Dig In.mp3
+#  Lenny Kravitz - Lenny - 10 - You Were In My Heart.mp3
+#  Lenny Kravitz - Lenny - 11 - Bank Robber Man.mp3
+#  Lenny Kravitz - Lenny - 12 - Lets Get High.mp3
+#
+# First you generate a job file:
+#
+#  localhost:/pub/fun/mp3/in/lenny$ dudl-rengen . > ren
+#
+# this produced a file similar like this. If results weren't as good as
+# you like, you can play with --noid, --nostore and --regexp to get
+# better suggestions.
+#
+# Although I'm trying very hard, the guessing of dudl-rengen isn't good
+# enough. Most of the time you have to cleanup the file. This is done with
+# your favourite texteditor. In case this is vim I might point you to the
+# dudlmus.vim file elsewhere in this package you can use to get a
+# minimalistic color highlightning of the created job file.
+#
+# After editing the jobfile, it looks like this one. Now you can use
+# it to actually rename the files and set their ID tags:
+#
+#  localhost:/pub/fun/mp3/in/lenny$ dudl-rename ren
+#  generate archive jobfile in Lenny.Kravitz.--.Lenny ...
+#  copying album 'Lenny' ...
+#    1 ./Lenny Kravitz - Lenny - 01 - Battlefield Of Love.mp3
+#    2 ./Lenny Kravitz - Lenny - 02 - If I Could Fall In Love.mp3
+#    3 ./Lenny Kravitz - Lenny - 03 - Yesterday Is Gone (My Dear Kay).mp3
+#    4 ./Lenny Kravitz - Lenny - 04 - Stillness Of Heart.mp3
+#    5 ./Lenny Kravitz - Lenny - 05 - Believe In Me.mp3
+#    6 ./Lenny Kravitz - Lenny - 06 - Pay To Pay.mp3
+#    7 ./Lenny Kravitz - Lenny - 07 - A Million Miles Away.mp3
+#    8 ./Lenny Kravitz - Lenny - 08 - God Save Us All.mp3
+#    9 ./Lenny Kravitz - Lenny - 09 - Dig In.mp3
+#   10 ./Lenny Kravitz - Lenny - 10 - You Were In My Heart.mp3
+#   11 ./Lenny Kravitz - Lenny - 11 - Bank Robber Man.mp3
+#   12 ./Lenny Kravitz - Lenny - 12 - Lets Get High.mp3
+# 
+# By default the files were copied to a subdirectory based on the album
+# information:
+#
+#  localhost:/pub/fun/mp3/in/lenny$ ls Lenny.Kravitz.--.Lenny/
+#  Lenny.Kravitz.--.01_battlefield.of.love.mp3
+#  Lenny.Kravitz.--.02_if.I.could.fall.in.love.mp3
+#  Lenny.Kravitz.--.03_yesterday.is.gone.(my.dear.kay).mp3
+#  Lenny.Kravitz.--.04_stillness.of.heart.mp3
+#  Lenny.Kravitz.--.05_believe.in.me.mp3
+#  Lenny.Kravitz.--.06_pay.to.pay.mp3
+#  Lenny.Kravitz.--.07_a.million.miles.away.mp3
+#  Lenny.Kravitz.--.08_god.save.us.all.mp3
+#  Lenny.Kravitz.--.09_dig.in.mp3
+#  Lenny.Kravitz.--.10_you.were.in.my.heart.mp3
+#  Lenny.Kravitz.--.11_bank.robber.man.mp3
+#  Lenny.Kravitz.--.12_let.s.get.high.mp3
+#  TRACKS.dudl_archive
+#
+#  localhost:/pub/fun/mp3/in/lenny$ mp3info Lenny.Kravitz.--.Lenny/*.mp3
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.01_battlefield.of.love.mp3
+#  Title:   battlefield of love            Track: 1
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.02_if.I.could.fall.in.love.mp3
+#  Title:   if I could fall in love        Track: 2
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.03_yesterday.is.gone.(my.dear.kay).mp3
+#  Title:   yesterday is gone (my dear kay Track: 3
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.04_stillness.of.heart.mp3
+#  Title:   stillness of heart             Track: 4
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.05_believe.in.me.mp3
+#  Title:   believe in me                  Track: 5
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.06_pay.to.pay.mp3
+#  Title:   pay to pay                     Track: 6
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.07_a.million.miles.away.mp3
+#  Title:   a million miles away           Track: 7
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.08_god.save.us.all.mp3
+#  Title:   god save us all                Track: 8
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.09_dig.in.mp3
+#  Title:   dig in                         Track: 9
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.10_you.were.in.my.heart.mp3
+#  Title:   you were in my heart           Track: 10
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.11_bank.robber.man.mp3
+#  Title:   bank robber man                Track: 11
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#  File: Lenny.Kravitz.--.Lenny/Lenny.Kravitz.--.12_let.s.get.high.mp3
+#  Title:   let's get high                 Track: 12
+#  Artist:  Lenny Kravitz
+#  Album:   Lenny                          Year:  
+#  Comment:                                Genre: Rock [17]
+#  
+#
+# you can move it away and remove the original files:
+#
+#  localhost:/pub/fun/mp3/in/lenny$ mv Lenny.Kravitz.--.Lenny/ ../../out
+#  localhost:/pub/fun/mp3/in/lenny$ cd ..
+#  localhost:/pub/fun/mp3/in$ rm -rf lenny
+
+# and now I may give some hints about the keys in this file.
+
+# who performed this album - must be set to VARIOUS for sampler
+album_artist	Lenny Kravitz
+# title of the album
+album_name	Lenny
+# select the naming scheme for this album
+album_type	album
+# for convenience dudl-rengen adds a list of all available types:
+#album_type	album sampler
+
+# the old filename
+file_mp3 	./Lenny Kravitz - Lenny - 01 - Battlefield Of Love.mp3
+# the encoder used
+file_encoder	
+# set to non-zero when the file has errors (skipping, distortion)
+file_broken	0
+# explain what is broken
+file_cmt	
+
+# the '# sug:' comment before each suggestion shows where this suggestion
+# came from. In this case it resulted from the stored regexp number 8 and
+# reached a score of 5. Other sources are currently: cmdline, ID3v1, ID3v2
+
+# sug: stored:8 score: 5
+# the index/position of this title on the album
+title_num	1
+# the title
+title_name	battlefield of love
+# the artist - it MUST BE SPECIFIED - even when it's the same as the
+# album_artist. Use your favourite search/replace function.
+title_artist	Lenny Kravitz
+# a ,-seperated list of genres. It is attempted to set the ID3 tag genre,
+# too, but usually this doesn't really work. This is mostly for a later
+# import into the database. Some well-known genres/tags:
+#  live		- a live recording
+#  junk		- title contains noise/silence/talking inapropriate for
+#                 random play. Please try to strip unneccessary silence
+#                 befor renaming.
+#  doppelt      - this is another variant of a title already in your
+#  		  database. Mostly seen with best-of or live albums.
+# depends on your taste:
+#  bad		- things *I* dislike and do never want to hear.
+#  pop		- something like Phil Collins, A-Teens, ...
+#  rock		- normal people won't run away ...
+#  metal        - but here they start to ...
+#  darkmetal    - ... nearly everybody is gone.
+#  dance	- hard to explain
+#  techno       - the "harder" dance stuff *g*
+#  rap          - people who can't sing: rage against the machine, ...
+#  comedy	- Stefan Raab, Mittermeier, die Doofen, JBO, ...
+title_genres	rock
+# explain, why is it junk
+title_cmt	
+
+
+# ... and so on
+
+file_mp3 	./Lenny Kravitz - Lenny - 02 - If I Could Fall In Love.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	2
+title_name	if I could fall in love
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 03 - Yesterday Is Gone (My Dear Kay).mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	3
+title_name	yesterday is gone (my dear kay)
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 04 - Stillness Of Heart.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	4
+title_name	stillness of heart
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 05 - Believe In Me.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	5
+title_name	believe in me
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 06 - Pay To Pay.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	6
+title_name	pay to pay
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 07 - A Million Miles Away.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	7
+title_name	a million miles away
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 08 - God Save Us All.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	8
+title_name	god save us all
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 09 - Dig In.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	9
+title_name	dig in
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 10 - You Were In My Heart.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	10
+title_name	you were in my heart
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 11 - Bank Robber Man.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: stored:8 score: 5
+title_num	11
+title_name	bank robber man
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+file_mp3 	./Lenny Kravitz - Lenny - 12 - Lets Get High.mp3
+file_encoder	
+file_broken	0
+file_cmt	
+
+# sug: ID3v1 score: 6
+title_num	12
+title_name	let's get high
+title_artist	Lenny Kravitz
+title_genres	rock
+title_cmt	
+
+# vi:syntax=dudlmus

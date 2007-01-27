@@ -1,3 +1,7 @@
+tmp
+dudl-rename
+dudl-grab
 dudl-db
+*.debhelper
 *.substvars
 files

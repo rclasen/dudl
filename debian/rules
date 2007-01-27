@@ -8,7 +8,6 @@
 #export DH_VERBOSE=1
 export DH_COMPAT=3
 
-PACKAGE=$(shell dh_listpackages)
 
 ifndef PERL
 PERL = /usr/bin/perl
@@ -17,7 +16,7 @@ endif
 ifndef DESTDIR
 DESTDIR=..
 endif
-TMP     =`pwd`/debian/$(PACKAGE)
+TMP     =`pwd`/debian/tmp
 
 build: build-stamp
 build-stamp:
@@ -60,6 +59,7 @@ binary-arch: build install
 #	dh_testversion
 	dh_testdir
 	dh_testroot
+	dh_movefiles
 	dh_installdocs README TODO
 	dh_installexamples
 	dh_installmenu
