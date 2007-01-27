@@ -1,0 +1,6 @@
+./usr/bin/dudl-encode
+./usr/bin/dudl-grab
+./usr/share/man/man1/dudl-encode.1p
+./usr/share/man/man1/dudl-grab.1p
+./usr/share/man/man3/Dudl::Job::Encode.3pm
+./usr/share/perl5/Dudl/Job/Encode.pm

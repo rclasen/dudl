@@ -1,5 +1,5 @@
 
-# $Id: README,v 1.8 2007-01-27 16:19:41 bj Exp $
+# $Id: README,v 1.9 2007-01-27 16:43:20 bj Exp $
 
 dudl
 ====
@@ -24,9 +24,14 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-basic
+basic/rename
  MP3::Tag	debian: libmp3-tag-perl		(local)
  MP3::Digest	debian: libmp3-digest-perl	(local)
+
+grab
+ dudl-rename
+ Net::FreeDB2	debian: libnet-freedb2-perl
+ cdparanoia	debian: cdparanoia
 
 for database
  MP3::Info	debian: libmp3-info-perl
@@ -35,6 +40,9 @@ for database
 
 you may install each module with
  perl -MCPAN -e 'CPAN::Shell->install("<name>")'
+
+IIRC Net::FreeDB2 has minor problems with some results retrieved from
+freedb. I've solved this by hacking the .pm
 
 
 INSTALLATION

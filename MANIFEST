@@ -6,6 +6,7 @@ Dudl/DBo.pm
 Dudl/File.pm
 Dudl/Job/Archive.pm
 Dudl/Job/Base.pm
+Dudl/Job/Encode.pm
 Dudl/Job/Music.pm
 Dudl/Job/Rename.pm
 Dudl/Misc.pm
@@ -45,6 +46,8 @@ dudl-doout
 dudl-doren
 dudl-dosort
 dudl-dotest
+dudl-encode
+dudl-grab
 dudl-mus2id
 dudl-mus2job
 dudl-musbatch

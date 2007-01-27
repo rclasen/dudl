@@ -17,9 +17,20 @@ Description: rename MP3 files, set ID tags and strip unwanted headers
  .
  consistently rename mp3s.
 
+Package: dudl-grab
+Architecture: all
+Depends: ${perl:Depends}, dudl-rename (>= ${Source-Version}), cdparanoia, libnet-freedb2-perl, lame (>=3.93-0)
+Description: Grab audio tracks from CD and encode them to MP3
+ dudl-grab is part of my dudl Music Database. This Package basically
+ combines two different tasks:
+ .
+ grabbing tracks from a CD and fetch titles from FreeDB.
+ .
+ encode these grabbed tracks to MP3s.
+ 
 Package: dudl-db
 Architecture: all
-Depends: ${shlibs:Depends}, dudl-rename (>= 0.1.14), libmp3-info-perl,
+Depends: ${shlibs:Depends}, dudl-rename (>= ${Source-Version}), libmp3-info-perl,
  libezdbi-perl, libezdbo-perl, libdbd-pg-perl
 Recommends: postgresql
 Provides: dudl-dbschema0.1

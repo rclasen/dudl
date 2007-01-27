@@ -129,6 +129,30 @@ dudl-rename (0.01-1) unstable; urgency=low
 
  -- Rainer Clasen <bj@zuto.de>  Fri, 26 Jul 2002 15:22:53 +0200
 
+dudl-grab (0.0.4) unstable; urgency=low
+
+  * API change
+
+ -- Rainer Clasen <bj@zuto.de>  Sun,  7 Aug 2005 15:20:01 +0200
+
+dudl-grab (0.0.3) unstable; urgency=low
+
+  * moved year from title to album
+
+ -- Rainer <bj@zuto.de>  Sun,  6 Jul 2003 12:02:00 +0200
+
+dudl-grab (0.0.2) unstable; urgency=low
+
+  * write jobfile, if files were already encoded
+
+ -- Rainer <bj@zuto.de>  Sat,  5 Jul 2003 20:29:37 +0200
+
+dudl-grab (0.0.1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Rainer Clasen <bj@zuto.de>  Sat, 5 Jul 2003 14:22:53 +0200
+
 dudl (0.0.8) unstable; urgency=low
 
   * lowercase dudl-dotest filenames

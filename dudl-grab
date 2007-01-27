@@ -1,0 +1,234 @@
+#!/usr/bin/perl -w
+
+# $Id: dudl-grab,v 1.1 2007-01-27 16:43:20 bj Exp $
+
+# TODO: complete manpage
+
+=pod
+
+=head1 NAME
+
+dudl-grab - grab titles from a CD and create jobfile from CDDB info
+
+=head1 SYNOPSIS
+
+ dudl-grab [<opts>] [<dir>]
+
+=head1 DESCRIPTION
+
+ fetch CDDB Info
+
+ make subdir
+
+ create jobfile
+
+ start grabbing
+
+See I<Dudl::Job::Encode> for a description of the output job format.
+
+=head1 OPTIONS
+
+=over 4
+
+=cut
+
+use strict;
+use Getopt::Long;
+use Carp;
+use Sys::Hostname;
+use Net::FreeDB2;
+use Net::FreeDB2::Entry;
+use Dudl::Config;
+use Dudl::Suggester;
+use Dudl::Job::Encode;
+
+my 
+$VERSION = '0.0.4';
+
+sub usage {
+	my $fh = shift;
+
+	print $fh "$0 - [options] [dir]
+grab tracks from a CD for later encoding
+options:
+ --device <d>  CD reading device to use
+
+ --help        this help
+";
+}
+
+my $dudl = new Dudl::Config;
+
+=pod
+
+=item B<--device>=I<name>
+
+CD-ROM Device to use for grabbing
+
+=cut
+my $opt_device = $dudl->conf("cddev") || "/dev/cdrom";
+
+my $opt_ofile = $dudl->conf("enc_jname") || "TRACKS.dudl_encode";
+
+my $opt_help = 0;
+my $needhelp = 0;
+
+if( ! GetOptions(
+	"device=s"		=> \$opt_device,
+	"help!"			=> \$opt_help,
+) ){
+	$needhelp++;
+}
+
+if( $opt_help ){
+	&usage( \*STDOUT );
+	exit 0;
+}
+
+if( $#ARGV > 0 ){
+	print STDERR "too many arguments\n";
+	$needhelp++;
+}
+
+my $opt_dir = shift || &hostname . "-$$-". time;
+unless( $opt_dir =~ /^[\w_ -]+$/ ){
+	print STDERR "invalid chars in directory name\n";
+	$needhelp++;
+}
+
+if( $needhelp ){
+	&usage( \*STDERR );
+	exit 1;
+}
+
+my $nam = $dudl->naming;
+my $job = new Dudl::Job::Encode( naming => $nam );
+
+my $dat = &get_freedb( $opt_device );
+my $tracks = scalar ($dat->getFrameOffset ());
+
+# FreeDB FAQ, item 2.2:
+# [...]
+#   6. When submitting a sampler or compilation, you should 
+#      include the track-artist in the track-name, using the 
+#      syntax "artist / track-title" and set the CD-artist to "Various"
+
+my $dartist = $dat->getArtist;
+my $dtitle = $dat->getTitle;
+my $dyear = $dat->getDyear;
+my $dgenre = $dat->getDgenre;
+my $dext = $dat->getExtd;
+
+my $dtype = "album";
+if( $dartist =~ /^\s*various\s*/i ){
+	$dartist = "VARIOUS";
+	$dtype = "sampler";
+}
+
+$job->add_album(
+	name	=> $dtitle,
+	artist	=> $dartist,
+	type	=> $dtype,
+	year	=> $dyear,
+); # ignore retval, incomplete data
+
+for( my $i = 1; $i <= $tracks; ++$i ){
+	my $tlen = $dat->getTtitlen($i);
+	my $text = $dat->getExttn($i);
+
+	my( $artist, $title ) = ( $dartist, $tlen );
+	if( $dtype eq "sampler" ){
+		( $artist, $title ) = split( m:\s*/\s*:, $tlen );
+	}
+
+	$job->add_file( wav => sprintf("track%02d.cdda.wav",$i) ) or die;
+
+	# use Suggester for fixing up titles (case, numbers, ...)
+	my $sug = new Dudl::Suggester;
+	$sug->add(
+		titlenum	=> $i,
+		title		=> $title,
+		artist		=> $artist,
+		genres		=> $dgenre,
+	);
+	$sug->order;
+	
+	my $dat = $sug->get;
+	$job->add_title(
+		num		=> $dat->{titlenum},
+		name		=> $dat->{title},
+		artist		=> $dat->{artist},
+		genres		=> $dat->{genres},
+	); # ignore retval, incomplete data
+}
+
+print STDERR "grabbing $tracks tracks into $opt_dir ...\n";
+
+mkdir $opt_dir, 0777 || die "cannot mkdir: $!";
+chdir $opt_dir || die "cannot chdir: $!";
+
+print "$opt_dir\n";
+
+if( ! -e $opt_ofile ){
+	local *JF;
+	open( JF, ">$opt_ofile" ) or die "cannot open $opt_ofile $!";
+	$job->write( \*JF );
+	close JF;
+}
+
+# TODO: reuse files, that were already grabbed
+if( system( "cdparanoia -d '$opt_device' -w -B" ) ){
+	local *D;
+	opendir( D, "." ) or exit 1;
+	my %mtime = map { 
+		$_ => (stat($_))[9];
+	} grep { 
+		/^track.*\.cdda\.wav$/ 
+	} readdir(D);
+	closedir(D);
+
+	@_ = sort { $mtime{$a} <=> $mtime{$b} } keys %mtime;
+	my $last = pop @_;
+
+	print STDERR "\n\nmoving incomplete $last out of the way\n";
+	rename $last, "$last.unfinished";
+	exit 1;
+}
+
+exit 0;
+
+# return a FreeDB::Entry - either empty or with data from the net
+sub get_freedb {
+	my( $dev ) = @_;
+
+	my $de = Net::FreeDB2::Entry->new ({dev => $dev});
+	my $con = Net::FreeDB2->connection ({
+		client_name => 'dudl-grab',
+		client_version => $VERSION,
+	});
+
+	my $qres = $con->query( $de );
+	if( $qres->hasError ){
+		print STDERR "failed to query FreeDB\n";
+		return $de;
+	}
+
+	if (! scalar ($qres->getMatches ())) {
+		print STDERR "FreeDB returned no matches\n";
+		return $de;
+	}
+
+	# Get the first match
+	my $match = ($qres->getMatches ())[0];
+
+	# Read the match into an entry
+	my $res = $con->read ($match);
+	if( $res->hasError ){
+		print STDERR "couldn't fetch match from FreeDB\n";
+		return $de;
+	}
+
+	return $res->getEntry;
+}
+
+

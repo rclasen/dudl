@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Dudl::Config;
+
+my $dudl = new Dudl::Config;
+
+my $base = "/pub/fun/mp3";
+my $spool = "$base/1conv";
+my $done = "$base/2test";
+
+my $ejob = $dudl->conf("enc_jname") || "TRACKS.dudl_encode";
+my $rjob = $dudl->conf("ren_jname") || "TRACKS.dudl_rename";
+
+my @opt = qw( --procs=2 );
+
+-d $done or mkdir $done or die "cannot mkdir $done";
+
+while(1){
+	sleep 10;
+
+	# check if there are subdirs to process
+	my %dir;
+	local *D;
+	opendir(D, $spool);
+	while(defined( $_ = readdir(D))){
+		next if /^\./;
+		next unless -r "$spool/$_/$ejob";
+
+		$dir{$_} = (stat $_)[9]; # mtime
+	}
+	closedir(D);
+
+	next unless %dir;
+
+	# encode found subdirs
+	my @dirs = map {
+		"$spool/$_";
+	} sort {
+		$dir{$a} <=> $dir{$b};
+	} keys %dir;
+	system( "dudl-encode", @opt, "--out", $spool, "--", @dirs ) 
+		&& warn "dudl-encode returned $?";
+
+	# move successfully encoded subdirs away
+	# hint: jobfile only exists, when all files were encoded
+	foreach( keys %dir ){
+		next unless -r "$spool/$_/$rjob";
+		rename "$spool/$_", "$done/$_"
+			or warn "cannot rename $_";
+	}
+}
+

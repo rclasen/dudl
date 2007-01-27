@@ -1,0 +1,356 @@
+#!/usr/bin/perl -w
+
+# $Id: dudl-encode,v 1.1 2007-01-27 16:43:20 bj Exp $
+
+# TERMS:
+#  job: a jobfile or a handle for it
+#  task jobfile handle + additional data
+#  encoder: an ecoder session
+
+# TODO: complete manpage
+
+=pod
+
+=head1 NAME
+
+dudl-encode - encode wavs listed in a directory's jobfile to mp3
+
+=head1 SYNOPSIS
+
+ dudl-encode [<opts>] <dir> ...
+
+=head1 DESCRIPTION
+
+See I<Dudl::Job::Encode> for a description of the input job format.
+
+=head1 OPTIONS
+
+=over 4
+
+=cut
+
+use strict;
+use Getopt::Long;
+use Carp;
+use File::Temp qw( tempdir );
+use File::Path;
+use Dudl::Config;
+use Dudl::Job::Encode;
+use Dudl::Job::Rename;
+
+my $VERSION = '0.0.2';
+
+my $dudl = new Dudl::Config;
+
+=pod
+
+=item B<--procs>=I<num>
+
+Number of encoders to run in parallel.
+
+=cut
+my $opt_procs = $dudl->conf("enc_procs") || 1;
+
+=pod
+
+=item B<--jobfile>=I<fname>
+
+Name of jobfile to use in each directory.
+
+=cut
+my $opt_jfile = $dudl->conf("enc_jname") || "TRACKS.dudl_encode";
+
+=pod
+
+=item B<--out>=I<dir>
+
+Where to place encoded files.
+
+=cut
+my $opt_outdir = $dudl->conf("enc_outdir") || ".";
+
+my $opt_rfile = $dudl->conf("ren_jname") || "TRACKS.dudl_rename";
+
+my $opt_help = 0;
+my $needhelp = 0;
+
+if( ! GetOptions(
+	"jobfile=s"		=> \$opt_jfile,
+	"procs=i"		=> \$opt_procs,
+	"out=s"			=> \$opt_outdir,
+
+	"help!"			=> \$opt_help,
+) ){
+	$needhelp++;
+}
+
+if( $opt_help ){
+	print <<EOF;
+$0 - [options] <dir> ...
+encode wavs to mp3
+options:
+ --procs <p>   number of encoders to run simultanously
+ --jobfile <f> name of jobfile to use in each directory
+ --out <d>     directory to place encoded files in
+
+ --help        this help
+EOF
+	exit 0;
+}
+
+if( $opt_procs < 1 ){
+	print STDERR "procs must be >= 1\n";
+	$needhelp++;
+}
+
+if( $#ARGV < 0 ){
+	print STDERR "missing directory argument\n";
+	$needhelp++;
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+my $nam = $dudl->naming;
+my $tmpdir = tempdir( ".encode-$$-XXXXXXXX", 
+	DIR => $opt_outdir ) ."/";
+
+# TODO: optionally re-scan a directory for subdirs to process
+# TODO: cleanup on exit/kill: tmpdir, children
+
+
+sub mp3name {
+	my( $name ) = @_;
+	$name =~ s/\.wav\s*$//i;
+	$name .= ".mp3";
+	return $name;
+}
+
+sub fork_lame {
+	my( $in, $out ) = @_;
+
+	#print "lame $in $out\n";
+
+	my $pid = fork;
+	defined $pid || die "cannot fork: $!";
+
+	# parent
+	return $pid if $pid > 0; 
+
+	# child
+	#system "sleep 5";
+	# rlame: netcat -vv -q 60 -w 2 warp 4555 < 1.wav > 1.mp3
+
+	# lame --preset fast extreme $in $out
+	exec qw(lame --quiet --preset fast extreme ), $in, $out;
+	exit -1;
+}
+
+my $cnt = 0;
+
+# start next encoder from given task
+sub start_encoder {
+	my( $act, $task ) = @_;
+
+	my($alb, $fil, $tit) = $task->{job}->next;
+	return unless $alb;
+
+	$fil->{mp3} = &mp3name( $fil->{wav} );
+
+	# skip if encoded file exists
+	return 1 if -e $task->{odir}.$fil->{mp3};
+
+	my $tmp = sprintf( "%s%07d", $tmpdir, $cnt ++);
+
+	# start encoder
+	#print STDERR "starting encoder for $task->{odir}$fil->{wav}\n";
+	if( my $pid = &fork_lame( $fil->{dir}.$fil->{wav}, $tmp ) ){;
+		$act->{pid}{$pid} = {
+			task	=> $task,
+			out	=> $fil->{mp3},
+			tmp	=> $tmp,
+			start	=> time,
+
+		};
+		$task->{active} ++;
+		$act->{num}++;
+	}
+
+	return 1;
+}
+
+sub finish_encoder {
+	my( $act ) = @_;
+
+	#print STDERR "$act->{num}/$opt_procs encoder running, waiting\n";
+	my $pid = wait;
+
+	if( $pid <= 0 ){
+		die "no processes available to wait for";
+
+	} elsif( ! exists $act->{pid}{$pid} ){
+		warn "unknown child $pid exited";
+		return 1;
+	} 
+
+	my $enc = $act->{pid}{$pid};
+
+	delete $act->{pid}{$pid};
+	$act->{num}--;
+
+	my $task = $enc->{task};
+	$task->{active} --;
+
+	my $out = $enc->{out};
+	my $tmp = $enc->{tmp};
+
+	my $elapsed = time - $enc->{start};
+	print STDERR "encoder for $task->{odir}$out took $elapsed sec\n";
+
+	my $err = 0;
+	if( $? ){ # result of wait()
+		print STDERR "encoder failed with retval: $?\n";
+		$task->{err}++;
+		$err++;
+		unlink $tmp;
+	}
+
+	if( ! $err && ! rename $tmp, $task->{odir}.$out ){
+		print STDERR "rename $tmp,$task->{odir}$out failed: $?\n";
+		$task->{err}++;
+		$err++;
+		unlink $tmp;
+	}
+
+	&finish_task( $task ) || $err++;
+
+	return ! $err;
+}
+
+sub finish_task {
+	my( $task ) = @_;
+
+	if( $task->{done} && ! $task->{active} ){
+		my $jel = time - $task->{start};
+		print STDERR "job $task->{job}{dir} took $jel sec\n";
+		if( ! $task->{err} ){
+			&write_job( $task ) || return;
+		}
+	}
+
+	return 1;
+}
+
+sub write_job {
+	my( $task ) = @_;
+
+	#return if $task->{err};
+
+	my $ojob = new Dudl::Job::Rename( naming => $nam );
+	$ojob->{dir} = $task->{odir};
+
+	$task->{job}->rewind;
+
+	my($oalb, $ofil);
+	while( my( $alb, $fil, $tit ) = $task->{job}->next ){
+		if( !defined($oalb) || $oalb != $alb ){
+			$ojob->add_album(%$alb); # ignore retval, incomplete data
+			$oalb = $alb;
+		}
+
+		if( !defined($ofil) || $ofil != $fil ){
+			#$nfil{encoder} = $fil->{encoder}; # TODO
+			$ojob->add_file( %$fil ) or return;
+			$ofil = $fil;
+		}
+
+		$ojob->add_title( %$tit ); # ignore retval, incomplete data
+	}
+
+	local *O;
+	open( O, ">". $task->{odir} . $opt_rfile ) or return;
+	$ojob->write( \*O );
+	close(O);
+
+	return 1;
+}
+
+
+# read and check jobfiles, build tasklist
+my @tasks;
+foreach my $f ( @ARGV ){
+	$f =~ m:([^/]+)/*$:;
+	my $odir = $opt_outdir ."/". ($1 || ".") ."/";
+
+	$f .= "/$opt_jfile";
+	die "no such file: $f" unless -f $f;
+
+	my $job = new Dudl::Job::Encode( naming => $nam );
+	$job->read( $f ) || die "error: $!";
+	$job->order;
+	$job->rewind;
+
+	# TODO: check, that files exist
+	# TODO: get filesizes
+	
+	push @tasks, {
+		job	=> $job,
+		odir	=> $odir,
+
+		start	=> 0,
+		active	=> 0, # active encoders
+		err	=> 0,
+		done	=> 0, # processing of all files was started
+	}
+}
+
+
+# process all tasks
+
+my $act = {
+	num	=> 0,	# number of running encoders
+	pid	=> {},	# files currently encoded by pid
+};
+my $err = 0;
+my $task;
+
+while(1){ 
+	$task = shift @tasks unless $task;
+	if( $task && ! $task->{start} ){
+		$task->{start} = time;
+		mkpath( $task->{odir} );
+	}
+
+	last if ! $task && $act->{num} == 0;
+
+	if( ! $task || $act->{num} >= $opt_procs ){
+		&finish_encoder( $act ) || $err++;
+	}
+
+	next unless $task;
+
+	if( ! &start_encoder( $act, $task ) ){
+		$task->{done} ++;
+		&finish_task( $task ) || $err++;
+		$task = undef;
+	}
+}
+
+&rmtree( $tmpdir );
+
+exit ($err ? 1 : 0);
+
+=pod
+
+=back
+
+=head1 CAVEATS
+
+If you have to start with wav files (i.e. you don't want to process
+I<dudl-grab>(1) data), you have to create a jobfile on your own. You might
+have a good chance to use I<dudl-rengen>(1) to do so.
+
+=cut
+

@@ -7,7 +7,6 @@ WriteMakefile(
     'PREREQ_PM'		=> {
 	'EzDBI'			=> 0,
 	'EzDBo'			=> 0,
-	'Dudl::Config'		=> 0,
     	'Net::FreeDB2'		=> 0,
 	'MP3::Digest'		=> 0,
 	'MP3::Offset'		=> 0,
@@ -28,6 +27,8 @@ WriteMakefile(
 	dudl-doren
 	dudl-dosort
 	dudl-dotest
+	dudl-encode
+	dudl-grab
 	dudl-mus2id
 	dudl-mus2job
 	dudl-musbatch
