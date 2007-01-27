@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-encode,v 1.1 2007-01-27 16:43:20 bj Exp $
+# $Id: dudl-encode,v 1.2 2007-01-27 16:57:42 bj Exp $
 
 # TERMS:
 #  job: a jobfile or a handle for it
@@ -38,7 +38,7 @@ use Dudl::Config;
 use Dudl::Job::Encode;
 use Dudl::Job::Rename;
 
-my $VERSION = '0.0.2';
+my $VERSION = '0.1.17';
 
 my $dudl = new Dudl::Config;
 

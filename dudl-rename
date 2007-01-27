@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-rename,v 1.1 2007-01-27 16:19:41 bj Exp $
+# $Id: dudl-rename,v 1.2 2007-01-27 16:57:42 bj Exp $
 
 =pod
 
@@ -43,7 +43,7 @@ use Dudl::Job::Archive;
 use Data::Dumper;
 
 my 
-$VERSION = '0.1.14';
+$VERSION = '0.1.17';
 
 sub usage {
 	my $fh = shift;

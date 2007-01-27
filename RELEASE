@@ -2,6 +2,7 @@
 - vim debian/changelog: version/changes
 - vim debian/control: adjust dudl-dbschema on schema changes
 - vim Makefile.PL: adjust VERSION
+- vim `grep -l VERSION`: adjust VERSION
 - fakeroot debian/rules clean; rm MANIFEST; perl Makefile.PL; make manifest
   fakeroot debian/rules binary
 - rebuild dudld on dudl-dbschema changes

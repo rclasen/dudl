@@ -1,7 +1,7 @@
-merge dudl-rename + dudl-grab back into this module
-
 dudl-do* deal with jobs from dudl-encode (TRACKS.dudl_encode not ren)
 dudl-do* automagically run dudl-dbavcheck and friends (limited to once/5min)
+
+maybe include parts from dudl-storscan into dudl-dbavcheck, too
 
 new db-aware dudl-rengen/dudl-rename 
 - to keep file_id and history intact.
