@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
 
 
-# $Id: dudl-muslinks,v 1.9 2007-01-27 16:19:41 bj Exp $
+# $Id: dudl-muslinks,v 1.10 2007-02-11 15:00:44 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
+# TODO: optionally limit the files to create symlinks for / filter them
 
 use strict;
 use Getopt::Long;
@@ -127,8 +128,9 @@ FROM
 		INNER JOIN stor_unit su
 		ON fi.unit_id = su.id 
 WHERE 
-	NOT fi.broken AND
-	fi.title NOTNULL
+	NOT fi.broken
+	AND fi.title NOTNULL
+	AND al.artist_id != 0
 ORDER by 
 	ala.nname, 
 	al.album,
