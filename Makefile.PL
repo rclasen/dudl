@@ -8,7 +8,6 @@ WriteMakefile(
 	'EzDBI'			=> 0,
 	'EzDBo'			=> 0,
     	'Net::FreeDB2'		=> 0,
-	'MP3::Digest'		=> 0,
 	'MP3::Offset'		=> 0,
 	'MP3::Tag'		=> 0,
 	'MP3::Info'		=> 0,

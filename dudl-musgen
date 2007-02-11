@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musgen,v 1.3 2006-01-25 16:37:28 bj Exp $
+# $Id: dudl-musgen,v 1.4 2007-02-11 15:43:54 bj Exp $
 
 
 use strict;
@@ -52,6 +52,7 @@ search and replace feature of your editor when you're editing the jobfile.
 
 =cut
 
+# TODO: read id3tags if possible, don't rely on id_* values in DB
 
 # TODO: let user specify a mus_album
 # TODO: merge with an existing mus_album

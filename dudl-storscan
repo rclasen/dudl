@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-storscan,v 1.4 2007-01-27 16:19:41 bj Exp $
+# $Id: dudl-storscan,v 1.5 2007-02-11 15:43:54 bj Exp $
 
 use strict;
 use File::Find;
@@ -65,16 +65,6 @@ my $opt_mp3 = 1;
 
 =pod
 
-=item B<--sum>
-
-also generate checksums for duplicate detection.
-
-=cut
-
-my $opt_sum = 1;
-
-=pod
-
 =item B<--files>
 
 scan for files on units.
@@ -87,7 +77,7 @@ my $opt_file = 1;
 
 =item B<--add>
 
-Once a unit was scanned, only MP3 info and MD5sums are updated. Newly
+Once a unit was scanned, only MP3 info is updated. Newly
 found files are not added. With this switch you can add files that missed
 on the first run.
 
@@ -105,7 +95,6 @@ my $needhelp;
 if( ! GetOptions(
 	"eject!"	=> \$opt_eject,
 	"mp3!"		=> \$opt_mp3,
-	"sum!"		=> \$opt_sum,
 	"files!"	=> \$opt_file,
 	"add|a"		=> \$opt_add,
 	"help!"		=> \$wanthelp,
@@ -149,7 +138,6 @@ options:
   --eject   open tray when done with CD
   --files   do not scan files (default)
   --mp3     scan mp3 information (default)
-  --sum     calculate md5 sum (default)
   --add     add missing files although CD is already in DB
  you can negate all options by prefixing them with 'no'
 
@@ -173,11 +161,6 @@ if( $opt_mp3 ){
 	$opt_file ++;
 }
 
-if( $opt_sum ){
-	push @want, Dudl::File::acquires( "sum" );
-	$opt_file ++;
-}
-
 if( $opt_file ){
 	push @want, Dudl::File::acquires( "base" );
 	push @want, Dudl::File::acquires( "file" );
@@ -187,7 +170,6 @@ print "scanning:",
 	( $dev ? " ". ($#ARGV +1) ." units" : ""),
 	( $opt_file ? " files" : ""),
 	( $opt_mp3 ? " mp3" : ""),
-	( $opt_sum ? " sum" : ""),
 	"\n";
 	
 
@@ -347,7 +329,7 @@ dudl-storscan foo sl4 # scan single dir with alternate unit name
 
 dudl-storscan /pub/fun/mp3/CD/sl/sl5 # scan single dir
 
-dudl-storscan --nofile --nomp3 --nosum /cdrom sl4 # add unit information
+dudl-storscan --nofile --nomp3 /cdrom sl4 # add unit information
 
 =head1 SEE ALSO
 

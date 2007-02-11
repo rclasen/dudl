@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.14 2005-10-08 21:53:22 bj Exp $
+# $Id: File.pm,v 1.15 2007-02-11 15:44:02 bj Exp $
 
 package Dudl::File;
 
@@ -9,8 +9,6 @@ use Carp qw( :DEFAULT cluck );
 use Encode;
 use DBI;
 use MP3::Info;
-use MP3::Offset;
-use MP3::Digest;
 
 # TODO: move file analyzing to seperate file
 
@@ -62,26 +60,6 @@ my %table = (
 		type	=> DBI::SQL_INTEGER,
 		acq	=> 'file',
 		},
-	fsum		=> {
-		type	=> DBI::SQL_CHAR,
-		acq	=> 'sum',
-		},
-	dsum		=> {
-		type	=> DBI::SQL_CHAR,
-		acq	=> 'sum',
-		},
-	id3v1		=> {
-		type	=> DBI::SQL_CHAR,
-		acq	=> 'sum',
-		},
-	id3v2		=> {
-		type	=> DBI::SQL_CHAR,
-		acq	=> 'sum',
-		},
-	riff		=> {
-		type	=> DBI::SQL_CHAR,
-		acq	=> 'sum',
-		},
 	duration	=> {
 		type	=> DBI::SQL_CHAR,
 		acq	=> 'info',
@@ -122,29 +100,9 @@ my %table = (
 		type	=> DBI::SQL_INTEGER,
 		acq	=> 'info',
 		},
-	bits		=> {
-		type	=> DBI::SQL_INTEGER,
-		acq	=> 'info',
-		},
-	mpeg_ver	=> {
-		type	=> DBI::SQL_INTEGER,
-		acq	=> 'info',
-		},
-	mpeg_lay	=> {
-		type	=> DBI::SQL_INTEGER,
-		acq	=> 'info',
-		},
-	mpeg_mode	=> {
-		type	=> DBI::SQL_INTEGER,
-		acq	=> 'info',
-		},
-	mpeg_brate	=> {
-		type	=> DBI::SQL_INTEGER,
-		acq	=> 'info',
-		},
-	vbr		=> {
-		type	=> DBI::SQL_CHAR,
-		acq	=> 'info',
+        bitrate      => {
+		type    => DBI::SQL_INTEGER,
+		acq     => 'info',
 		},
 	);
 
@@ -292,17 +250,13 @@ sub acquire {
 					$$info{"SS"});
 			$self->{channels}	= ($$info{"STEREO"} ? 2 : 1);
 			$self->{freq}		= 1000 * $$info{"FREQUENCY"};
-			$self->{bits}		= 16;
-			$self->{mpeg_ver}	= $$info{"VERSION"};
-			$self->{mpeg_lay}	= $$info{"LAYER"};
-			$self->{mpeg_mode}	= $$info{"MODE"};
-			$self->{mpeg_brate}	= 1000 * $$info{"BITRATE"};
-			$self->{vbr}		= $$info{"VBR"} ? 't' : 'f';
+			$self->{bitrate}	= 1000 * $$info{"BITRATE"};
 		} else {
 			warn "no info";
 		}
 	}
 
+	# TODO: move ID3 tag stuff to dudl-musgen
 	if( $self->{WANTGET}->{tag} ){
 		my $tag = get_mp3tag( $path );
 		if( ! $tag ){
@@ -329,21 +283,6 @@ sub acquire {
 
 		$self->{id_comment}	= substr $$tag{"COMMENT"}||"",0,30;
 		$self->{id_genre}	= substr $$tag{"GENRE"}||"", 0, 10;
-	}
-
-	if( $self->{WANTGET}->{sum} ){
-		my $os = new MP3::Offset( $path );
-		if( ! $os ){
-			warn "no sum";
-			return 0;
-		}
-		my $dg = new MP3::Digest( $os );
-
-		$self->{fsum}	= $dg->filedigest;
-		$self->{dsum}	= $dg->datadigest;
-		$self->{id3v1}	= $os->id3v1 ? 't' : 'f';
-		$self->{id3v2}	= $os->id3v2 ? 't' : 'f';
-		$self->{riff}	= $os->riff ? 't' : 'f';
 	}
 
 	return 1;

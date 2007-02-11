@@ -4,6 +4,8 @@ use strict;
 use Dudl::DB;
 use Getopt::Long;
 
+# TODO: locking - avoid running multiple instaces
+
 my $wanthelp;
 my $needhelp;
 
@@ -61,7 +63,7 @@ cannot access a file.
 
 =cut
 
-print "step 1: find files that reapeared...\n";
+print "step 1: find files that reapeared in $topdir...\n";
 &check_reapear;
 
 print "\nstep 2: find files that vanished...\n";
