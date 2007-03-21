@@ -10,7 +10,7 @@ our @ISA = qw(Dudl::DBo);
 
 my %scheme = (
 	name => 'stor_unit',
-	cols => [qw( id collection colnum volname size )],
+	cols => [qw( id collection colnum volname size step )],
 	pkey => 'id',
 	);
 
@@ -28,7 +28,19 @@ sub load_path {
 	$a->{where} = {
 		collection => "'$1'", # TODO: quote properly 
 		colnum => $2,
-		 };
+	};
+
+	$proto->load( $a ), 
+}
+
+sub load_step {
+	my $proto = shift;
+	my $a = ref $_[0] eq "HASH" ? shift : { @_ };
+
+	croak "missing step argument" unless exists $a->{step};
+	$a->{where} = {
+		step => "'$a->{step}'", # TODO: quote properly 
+	};
 
 	$proto->load( $a ), 
 }

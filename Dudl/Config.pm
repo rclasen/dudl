@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Config.pm,v 1.1 2007-01-27 16:19:46 bj Exp $
+# $Id: Config.pm,v 1.2 2007-03-21 10:19:17 bj Exp $
 
 =pod
 
@@ -155,7 +155,7 @@ sub read_conf {
 		if( my ($k,$v) = /^(\w+)\s*=\s*(.*)$/ ){
 			#print "found: $k=$v\n";
 
-			$self->{CONF}{lc $k}=$v;
+			$self->{CONF}{lc $k}=$v if exists $self->{CONF}{lc $k};
 		} else {
 			print STDERR $rc, ", line $.: Syntax error\n";
 		}
