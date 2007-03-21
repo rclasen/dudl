@@ -198,7 +198,6 @@ my $cmd = "dbi:Pg:".
 	"dbname=template1";
 $cmd .= ";host=". $opt_dbhost if $opt_dbhost;
 
-# TODO: no autocommit, put everything in transaction
 my $tdb = EzDBI->connect( $cmd,
 	$opt_dbuser, $opt_dbpass, { 
 		'AutoCommit' => 1,
@@ -239,7 +238,7 @@ if( $opt_check ){
 
 	$db = EzDBI->connect( $cmd,
 		$opt_dbuser, $opt_dbpass, { 
-			'AutoCommit' => 1,
+			'AutoCommit' => 0,
 			#'RaiseError' => 1,
 			'PrintError' => 0,
 			'ShowErrorStatement' => 0,
@@ -268,13 +267,16 @@ CREATE FUNCTION plpgsql_call_handler() RETURNS language_handler
 	AS '/usr/lib/postgresql/lib/plpgsql.so', 'plpgsql_call_handler'
 	LANGUAGE c
 ");
+		$db->commit; # clear errors
 		$db->do("
 CREATE TRUSTED PROCEDURAL LANGUAGE plpgsql HANDLER plpgsql_call_handler;
 ");
+		$db->commit; # clear errors
 	}
 } elsif( ! defined $dbver ){
 	$dbver = 0;
 }
+
 
 sub mver {
 	my( $ver ) = @_;
@@ -347,6 +349,8 @@ sub add_data {
 		push @chadd, "INSERT INTO $table ($cols) VALUES( $data )";
 	}
 }
+
+# TODO: check that item really exists before DROPing
 
 sub add_index {
 	my( $ver, $name, $def ) = @_;
@@ -582,8 +586,16 @@ END;
 
 	"autoscan	BOOLEAN NOT NULL DEFAULT false",  # automagically scan this unit  for new/deleted files
 ]);
+
+# dudl-do* steps:
+# 1 => encode
+# 2 => test
+# 3 => rename
+# 4 => out
+&alter( 4, "ALTER TABLE stor_unit ADD COLUMN step SMALLINT" );
 &add_uindex( 0,  "stor_unit__id", "stor_unit(id)");
 &add_uindex( 0,  "stor_unit__col_num", "stor_unit( collection, colnum )");
+&add_uindex( 4,  "stor_unit__step", "stor_unit(step)");
 &add_data( 0, "stor_unit", "collection,colnum", "'local', 0" );
 
 #----------------------------------------------------------
@@ -604,7 +616,7 @@ END;
 
 	"dir		VARCHAR(255) NOT NULL DEFAULT ''", # directory on this unit
 	"fname		VARCHAR(255)", # filename (without directory)
-	#"ftype		INTEGER	NOT NULL", # TODO: file type
+	#"ftype		INTEGER	NOT NULL", # TODO: file type?
 	#	0	unknown
 	#	1	mp3
 			 
@@ -685,10 +697,37 @@ END;
 	"ALTER TABLE stor_file DROP COLUMN vbr",
 );
 
-# TODO: drop id_* when no longer used
+&alter( 4,
+	# for skipping junk/silence
+	"ALTER TABLE stor_file ADD COLUMN seg_from BIGINT", # nanosec offset to start at
+	"ALTER TABLE stor_file ALTER COLUMN seg_from SET DEFAULT 0",
+	"ALTER TABLE stor_file ADD COLUMN seg_to BIGINT", # nanosec offset to stop at
+	"ALTER TABLE stor_file ALTER COLUMN seg_to SET DEFAULT 0",
+	"UPDATE stor_file SET seg_from = 0, seg_to = 0",
+	"ALTER TABLE stor_file ALTER COLUMN seg_from SET NOT NULL",
+	"ALTER TABLE stor_file ALTER COLUMN seg_to SET NOT NULL",
+	# nsec duration - to be renamed later
+	"ALTER TABLE stor_file ADD COLUMN ndur BIGINT", # nanosec duration
+	# for replaygain
+	"ALTER TABLE stor_file ADD COLUMN rgain REAL", # db amplification
+	"ALTER TABLE stor_file ALTER COLUMN rgain SET DEFAULT 0",
+	"ALTER TABLE stor_file ADD COLUMN rgain_peak REAL", # db amplification
+	"ALTER TABLE stor_file ALTER COLUMN rgain_peak SET DEFAULT 0",
+	"UPDATE stor_file SET rgain = 0, rgain_peak = 0",
+	"ALTER TABLE stor_file ALTER COLUMN rgain SET NOT NULL",
+	"ALTER TABLE stor_file ALTER COLUMN rgain_peak SET NOT NULL",
+);
+
+# TODO: make duration bigint for nanosec
+# TODO: drop id3 tags id_* when no longer used
+
 &add_uindex( 0, "stor_file__id", "stor_file(id)" );
 &add_uindex( 0, "stor_file__unit_file", "stor_file( unit_id, dir, fname )");
 &add_uindex( 0, "stor_file__album_pos", "stor_file( album_id, album_pos )");
+
+&add_constraint( 4, "stor_file", "stor_file__seg", "
+CHECK( seg_to >= seg_from AND seg_to <= ndur )
+");
 
 &add_constraint( 0, "stor_file", "stor_file__mus", "
 CHECK( (
@@ -842,6 +881,18 @@ WHERE
 	"publish_date	DATE",
 	# TODO: publish_date -> publish_year INTEGER;
 ]);
+
+&alter( 4,
+	# for replaygain
+	"ALTER TABLE mus_album ADD COLUMN rgain REAL", # db amplification
+	"ALTER TABLE mus_album ALTER COLUMN rgain SET DEFAULT 0",
+	"ALTER TABLE mus_album ADD COLUMN rgain_peak REAL", # db amplification
+	"ALTER TABLE mus_album ALTER COLUMN rgain_peak SET DEFAULT 0",
+	"UPDATE mus_album SET rgain = 0, rgain_peak = 0",
+	"ALTER TABLE mus_album ALTER COLUMN rgain SET NOT NULL",
+	"ALTER TABLE mus_album ALTER COLUMN rgain_peak SET NOT NULL",
+);
+
 &add_uindex( 0,  "mus_album__id", "mus_album(id)");
 &add_uindex( 0,  "mus_album__artist_album", "mus_album(artist_id, album)");
 
@@ -1286,7 +1337,9 @@ SELECT
 	date_part('year', a.publish_date) AS album_publish_year,
 	a.album AS album_name,
 	a.artist_id AS album_artist_id,
-	ar.nname AS album_artist_name
+	ar.nname AS album_artist_name,
+	a.rgain AS album_rgain,
+	a.rgain_peak AS album_rgain_peak
 FROM 
 	mus_album a INNER JOIN mus_artist ar
 		ON a.artist_id = ar.id
@@ -1307,6 +1360,10 @@ SELECT
 	t.title,
 	stor_filename(u.collection,u.colnum,t.dir,t.fname) 
 		AS filename,
+	t.seg_from,
+	t.seg_to,
+	t.rgain,
+	t.rgain_peak,
 	a.*,
 	ar.*
 FROM 
@@ -1386,11 +1443,13 @@ if( $opt_dbver ){
 			print STDERR "ignored: $cmd\n", $db->errstr, "\n";
 		}
 	}
+	#$db->rollback; # clear errors
 	foreach my $cmd ( @chadd, @indices, @recreate ){
 		print "$cmd;\n" if $opt_verbose;
 		$db->do( $cmd ) or die "failed: $cmd\n", $db->errstr;
 	}
 	$db->do("UPDATE dbver SET ver = $mver WHERE item = 'schema'");
+	$db->commit;
 }
 
 =pod

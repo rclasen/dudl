@@ -17,12 +17,19 @@ if( ! GetOptions(
 
 if( $wanthelp ){
 	print <<EOF;
-usage: $0 <opt>
+usage: $0 <opt> [<unit_id> ..]
  update informatation about available files in dudl DB
 options:
  --help                  this short usage information.
 EOF
 	exit 0;
+}
+
+foreach my $a ( @ARGV ){
+	if( $a !~ /^\d+$/ ){
+		print STDERR "invalid unit id: $a\n";
+		$needhelp++;
+	}
 }
 
 if( $needhelp ){
@@ -84,15 +91,15 @@ print "\nstep 3: find new files...\n";
 exit 0;
 
 sub check_reapear {
-	my $res = $db->select( 
+	my $q = 
 			"f.id, ".
 			"stor_filename(collection,colnum,dir,fname) AS file ".
 		"FROM stor_file f ".
 			"INNER JOIN stor_unit u ON f.unit_id = u.id ".
-		"WHERE not available" );
-	if( ! $res ){
-		die $db->errstr;
-	}
+		"WHERE not available";
+	$q .= " AND u.id IN (". join(",",@ARGV) .")";
+	my $res = $db->select( $q ) 
+		or die $db->errstr;
 
 	my( $id, $fname );
 	$res->bind_columns( \$id, \$fname );
@@ -113,16 +120,16 @@ sub check_reapear {
 
 
 sub check_vanish {
-	my $res = $db->select( 
+	my $q =
 			"f.id, ".
 			"stor_filename(collection,colnum,dir,fname) ".
 				"AS file ".
 		"FROM stor_file f ".
 			"INNER JOIN stor_unit u ON f.unit_id = u.id ".
-		"WHERE available OR available ISNULL" );
-	if( ! $res ){
-		die $db->errstr;
-	}
+		"WHERE available OR available ISNULL";
+	$q .= " AND u.id IN (". join(",",@ARGV) .")";
+	my $res = $db->select( $q )
+		or die $db->errstr;
 
 	my( $id, $fname );
 	$res->bind_columns( \$id, \$fname );
@@ -144,16 +151,16 @@ sub check_vanish {
 
 sub check_autoscan {
 
-	my $units = $db->select( 
+	my $q = 
 			"id, ".
 			"collection, ".
 			"colnum, ".
 			"stor_unitpath(collection, colnum) AS path ".
-		"FROM stor_unit ".
-		"WHERE autoscan" );
-	if( ! $units ){
-		die $db->errstr;
-	}
+		"FROM stor_unit u ".
+		"WHERE autoscan";
+	$q .= " AND u.id IN (". join(",",@ARGV) .")";
+	my $units = $db->select( $q )
+		or die $db->errstr;
 
 	my( $id, $col, $colnum, $path );
 	$units->bind_columns( \( $id, $col, $colnum, $path ));
@@ -334,6 +341,7 @@ sub check_files {
 
 		print "new($fid): $uname/$dir/$fname\n";
 	}
+	system( "dudl-musscan", $albid ) if $albid;
 	$db->commit || die $db->errstr;
 }
 

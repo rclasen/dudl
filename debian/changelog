@@ -1,3 +1,12 @@
+dudl (0.1.19) unstable; urgency=low
+
+  * added support for replaygain
+  * added initial support for stripping begin and end of a track
+  * prepared to change duration to nanosec
+  * started to add DB support to dudl-do*
+
+ -- Rainer Clasen <bj@zuto.de>  Wed, 21 Mar 2007 11:13:54 +0100
+
 dudl (0.1.18) unstable; urgency=low
 
   * dudl-muslinks: ignore temporary files

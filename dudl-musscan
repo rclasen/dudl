@@ -1,0 +1,186 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Dudl::DB;
+use Dudl::Gst;
+use Getopt::Long;
+use Data::Dumper;
+
+# TODO: this is a hack until other tools include this data when entries
+# are added
+
+my $opt_debug;
+
+my $wanthelp;
+my $needhelp;
+
+if( ! GetOptions(
+	"help|h!"	=> \$wanthelp,
+	"debug!"	=> \$opt_debug,
+)){
+	$needhelp++;
+}
+
+if( $wanthelp ){
+	print <<EOF;
+usage: $0 <opt> [<albumid> ...]
+ scan tracks for music attributes like replaygain, silence, ...
+options:
+ --debug                 show debug information
+ --help                  this short usage information.
+
+If no album IDs are specified, all albums without replay gain value are
+scanned
+EOF
+	exit 0;
+}
+
+foreach my $a ( @ARGV ){
+	if( $a !~ /^\d+$/ ){
+		print STDERR "invalid album id: $a\n";
+		$needhelp++;
+	}
+}
+
+if( $needhelp ){
+	print STDERR "use --help for usage info\n";
+	exit 1;
+}
+
+
+
+=pod
+
+=head1 NAME
+
+dudl-musscan - scan tracks for music attributes like replaygain, silence, ...
+
+=head1 DESCRIPTION
+
+tracks are decoded and analyzed for
+
+=over 4
+
+=item *
+
+duration
+
+=item *
+
+replaygain "loudness"
+
+=item *
+
+silent parts to cut out
+
+=back
+
+=cut
+
+my $dudl = Dudl::DB->new;
+my $db = $dudl->db;
+
+my $topdir = $dudl->conf("cdpath");
+
+my $where = @ARGV 
+	? "id IN (". join(",",@ARGV) .") "
+	: "rgain = 0 ";
+
+my $res = $db->select( "id ".
+	"FROM mus_album ".
+	"WHERE ".
+		$where.
+		#"id > 0 ".
+		#"AND artist_id > 0 ".
+	"ORDER BY id" )
+	or die $db->errstr;
+my( $id );
+$res->bind_columns( \$id );
+
+while( $res->fetch ){
+	&scan_album( $id );
+}
+
+
+sub scan_album {
+	my( $aid ) = @_;
+
+	# TODO: decide how to handle album with unavail. files
+	print "scanning album id $aid...\n" if $opt_debug;
+
+	my $failed = 48;
+	my $kaputt = 49; # TODO: retrieve from DB;
+
+	my $q = 
+		"f.id, ".
+		"stor_filename( u.collection, u.colnum, f.dir, f.fname ) AS fname ".
+	"FROM ".
+		"stor_file f ".
+			"INNER JOIN stor_unit u ".
+			"ON f.unit_id = u.id ".
+	"WHERE ".
+		"f.album_id = $aid ".
+		"AND NOT f.broken ".
+		"AND NOT mserv_tagged(f.id, $kaputt ) ". # TODO one query
+		"AND NOT mserv_tagged(f.id, $failed ) ". # TODO one query
+		#"AND f.album_pos = 6 ".
+	"ORDER BY f.album_pos";
+	my $res = $db->select( $q ) or die $db->errstr.": ". $q;
+
+	my( $fid, $fname );
+	$res->bind_columns(\( $fid, $fname ));
+
+	my @trk;
+	while( $res->fetch ){
+		if( ! -r "$topdir/$fname" ){
+			print "skipping album $aid due to missing files\n";
+			return;
+		}	
+		push @trk, {
+			id	=> $fid,
+			fname	=> $fname,
+		};
+	}
+	$res->finish;
+
+	my $scan = new Dudl::Gst::Scan;
+	while( my $t = shift @trk ){
+		my( $tdat ) = eval { 
+			print "scanning $topdir/$t->{fname}\n" if $opt_debug;
+			$scan->scanfile( "$topdir/$t->{fname}", $#trk == -1 );
+		};
+		if( ! $tdat ){
+			warn "failed to scan album $aid: $t->{id}:$t->{fname}";
+			$db->select( "mserv_set_tag( $t->{id}, 'failed')");
+			next;
+		}
+		#print STDERR Dumper( $tdat );
+
+		my $segs = $tdat->{segs};
+		my $from = $segs->[0]{from};
+		my $to = $segs->[$#$segs]{to};
+
+		$q = "UPDATE stor_file SET ".
+			"seg_from = ". $db->quote($from, DBI::SQL_INTEGER).", ".
+			"seg_to = ". $db->quote($to, DBI::SQL_INTEGER).", ".
+			"rgain = ". $db->quote($tdat->{gain}, DBI::SQL_REAL).", ".
+			"rgain_peak = ". $db->quote($tdat->{gainp}, DBI::SQL_REAL).", ".
+			"ndur = ". $db->quote($tdat->{dur}, DBI::SQL_INTEGER)." ".
+		"WHERE id = ". $db->quote( $t->{id}, DBI::SQL_INTEGER);
+		print STDERR "$q\n" if $opt_debug;
+		$db->do( $q ) or die $db->errstr.": ". $q;
+	}
+
+	my $adat = $scan->{adat};
+	$q = "UPDATE mus_album SET ".
+			"rgain = ". $db->quote($adat->{gain}, DBI::SQL_REAL).", ".
+			"rgain_peak = ". $db->quote($adat->{gainp}, DBI::SQL_REAL)." ".
+		"WHERE id = " . $db->quote( $aid, DBI::SQL_INTEGER);
+	print STDERR "$q\n" if $opt_debug;
+	$db->do( $q ) or die $db->errstr.": ". $q;
+
+	$scan = undef;
+	$db->commit;
+}
+
+1;

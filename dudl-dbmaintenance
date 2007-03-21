@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-dbmaintenance,v 1.6 2007-01-12 12:48:46 bj Exp $
+# $Id: dudl-dbmaintenance,v 1.7 2007-03-21 10:20:14 bj Exp $
 
 use strict;
 use Dudl::DB;
@@ -63,6 +63,8 @@ $db->do(
 	"AND NOT last" )
 	or die $db->errstr;
 $db->commit;
+
+# TODO: remove albums + titles when all titles are broken
 
 =pod
 

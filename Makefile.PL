@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'		=> 'dudl',
-    'VERSION'		=> '0.1.17',
+    'VERSION'		=> '0.1.19',
     'PREREQ_PM'		=> {
 	'EzDBI'			=> 0,
 	'EzDBo'			=> 0,
@@ -28,6 +28,7 @@ WriteMakefile(
 	dudl-dotest
 	dudl-encode
 	dudl-grab
+	dudl-musalist
 	dudl-mus2id
 	dudl-mus2job
 	dudl-musbatch
@@ -36,6 +37,7 @@ WriteMakefile(
 	dudl-mushave
 	dudl-musimport
 	dudl-muslinks
+	dudl-musscan
 	dudl-musyearadd
 	dudl-rename 
 	dudl-rengen

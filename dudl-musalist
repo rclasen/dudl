@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+
+# generate list of all albums as quick reference when checking for new
+# stuff to add
+
+use strict;
+use Getopt::Long;
+use Dudl::DB;
+
+my $dudl = new Dudl::DB;
+my $db = $dudl->db;
+
+my $res = $db->select(
+	"aa.nname, a.album, date_part('year', a.publish_date) ".
+"FROM ".
+	"mus_album a ".
+	"INNER JOIN mus_artist aa ON a.artist_id = aa.id ".
+"WHERE ".
+	"a.id > 0 ".
+	"AND aa.id > 0 ".
+"ORDER BY lower(aa.nname), lower(a.album)" )
+	or die $db->errstr;
+
+my( $artist, $album, $year );
+$res->bind_columns(\( $artist, $album, $year ));
+while( $res->fetch ){
+	$year ||= "";
+	print "$artist:\t$album ($year)\n";
+}
+
+# TODO: indicate broken files
+
+=cut
+
+SELECT count(*), album_id FROM store_file WHERE broken and album_id > 0 GROUP BY album_id;
+SELECT count(*), album_id FROM store_file WHERE album_id > 0 GROUP BY album_id;
+SELECT *,total,badquality,broken FROM mus_xfile WHERE album_id > 0;

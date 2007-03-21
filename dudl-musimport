@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musimport,v 1.6 2006-01-27 23:14:30 bj Exp $
+# $Id: dudl-musimport,v 1.7 2007-03-21 10:20:14 bj Exp $
 
 # TODO: modify existing entries
+# TODO: add support for segments and replaygain
 
 use strict;
 use Dudl::DB;
@@ -74,16 +75,20 @@ foreach my $f ( @ARGV ){
 }
 
 $job->rewind;
+my %aid;
 while( my( $alb, $fil, $tit ) = $job->next ){
 	if( ! $alb->{id} ){
 		$alb->{id} = &save_album( $dudl, $alb );
 	}
+	$aid{$alb->{id}}++;
 
 	&save_title( $dudl, $alb->{id}, $fil->{id}, $tit );
 }
+
 #$dudl->rollback();
 $dudl->commit();
 
+system( "dudl-musscan", keys %aid );
 
 
 

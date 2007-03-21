@@ -1,11 +1,13 @@
 #!/usr/bin/perl -w
 
 
-# $Id: dudl-muslinks,v 1.10 2007-02-11 15:00:44 bj Exp $
+# $Id: dudl-muslinks,v 1.11 2007-03-21 10:20:14 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
 # TODO: optionally limit the files to create symlinks for / filter them
+# TODO: optionally copy files
+# TODO: verify link contents
 
 use strict;
 use Getopt::Long;
