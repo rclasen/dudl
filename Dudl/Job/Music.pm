@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Music.pm,v 1.7 2005-08-07 14:05:00 bj Exp $
+# $Id: Music.pm,v 1.8 2007-03-21 10:17:46 bj Exp $
 
 package Dudl::Job::Music;
 
@@ -36,23 +36,6 @@ use vars	@EXPORT_VAR;
 # initialize package globals, first exported ones
 
 
-sub album_key {
-	my $self = shift;
-	my $key = shift;
-	my $val = shift;
-
-	my $cur = $self->{album};
-
-	if( $key eq "id" ){
-		$cur->{$key} = $val;
-		return 1;
-
-	} 
-
-	return $self->SUPER::album_key( $key, $val );
-}
-
-
 sub file_valid {
 	my $self = shift;
 	my $cur = shift || $self->{file};
@@ -69,45 +52,24 @@ sub file_valid {
 	return !$err;
 }
 
-sub file_key {
+sub title_valid {
 	my $self = shift;
-	my $key = shift;
-	my $val = shift;
-
-	my $cur = $self->{file};
-
-	if( $key eq "id" ){
-		$cur->{$key} = $val;
-		return 1;
+	my $cur = shift || $self->{title};
 	
+	my $err = 0;
+	if( ! defined $cur->{segf} ){
+		$self->bother( "missing segment start");
+		#$err++; # TODO: make segments a requirement
+		
+	} elsif( ! defined $cur->{segt} ){
+		$self->bother( "missing segment end");
+		#$err++; # TODO: make segments a requirement
+		
 	}
 
-	return $self->SUPER::file_key( $key, $val );
-}
+	$self->SUPER::title_valid( $cur ) || $err++;
 
-sub title_key {
-	my $self = shift;
-	my $key = shift;
-	my $val = shift;
-
-	my $cur = $self->{title};
-
-	if( $key eq "id" ){
-		$cur->{$key} = $val;
-		return 1;
-
-	}
-
-	return $self->SUPER::title_key( $key, $val );
-}
-
-sub write_album {
-	my $self = shift;
-	my $fh = shift;
-	my $alb = shift;
-
-	print $fh "album_id\t". $alb->{id} ."\n" if $alb->{id};
-	$self->SUPER::write_album( $fh, $alb );
+	return !$err;
 }
 
 sub write_file {
@@ -116,7 +78,6 @@ sub write_file {
 	my $fil = shift;
 
 	print $fh "# ". $fil->{mp3} ."\n" if $fil->{mp3};
-	print $fh "file_id \t". ($fil->{id} || 0) ."\n";
 	$self->SUPER::write_file( $fh, $fil );
 }
 
@@ -126,7 +87,6 @@ sub write_title {
 	my $tit = shift;
 
 	print $fh "# sug: ". $tit->{source} ."\n" if $tit->{source};
-	print $fh "title_id\t". $tit->{id} ."\n" if $tit->{id};
 	$self->SUPER::write_title( $fh, $tit );
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.20 2007-01-27 16:19:46 bj Exp $
+# $Id: Base.pm,v 1.21 2007-03-21 10:17:46 bj Exp $
 
 # job:		base	encode	rename	archive	music
 #
@@ -9,7 +9,7 @@
 #  artist	+	+	+	+	+
 #  type		?	?	+	?	?
 #  year		?	?	?	?	+
-#  id		-	-	-	-	*
+#  id		?	?	?	?	*
 #
 # file
 #  wav		-	+	-	-	-
@@ -26,7 +26,9 @@
 #  genres	?	?	?	?	?
 #  random	?	?	?	?	? - discouraged
 #  cmt		?	?	?	?	?
-#  id		-	-	-	-	*
+#  id		?	?	?	?	*
+#  segf		?	?	?	?	+
+#  segt		?	?	?	?	+
 
 # legend:
 # - must not exist
@@ -463,7 +465,15 @@ sub album_key {
 
 	my $cur = $self->{album};
 
-	if( $key eq "name" ){
+	if( $key eq "id" ){
+		$cur->{$key} = $val;
+		if( $val !~ /^\s*\d+\s*$/ ){
+			$self->bother( "invalid id" );
+			return 0;
+		}
+		return 1;
+
+	} elsif( $key eq "name" ){
 		$cur->{$key} = $val;
 		return 1;
 
@@ -504,7 +514,15 @@ sub file_key {
 
 	my $cur = $self->{file};
 
-	if( $key eq "encoder" ){
+	if( $key eq "id" ){
+		$cur->{$key} = $val;
+		if( $val !~ /^\s*\d+\s*$/ ){
+			$self->bother( "invalid id" );
+			return 0;
+		}
+		return 1;
+	
+	} elsif( $key eq "encoder" ){
 		$cur->{$key} = $val;
 		return 1;
 	
@@ -559,7 +577,15 @@ sub title_key {
 
 	my $cur = $self->{title};
 
-	if( $key eq "num" ){
+	if( $key eq "id" ){
+		$cur->{$key} = $val;
+		if( $val !~ /^\s*\d+\s*$/ ){
+			$self->bother( "invalid id" );
+			return 0;
+		}
+		return 1;
+
+	} elsif( $key eq "num" ){
 		my $err = 0;
 		$self->title_group || $err++;
 
@@ -601,6 +627,22 @@ sub title_key {
 		$cur->{$key} = $val;
 		return 1;
 
+	} elsif( $key eq "segf" ){
+		$cur->{$key} = $val;
+		if( $val !~ /^\s*\d+\s*$/ ){
+			$self->bother( "invalid segf" );
+			return 0;
+		}
+		return 1;
+
+	} elsif( $key eq "segt" ){
+		$cur->{$key} = $val;
+		if( $val !~ /^\s*\d+\s*$/ ){
+			$self->bother( "invalid segt" );
+			return 0;
+		}
+		return 1;
+
 	}
 
 	$self->bother( "invalid entry for title");
@@ -640,6 +682,7 @@ sub write_album {
 	my $fh = shift;
 	my $alb = shift;
 
+	print $fh "album_id\t". $alb->{id} ."\n" if $alb->{id};
 	# TODO: one line per allowed album_type
 	print $fh 
 		"album_artist	", ($alb->{artist} || "") ,"\n",
@@ -655,6 +698,7 @@ sub write_file {
 	my $fh = shift;
 	my $fil = shift;
 
+	print $fh "file_id \t". ($fil->{id} || 0) ."\n" if $fil->{id};
 	print $fh 
 		"file_encoder	", ($fil->{encoder} || "") ,"\n",
 		"file_broken	", ($fil->{broken} || 0) ,"\n",
@@ -667,6 +711,7 @@ sub write_title {
 	my $fh = shift;
 	my $tit = shift;
 
+	print $fh "title_id\t". $tit->{id} ."\n" if $tit->{id};
 	print $fh 
 		"title_num	", ($tit->{num} || 0) ,"\n",
 		"title_name	", ($tit->{name} || "") ,"\n",
@@ -674,6 +719,8 @@ sub write_title {
 		"title_genres	", ($tit->{genres} || "") ,"\n",
 		"title_cmt	", ($tit->{cmt} || "") ,"\n",
 		;
+	print $fh "title_segf\t". $tit->{segf} ."\n" if defined $tit->{segf};
+	print $fh "title_segt\t". $tit->{segt} ."\n" if defined $tit->{segt};
 }
 
 
