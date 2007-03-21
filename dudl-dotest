@@ -1,12 +1,15 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-dotest,v 1.7 2007-01-27 16:19:41 bj Exp $
+# $Id: dudl-dotest,v 1.8 2007-03-21 10:19:33 bj Exp $
 
 use strict;
 use Getopt::Long;
-use Dudl::Config;
+use Dudl::DB;
 use Dudl::Misc;
+use Dudl::StorUnit;
 
+# TODO: automagically run dudl-musimport 
+ 
 =pod
 
 =head1 NAME
@@ -34,6 +37,14 @@ prefix new directory names with speciefied string.
 
 my $opt_prefix = "";
 
+=item B<--nodb>
+
+don't try to add files to DB
+
+=cut
+
+my $opt_db = 1;
+
 =item B<--help>
 
 display short usage info.
@@ -45,6 +56,7 @@ my $needhelp;
 
 if( ! GetOptions(
 	"help!"		=> \$wanthelp,
+	"db!"		=> \$opt_db,
 	"prefix=s"	=> \$opt_prefix,
 )){
 	$needhelp++;
@@ -62,6 +74,7 @@ usage: $0 <opts> <dir> ...
  add MP3 directory to testing workspace
 options:
  --help                  this short usage information.
+ --nodb                  don't try to add files to DB
  --prefix <string>       prefix new directory names with speciefied string
 EOF
 	exit 0;
@@ -74,9 +87,11 @@ if( $needhelp ){
 
 my @jobnames = qw( /ren /TRACKS.dudl_rename /TRACKS.dudl_archive);
 
-my $dudl = new Dudl::Config;
+my $dudl = new Dudl::DB;
 my $nam = $dudl->naming;
 my $tdir = $dudl->conf("workpath"). "/2test";
+
+my $tunit = Dudl::StorUnit->load_step( dudl => $dudl, step => 2 );
 
 if( $opt_prefix && $opt_prefix !~ /-$/ ){
 	$opt_prefix .= "-";
@@ -109,6 +124,8 @@ foreach my $src ( @ARGV ){
 	$found || &mkren( $dst ) 
 		or die "creating jobfile failed";
 }
+
+system( "dudl-dbavcheck", $tunit->val("id") ) if $opt_db;
 
 sub mkren {
 	my( $dst ) = @_;
