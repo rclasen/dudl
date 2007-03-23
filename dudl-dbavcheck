@@ -97,7 +97,7 @@ sub check_reapear {
 		"FROM stor_file f ".
 			"INNER JOIN stor_unit u ON f.unit_id = u.id ".
 		"WHERE not available";
-	$q .= " AND u.id IN (". join(",",@ARGV) .")";
+	$q .= " AND u.id IN (". join(",",@ARGV) .")" if @ARGV;
 	my $res = $db->select( $q ) 
 		or die $db->errstr;
 
@@ -127,7 +127,7 @@ sub check_vanish {
 		"FROM stor_file f ".
 			"INNER JOIN stor_unit u ON f.unit_id = u.id ".
 		"WHERE available OR available ISNULL";
-	$q .= " AND u.id IN (". join(",",@ARGV) .")";
+	$q .= " AND u.id IN (". join(",",@ARGV) .")" if @ARGV;
 	my $res = $db->select( $q )
 		or die $db->errstr;
 
@@ -158,7 +158,7 @@ sub check_autoscan {
 			"stor_unitpath(collection, colnum) AS path ".
 		"FROM stor_unit u ".
 		"WHERE autoscan";
-	$q .= " AND u.id IN (". join(",",@ARGV) .")";
+	$q .= " AND u.id IN (". join(",",@ARGV) .")" if @ARGV;
 	my $units = $db->select( $q )
 		or die $db->errstr;
 
