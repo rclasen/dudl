@@ -724,6 +724,9 @@ END;
 &add_uindex( 0, "stor_file__id", "stor_file(id)" );
 &add_uindex( 0, "stor_file__unit_file", "stor_file( unit_id, dir, fname )");
 &add_uindex( 0, "stor_file__album_pos", "stor_file( album_id, album_pos )");
+&add_index( 0, "stor_file__unit", "stor_file( unit_id )");
+&add_index( 0, "stor_file__album", "stor_file( album_id )");
+&add_index( 0, "stor_file__artist", "stor_file( artist_id )");
 
 &add_constraint( 4, "stor_file", "stor_file__seg", "
 CHECK( seg_to >= seg_from AND seg_to <= ndur )
@@ -895,6 +898,7 @@ WHERE
 
 &add_uindex( 0,  "mus_album__id", "mus_album(id)");
 &add_uindex( 0,  "mus_album__artist_album", "mus_album(artist_id, album)");
+&add_index( 0, "mus_album__artist", "mus_album(artist_id)");
 
 # referential integrity
 &add_constraint( 0, "mus_album", "ri__mus_album__mus_artist","
@@ -1196,6 +1200,8 @@ FROM
 	"user_id	INTEGER",		# who queued this track?
 ]);
 &add_uindex( 0,  "mserv_queue__id", "mserv_queue(id)");
+&add_index( 0, "mserv_queue__file", "mserv_queue(file_id)");
+&add_index( 0, "mserv_queue__user", "mserv_queue(user_id)");
 
 # referential integrity
 &add_constraint( 0, "mserv_queue", "ri__mserv_queue__stor_file", "
@@ -1249,6 +1255,8 @@ REFERENCES mserv_user( id )
 		"ALTER TABLE mserv_hist ALTER COLUMN last SET NOT NULL",
 );
 &add_uindex( 0,  "mserv_hist__id", "mserv_hist(id)");
+&add_index( 0, "mserv_hist__file", "mserv_hist(file_id)");
+&add_index( 0, "mserv_hist__user", "mserv_hist(user_id)");
 
 # referential integrity
 &add_constraint( 0, "mserv_hist", "ri__mserv_hist__stor_file", "
