@@ -1,8 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.21 2007-03-21 10:17:46 bj Exp $
+# $Id: Base.pm,v 1.22 2008-12-27 23:14:26 bj Exp $
 
 # job:		base	encode	rename	archive	music
+#
+# TODO:
+# job
+#  version	+	+	+	+	+
+#  status	+	+	+	+	+
 #
 # album
 #  name		+	+	+	+	+
@@ -40,6 +45,9 @@ package Dudl::Job::Base;
 # base class for jobfile parser
 
 # TODO: add jobfile syntax version, backward compatible reading
+# TODO: add job status (encode, rename, ...)
+# TODO: merge file_mp3/_wav into _name
+
 
 use strict;
 use Carp qw( :DEFAULT cluck);

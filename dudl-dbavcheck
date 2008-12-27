@@ -341,8 +341,11 @@ sub check_files {
 
 		print "new($fid): $uname/$dir/$fname\n";
 	}
-	system( "dudl-musscan", $albid ) if $albid;
 	$db->commit || die $db->errstr;
+	if( $albid ){
+		print "album $albid: getting replaygain and segments\n";
+		system( "dudl-musscan", $albid );
+	}
 }
 
 =pod

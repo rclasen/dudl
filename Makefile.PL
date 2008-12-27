@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'		=> 'dudl',
-    'VERSION'		=> '0.1.19',
+    'VERSION'		=> '0.1.20',
     'PREREQ_PM'		=> {
 	'EzDBI'			=> 0,
 	'EzDBo'			=> 0,

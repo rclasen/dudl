@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-docdimg,v 1.5 2007-01-12 09:11:14 bj Exp $
+# $Id: dudl-docdimg,v 1.6 2008-12-27 23:14:23 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -184,7 +184,7 @@ sub albums_find {
 	$job->rewind;
 	my $oalb;
 	while( my( $alb, $fil, $tit) = $job->next ){
-		if( $oalb != $alb ){
+		if( ! $oalb || $oalb != $alb ){
 			&album_exists( $alb ) && $found++;
 			$oalb = $alb;
 		}

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-musimport,v 1.7 2007-03-21 10:20:14 bj Exp $
+# $Id: dudl-musimport,v 1.8 2008-12-27 23:14:23 bj Exp $
 
 # TODO: modify existing entries
 # TODO: add support for segments and replaygain
@@ -88,6 +88,7 @@ while( my( $alb, $fil, $tit ) = $job->next ){
 #$dudl->rollback();
 $dudl->commit();
 
+print STDERR "scanning for silence and replaygain...\n";
 system( "dudl-musscan", keys %aid );
 
 
@@ -166,7 +167,7 @@ sub save_album {
 	my $hr		= shift;
 
 	my $artist = &get_artist( $dudl, $hr->{artist} );
-	my $year = $hr->{year} || 0;
+	my $year = $hr->{year} ? "'$hr->{year}-1-1'" : "NULL";
 
 	my $db = $dudl->db;
 
@@ -193,7 +194,7 @@ sub save_album {
 			"$aid, ".
 			"$album, ".
 			"$artist, ".
-			"'$year-1-1' ".
+			"$year ".
 		") ";
 	my $res = $db->do( $query );
 	if( $res != 1 ){

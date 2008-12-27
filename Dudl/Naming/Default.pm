@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: Default.pm,v 1.1 2007-01-27 16:19:46 bj Exp $
+# $Id: Default.pm,v 1.2 2008-12-27 23:14:27 bj Exp $
 
 package Dudl::Naming::Default;
 
@@ -296,8 +296,9 @@ sub fnormalize {
 	$fname =~ s/Ö/Oe/g;
 	$fname =~ s/Ü/Ue/g;
 	$fname =~ s/ß/ss/g;
-        $fname =~ s/[^a-zA-Z0-9_\$()=+-]+/./g;
-	$fname =~ s/^\.*(.*)\.*$/$1/; # leading/trailing dots
+	$fname =~ s/[^a-zA-Z0-9_\$()=+-]+/./g;
+	$fname =~ s/^\.+//; # leading/trailing dots
+	$fname =~ s/\.+$//; # leading/trailing dots
 
 	if( length( $fname ) > 64 ){
 		my $nfn;

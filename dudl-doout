@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-doout,v 1.6 2007-01-12 09:14:15 bj Exp $
+# $Id: dudl-doout,v 1.7 2008-12-27 23:14:23 bj Exp $
 
 use strict;
 use Getopt::Long;
@@ -30,6 +30,10 @@ TODO man desc
 
 Don't ask before deleting successfully processed directories.
 
+=item B<--ibad>
+
+Ignore bad jobfiles.
+
 =item B<--help>
 
 display short usage info.
@@ -37,12 +41,14 @@ display short usage info.
 =cut
 
 my $opt_delall;
+my $opt_ibad;
 
 my $wanthelp;
 my $needhelp;
 
 if( ! GetOptions(
-	"delete!"	=> \$opt_delall,
+	"delall!"	=> \$opt_delall,
+	"ibad!"		=> \$opt_ibad,
 	"help!"		=> \$wanthelp,
 )){
 	$needhelp++;
@@ -55,6 +61,7 @@ usage: $0 <opts> [<genre> <dir> ...]
  processed directories are deleted after your confirmation.
 options:
  --delall                don't ask before deleting processed directories
+ --ibad                  Ignore bad jobfiles.
  --help                  this short usage information.
 EOF
 	exit 0;
@@ -138,6 +145,10 @@ sub do_dir {
 
 	my $dir = $1;
 	my $ren = $arg;
+
+	if( $opt_ibad && system( "dudl-rename --test '$ren' > /dev/null 2>&1" )) {
+		return 1;
+	}
 
 	-d "$odir/$genre" or mkdir "$odir/$genre", 0777;
 	system("dudl-rename", "--outdir", "$odir/$genre", $ren) == 0

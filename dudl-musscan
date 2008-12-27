@@ -121,7 +121,7 @@ sub scan_album {
 	"WHERE ".
 		"f.album_id = $aid ".
 		"AND NOT f.broken ".
-		"AND NOT mserv_tagged(f.id, $kaputt ) ". # TODO one query
+		#"AND NOT mserv_tagged(f.id, $kaputt ) ". # TODO one query
 		"AND NOT mserv_tagged(f.id, $failed ) ". # TODO one query
 		#"AND f.album_pos = 6 ".
 	"ORDER BY f.album_pos";

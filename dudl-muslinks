@@ -1,18 +1,16 @@
 #!/usr/bin/perl -w
 
 
-# $Id: dudl-muslinks,v 1.11 2007-03-21 10:20:14 bj Exp $
+# $Id: dudl-muslinks,v 1.12 2008-12-27 23:14:23 bj Exp $
 
 # TODO: move database access to unit
 # TODO: use ids for filenames
-# TODO: optionally limit the files to create symlinks for / filter them
-# TODO: optionally copy files
-# TODO: verify link contents
 
 use strict;
 use Getopt::Long;
 use Dudl::DB;
 use Dudl::Job::Archive;
+use Fcntl;
 
 =pod
 
@@ -22,7 +20,7 @@ dudl-muslinks - generate symlink farm from music DB
 
 =head1 SYNOPSIS
 
-dudl-musdirs [<opts>]
+dudl-muslinks [<opts>]
 
 =head1 DESCRIPTION
 
@@ -45,6 +43,19 @@ short usage info.
 
 where to create directory structure with symlinks.
 
+=item B<--copy>
+
+copy files instead of creating symlinks.
+
+=item B<--itag>=<tag>
+
+limit tracks to those with this tag set. You can specify this multiple
+times.
+
+=item B<--etag>=<tag>
+
+exclude tracks with this tag set. You can specify this multiple times.
+
 =back
 
 =head1 SEE ALSO
@@ -59,11 +70,17 @@ Rainer Clasen
 
 my $opt_help = 0;
 my $opt_dir = "./tracks";
+my @opt_itag;
+my @opt_etag;
+my $opt_copy;
 my $needhelp = 0;
 
 if( ! GetOptions(
 	"help|h!"		=> \$opt_help,
 	"dir|d=s"		=> \$opt_dir,
+	"itag=s"		=> \@opt_itag,
+	"etag=s"		=> \@opt_etag,
+	"copy!"			=> \$opt_copy,
 ) ){
 	$needhelp ++;
 }
@@ -73,6 +90,9 @@ if( $opt_help ){
 usage: $0 [opts]
 generate mserv directory trees
  --dir <dir>               default: './tracks'
+ --itag <tag>              limit to tracks with this tag. (multiple)
+ --etag <tag>              exclude tracks with this tag. (multiple)
+ --copy                    copy files instead of linking
  --help
 EOF
 	exit 0;
@@ -82,6 +102,13 @@ EOF
 if( $opt_dir =~ /'/ ){
 	print STDERR "unsupported characters in directory name\n";
 	$needhelp++;
+}
+
+foreach my $t ( @opt_itag, @opt_etag ){
+	if( $t !~ /^\w+$/ ){
+		print STDERR "invalid tag name: $t\n";
+		$needhelp++;
+	}
 }
 
 if( $needhelp ){
@@ -101,7 +128,22 @@ if( ! -d $opt_dir ){
 	&find( $opt_dir, \%sym );
 }
 
-print "adding links ...\n";
+print "adding tracks ...\n";
+
+my $where = "";
+$where .= "AND exists ( ". &tquery( "i", @opt_itag ).") " if @opt_itag;
+$where .= "AND not exists ( ". &tquery( "e", @opt_etag ).") " if @opt_etag;
+
+sub tquery {
+	my $d = shift;
+	return 
+	"SELECT file_id ".
+	"FROM mserv_filetag ft$d ".
+		"INNER JOIN mserv_tag tg$d ".
+		"ON ft$d.tag_id = tg$d.id ".
+	"WHERE ft$d.file_id = fi.id ".
+		"AND tg$d.name IN (". join(",",map{ "'$_'"} @_ ).")";
+}
 
 my $query = "
 SELECT 
@@ -133,6 +175,7 @@ WHERE
 	NOT fi.broken
 	AND fi.title NOTNULL
 	AND al.artist_id != 0
+	$where
 ORDER by 
 	ala.nname, 
 	al.album,
@@ -228,14 +271,28 @@ while( defined $sth->fetch ){
 		genres	=> $fi_tags, 
 	);
 
-	my $lname = $nam->fname( $job->album, $job->title );
-	$job->file->{mp3} = $lname;
+	my $opath = $dudl->conf("cdpath") . "/". $fi_name;
+	my $nfile = $nam->fname( $job->album, $job->title );
+	my $nrel = "$albumd/$nfile";
+	my $npath = "$opt_dir/$nrel";
 
-	$lname = $albumd ."/". $lname;
-	my $dst = $dudl->conf("cdpath") . "/". $fi_name;
-	delete $sym{$lname};
-	symlink $dst, "$opt_dir/$lname";
-}	
+	$job->file->{mp3} = $nfile;
+	delete $sym{$nrel};
+
+	if( $opt_copy ){
+		if( -e $opath ){
+			&copy( $opath, $npath )
+				or die "copy $opath $npath: $!";
+		}
+
+	} else {
+		my $lnk = readlink $npath;
+		if( defined $lnk && $lnk ne $opath ){
+			unlink $npath;
+		}
+		symlink $opath, $npath;
+	}
+}
 
 $sth->finish;
 &finish( $albumd, $job ) if defined $job;
@@ -244,6 +301,32 @@ print "cleaning old stuff ...\n";
 &cleanup( $opt_dir, \%sym );
 
 exit 0;
+
+sub copy {
+	my( $from, $to ) = @_;
+	local( *F, *T );
+	my $buf;
+
+	if( ! sysopen( F, $from, O_RDONLY ) ){
+		return;
+	}
+	unlink($to);
+	if( ! sysopen( T, $to, O_RDWR|O_CREAT|O_EXCL) ){
+		close(F);
+		return;
+	}
+	while( sysread( F, $buf, 40960)){
+		if( ! syswrite( T, $buf ) ){
+			close(F);
+			close(T);
+			unlink($to);
+			return;
+		}
+	}
+	close(F);
+	close(T);
+	return 1;
+}
 
 sub finish {
 	my( $dir, $job ) = @_;
@@ -281,7 +364,7 @@ sub cleanup {
 	my $dir = shift;
 	my $h = shift;
 
-	foreach my $k ( sort { $a cmp $b } keys %$h ){
+	foreach my $k ( sort { $b cmp $a } keys %$h ){
 		my $p = $dir ."/". $k;
 		if( -d $p ){
 			rmdir( $p );

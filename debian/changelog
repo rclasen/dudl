@@ -1,3 +1,10 @@
+dudl (0.1.20) unstable; urgency=low
+
+  * dudl-muslinks: added filter, optionaly copy
+  * dudl-muslinks: verify link contents, delete empty dirs on first run.
+
+ -- Rainer Clasen <bj@zuto.de>  Fri, 23 Mar 2007 12:30:27 +0100
+
 dudl (0.1.19) unstable; urgency=low
 
   * added support for replaygain
