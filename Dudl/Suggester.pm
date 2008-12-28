@@ -1,6 +1,14 @@
 #!/usr/bin/perl -w
 
-# $Id: Suggester.pm,v 1.15 2007-01-27 16:19:46 bj Exp $
+# $Id: Suggester.pm,v 1.16 2008-12-28 11:39:23 bj Exp $
+
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
 
 =pod
 

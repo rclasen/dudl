@@ -1,6 +1,14 @@
 #!/usr/bin/perl -w
 
-# $Id: Music.pm,v 1.8 2007-03-21 10:17:46 bj Exp $
+# $Id: Music.pm,v 1.9 2008-12-28 11:39:23 bj Exp $
+
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
 
 package Dudl::Job::Music;
 

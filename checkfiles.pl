@@ -1,6 +1,14 @@
 #!/usr/bin/perl -w
 
-# $Id: checkfiles.pl,v 1.2 2002-07-26 17:49:25 bj Exp $
+# $Id: checkfiles.pl,v 1.3 2008-12-28 11:39:22 bj Exp $
+
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
 
 # delete bogus entries from database
 

@@ -1,5 +1,13 @@
 #!/bin/sh
 
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
+
 # generate listing of directories to test that have no outstanding TODOs
 # sorted by size
 du -cs ` grep -L TODO..edit */ren | sed -e 's/.ren$//' ` | sort -n

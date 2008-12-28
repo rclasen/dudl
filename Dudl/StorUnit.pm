@@ -1,3 +1,11 @@
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
+
 package Dudl::StorUnit;
 
 use strict;

@@ -1,6 +1,14 @@
 #!/usr/bin/perl -w
 
-# $Id: Base.pm,v 1.22 2008-12-27 23:14:26 bj Exp $
+# $Id: Base.pm,v 1.23 2008-12-28 11:39:23 bj Exp $
+
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
 
 # job:		base	encode	rename	archive	music
 #

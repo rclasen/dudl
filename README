@@ -1,5 +1,5 @@
 
-# $Id: README,v 1.9 2007-01-27 16:43:20 bj Exp $
+# $Id: README,v 1.10 2008-12-28 11:39:22 bj Exp $
 
 dudl
 ====
@@ -82,10 +82,10 @@ b) the actual Database is created (and updated) with dudl-dbupdate
 
 
 
-COPYRIGHT AND LICENCE:
+COPYRIGHT AND LICENSE:
 ======================
 
-GPL
+MIT License - please see the LICENSE file in this distribution
 
 Copyright (C) 2002 Rainer Clasen
 

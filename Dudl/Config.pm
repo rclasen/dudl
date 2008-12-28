@@ -1,6 +1,14 @@
 #!/usr/bin/perl -w
 
-# $Id: Config.pm,v 1.2 2007-03-21 10:19:17 bj Exp $
+# $Id: Config.pm,v 1.3 2008-12-28 11:39:23 bj Exp $
+
+#
+# Copyright (c) 2008 Rainer Clasen
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms described in the file LICENSE included in this
+# distribution.
+#
 
 =pod
 
