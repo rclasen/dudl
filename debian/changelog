@@ -1,3 +1,9 @@
+dudl (0.1.21) unstable; urgency=low
+
+  * minor doc updates
+
+ -- Rainer Clasen <bj@zuto.de>  Fri, 24 Apr 2009 13:14:03 +0200
+
 dudl (0.1.20) unstable; urgency=low
 
   * dudl-muslinks: added filter, optionaly copy

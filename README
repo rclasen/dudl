@@ -1,18 +1,19 @@
 
-# $Id: README,v 1.10 2008-12-28 11:39:22 bj Exp $
+# $Id: README,v 1.11 2009-04-24 11:13:48 bj Exp $
 
 dudl
 ====
 
 consists of several parts:
-- dudl-grab: grab and encode audio CDs
-- dudl-rename: rename the encoded files and set their Tags
-- dudl-do*: tools helping you to process the files
-- dudl-db: keep track of your music files
+- dudl-grab: grab and encode audio CDs.
+- dudl-rename: rename the encoded files and set their Tags.
+- dudl-do*: tools helping you to process the files.
+- dudl-db: keep track of your music files.
 
 other parts not in this package:
+- dudl-www: a cgi frontend to browse the DB.
 - dudld: a jukebox daemon that's controlled over the network. It uses the DB.
-- dudlc: various clients for connecting to the dudld daemon
+- dudlc: various clients for connecting to the dudld daemon.
 
 As you process your files with dudl-grab/-encode/... the metadata is
 passed in so called job files you are supposed to adjust in your favourite
@@ -25,18 +26,22 @@ DEPENDENCIES
 This module requires these other modules and libraries:
 
 basic/rename
- MP3::Tag	debian: libmp3-tag-perl		(local)
+ MP3::Tag	debian: libmp3-tag-perl
  MP3::Digest	debian: libmp3-digest-perl	(local)
 
 grab
  dudl-rename
  Net::FreeDB2	debian: libnet-freedb2-perl
  cdparanoia	debian: cdparanoia
+ lame		debian-mm: lame
 
 for database
  MP3::Info	debian: libmp3-info-perl
+ Gstreamer	debian: libgstreamer-perl
  DBI		debian: libdbi-perl
  DBD::Pg	debian: libdbd-pg-perl
+ EzDBI		debian: libezdbi-perl		(local)
+ EzDBo		debian: libezdbo-perl		(local)
 
 you may install each module with
  perl -MCPAN -e 'CPAN::Shell->install("<name>")'
@@ -80,6 +85,7 @@ local   all     all                     md5
 
 b) the actual Database is created (and updated) with dudl-dbupdate
 
+Once installed please continue reading Dudl::Overview.
 
 
 COPYRIGHT AND LICENSE:
