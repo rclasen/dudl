@@ -1,3 +1,15 @@
+dudl (0.1.23) unstable; urgency=low
+
+  * rebuild for lenny
+
+ -- Rainer Clasen <bj@zuto.de>  Sun, 02 Aug 2009 18:02:21 +0200
+
+dudl (0.1.22) unstable; urgency=low
+
+  * update
+
+ -- Rainer Clasen <bj@zuto.de>  Fri, 24 Apr 2009 14:53:16 +0200
+
 dudl (0.1.21) unstable; urgency=low
 
   * minor doc updates
