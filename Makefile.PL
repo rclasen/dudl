@@ -5,6 +5,7 @@ WriteMakefile(
     'NAME'		=> 'dudl',
     'VERSION'		=> '0.1.23',
     'PREREQ_PM'		=> {
+	# update debian/control, too!
 	'EzDBI'			=> 0,
 	'EzDBo'			=> 0,
     	'Net::FreeDB2'		=> 0,

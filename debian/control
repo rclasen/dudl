@@ -7,7 +7,9 @@ Standards-Version: 3.5.2
 
 Package: dudl-rename
 Architecture: all
-Depends: ${perl:Depends}, libmp3-digest-perl, libmp3-tag-perl
+Depends: ${perl:Depends}, libezdbi-perl, libezdbo-perl,
+ libnet-freedb2-perl, libmp3-digest-perl, libmp3-tag-perl,
+ libmp3-info-perl, libdbd-pg-perl
 Description: rename MP3 files, set ID tags and strip unwanted headers
  dudl-rename is part of my dudl Music Database. This Package basically
  combines two different tasks:
