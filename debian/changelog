@@ -1,7 +1,12 @@
+dudl (0.1.24) unstable; urgency=low
+
+  * dudl-dotest: ensure sane permissions
+
+ -- Rainer Clasen <bj@zuto.de>  Thu, 03 Dec 2009 11:41:21 +0100
+
 dudl (0.1.23) unstable; urgency=low
 
   * rebuild for lenny
-  * dudl-dotest: ensure sane permissions
 
  -- Rainer Clasen <bj@zuto.de>  Thu, 03 Dec 2009 11:38:23 +0100
 

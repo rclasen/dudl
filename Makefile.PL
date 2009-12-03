@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'		=> 'dudl',
-    'VERSION'		=> '0.1.23',
+    'VERSION'		=> '0.1.24',
     'PREREQ_PM'		=> {
 	# update debian/control, too!
 	'EzDBI'			=> 0,

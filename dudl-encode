@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: dudl-encode,v 1.3 2008-12-28 11:39:23 bj Exp $
+# $Id: dudl-encode,v 1.4 2009-12-03 10:44:32 bj Exp $
 
 #
 # Copyright (c) 2008 Rainer Clasen
@@ -46,7 +46,7 @@ use Dudl::Config;
 use Dudl::Job::Encode;
 use Dudl::Job::Rename;
 
-my $VERSION = '0.1.17';
+my $VERSION = '0.1.24';
 
 my $dudl = new Dudl::Config;
 
