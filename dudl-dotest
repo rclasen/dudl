@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# $Id: dudl-dotest,v 1.9 2008-12-28 11:39:23 bj Exp $
+# $Id: dudl-dotest,v 1.10 2009-12-03 10:40:19 bj Exp $
 
 #
 # Copyright (c) 2008 Rainer Clasen
@@ -120,6 +120,7 @@ foreach my $src ( @ARGV ){
 	my $dst = $tdir . "/". $nam->fnormalize( lc $opt_prefix.$1 );
 	system( "mv",  $src, $dst ) == 0
 		or die "mv failed: $1";
+	system( qw/ chmod -R a+rX /, $dst );
 
 	my $found;
 	foreach my $f ( @jobnames ){
