@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: File.pm,v 1.16 2008-12-28 11:39:23 bj Exp $
+# $Id: File.pm,v 1.17 2009-12-06 10:40:22 bj Exp $
 
 #
 # Copyright (c) 2008 Rainer Clasen
@@ -253,9 +253,11 @@ sub acquire {
 		$self->{channels}	= 2;
 		my $info = get_mp3info( $path );
 		if( $info ){
-			$self->{duration}	= (int($$info{"MM"} / 60) .":". 
-					($$info{"MM"} % 60) .":".  
-					$$info{"SS"});
+			my $mm = $$info{MM} || 0;
+			$self->{duration}	=
+					int( $mm / 60)
+					.":". ($mm % 60)
+					.":". ($$info{"SS"} || '00');
 			$self->{channels}	= ($$info{"STEREO"} ? 2 : 1);
 			$self->{freq}		= 1000 * $$info{"FREQUENCY"};
 			$self->{bitrate}	= 1000 * $$info{"BITRATE"};
