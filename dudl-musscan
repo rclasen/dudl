@@ -90,6 +90,10 @@ my $db = $dudl->db;
 
 my $topdir = $dudl->conf("cdpath");
 
+my $gst = Dudl::Gst->new({
+	debug	=> $opt_debug,
+});
+
 my $where = @ARGV 
 	? "id IN (". join(",",@ARGV) .") "
 	: "rgain = 0 ";
@@ -138,31 +142,26 @@ sub scan_album {
 	my( $fid, $fname );
 	$res->bind_columns(\( $fid, $fname ));
 
-	my @trk;
+	my( @id, @trk );
 	while( $res->fetch ){
-		if( ! -r "$topdir/$fname" ){
+		my $path = $topdir .'/'. $fname;
+		if( ! -r $path ){
 			print "skipping album $aid due to missing files\n";
 			return;
 		}	
-		push @trk, {
-			id	=> $fid,
-			fname	=> $fname,
-		};
+		push @id, $fid;
+		push @trk, $path;
 	}
 	$res->finish;
 
-	my $scan = new Dudl::Gst::Scan;
-	while( my $t = shift @trk ){
-		my( $tdat ) = eval { 
-			print "scanning $topdir/$t->{fname}\n" if $opt_debug;
-			$scan->scanfile( "$topdir/$t->{fname}", $#trk == -1 );
-		};
-		if( ! $tdat ){
-			warn "failed to scan album $aid: $t->{id}:$t->{fname}";
-			$db->select( "mserv_set_tag( $t->{id}, 'failed')");
-			next;
-		}
-		#print STDERR Dumper( $tdat );
+	if( ! $gst->scan( \@trk ) ){
+		print "failed to scan album $aid, skipping\n";
+		return;
+	}
+
+	foreach my $idx ( 0..$#id ){
+		my $tdat = $gst->track( $idx );
+		my $id = $id[$idx];
 
 		my $segs = $tdat->{segs};
 		my $from = $segs->[0]{from};
@@ -174,20 +173,21 @@ sub scan_album {
 			"rgain = ". $db->quote($tdat->{gain}, DBI::SQL_REAL).", ".
 			"rgain_peak = ". $db->quote($tdat->{gainp}, DBI::SQL_REAL).", ".
 			"ndur = ". $db->quote($tdat->{dur}, DBI::SQL_INTEGER)." ".
-		"WHERE id = ". $db->quote( $t->{id}, DBI::SQL_INTEGER);
-		print STDERR "$q\n" if $opt_debug;
+		"WHERE id = ". $db->quote( $id, DBI::SQL_INTEGER);
+
+		#print STDERR "$q\n" if $opt_debug;
 		$db->do( $q ) or die $db->errstr.": ". $q;
 	}
 
-	my $adat = $scan->{adat};
+	my $adat = $gst->album;
 	$q = "UPDATE mus_album SET ".
 			"rgain = ". $db->quote($adat->{gain}, DBI::SQL_REAL).", ".
 			"rgain_peak = ". $db->quote($adat->{gainp}, DBI::SQL_REAL)." ".
 		"WHERE id = " . $db->quote( $aid, DBI::SQL_INTEGER);
-	print STDERR "$q\n" if $opt_debug;
+
+	#print STDERR "$q\n" if $opt_debug;
 	$db->do( $q ) or die $db->errstr.": ". $q;
 
-	$scan = undef;
 	$db->commit;
 }
 
