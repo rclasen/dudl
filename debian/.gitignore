@@ -4,4 +4,5 @@ dudl-grab
 dudl-db
 *.debhelper
 *.substvars
+*.log
 files

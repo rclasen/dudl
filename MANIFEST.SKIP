@@ -2,7 +2,7 @@
 ~$
 ^blib/
 \bCVS/
-.cvsignore
+.gitignore
 ^bkdirs.pl$
 ^checkfiles.pl$
 \bdebian/dudl-db(/|$)
