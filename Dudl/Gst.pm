@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -110,7 +110,7 @@ sub scan {
 
 sub _scanfile {
 	my( $me, $file ) = @_;
-	
+
 	$me->log_debug( "scanning $file ..." );
 	$me->{error} = 0;
 
@@ -126,7 +126,7 @@ sub _scanfile {
 		# replaygain:
 		gain	=> 0,
 		gainp	=> 0,
-	}; 
+	};
 	push @{$me->{tdat}}, $tdat;
 
 	# TODO: evil hack to workaround utf8 problems
@@ -254,7 +254,7 @@ sub cb_bus_message {
 	} elsif( $message->type & "eos" ){
 		$me->{loop}->quit;
 
-	} elsif( $message->type & "tag" ){ 
+	} elsif( $message->type & "tag" ){
 		my $t = $message->tag_list;
 
 		foreach my $n ( qw( album artist date track-number title )){
@@ -272,7 +272,7 @@ sub cb_bus_message {
 			if exists $t->{'replaygain-album-peak'};
 
 
-	} elsif( $message->type & "element" ){ 
+	} elsif( $message->type & "element" ){
 		my $st = $message->get_structure;
 		if( $st->{name} eq "cutter" ){
 			my %dat;

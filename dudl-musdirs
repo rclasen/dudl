@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -96,7 +96,7 @@ if( ! $unit ){
 my $id = $unit->val("id");
 
 # TODO: move database access to module
-my $query = 
+my $query =
 	"SELECT ".
 		"dir, ".
 		"COUNT(title) as titles, ".
@@ -126,7 +126,7 @@ $sth->bind_columns( \( $dir, $titles, $files ) );
 printf "%4s %4s %7s %s\n", "tit", "fil", "unit", "dir";
 while( defined $sth->fetch ){
 	printf "%4s %4d %7d %s\n", $titles, $files, $id, $dir;
-}	
+}
 $sth->finish;
 
 # TODO: show number of titles/files for all units

@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -138,7 +138,7 @@ if( $what eq "all" || $what eq "any" ){
 
 print "SELECT ... WHERE $where\n" if $opt_debug;
 
-my $query = 
+my $query =
 "SELECT ".
 	"collection, ".
 	"colnum, ".
@@ -185,6 +185,6 @@ while( defined $sth->fetch ){
 	$colnum = sprintf "%04d", $colnum;
 	print $col, "/", $col, $colnum,"/",
 		$dir, ($dir ? "/" : ""), $fname, "\n";
-}	
+}
 $sth->finish;
 

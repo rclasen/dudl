@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -47,7 +47,7 @@ information (unit size, unit name, ...).
 you may specify a single unit name. If you don't, it's taken from the last
 directorie's name.
 
-=back 
+=back
 
 =head1 OPTIONS
 
@@ -174,12 +174,12 @@ if( $opt_file ){
 	push @want, Dudl::File::acquires( "file" );
 }
 
-print "scanning:", 
+print "scanning:",
 	( $dev ? " ". ($#ARGV +1) ." units" : ""),
 	( $opt_file ? " files" : ""),
 	( $opt_mp3 ? " mp3" : ""),
 	"\n";
-	
+
 
 
 
@@ -223,7 +223,7 @@ sub scan {
 	my $unit;
 	my $add_files = $opt_add ? 1 : 0;
 
-	eval { $unit = Dudl::StorUnit->load_path( dudl => $dudl, 
+	eval { $unit = Dudl::StorUnit->load_path( dudl => $dudl,
 		path => $disc ); };
 	if( $@ ){
 		print $@, "\n";
@@ -239,7 +239,7 @@ sub scan {
 
 	my $id = $unit->save;
 	print "unit id: ". $id ."\n";
-	
+
 
 
 	if( $dofiles ){
@@ -271,7 +271,7 @@ sub scan {
 				print " updating";
 				$id = $file->update;
 			} else {
-				die "not adding file to existing unit" 
+				die "not adding file to existing unit"
 					unless $add_files;
 
 				print " adding";
@@ -321,7 +321,7 @@ sub want_file {
 	if( /\.mp3$/i ){
 		push @files, $File::Find::name;
 	}
-	
+
 	return 0;
 	return 1;
 }

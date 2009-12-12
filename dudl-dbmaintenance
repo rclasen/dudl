@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -64,7 +64,7 @@ my $db = $dudl->db;
 purge old jukebox history entries.
 
 =cut
-$db->do( 
+$db->do(
 "DELETE FROM mserv_hist ".
 "WHERE ".
 	"age(added) > interval '6 month' ".

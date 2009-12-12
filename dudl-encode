@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -122,7 +122,7 @@ if( $needhelp ){
 }
 
 my $nam = $dudl->naming;
-my $tmpdir = tempdir( ".encode-$$-XXXXXXXX", 
+my $tmpdir = tempdir( ".encode-$$-XXXXXXXX",
 	DIR => $opt_outdir ) ."/";
 
 # TODO: optionally re-scan a directory for subdirs to process
@@ -145,7 +145,7 @@ sub fork_lame {
 	defined $pid || die "cannot fork: $!";
 
 	# parent
-	return $pid if $pid > 0; 
+	return $pid if $pid > 0;
 
 	# child
 	#system "sleep 5";
@@ -201,7 +201,7 @@ sub finish_encoder {
 	} elsif( ! exists $act->{pid}{$pid} ){
 		warn "unknown child $pid exited";
 		return 1;
-	} 
+	}
 
 	my $enc = $act->{pid}{$pid};
 
@@ -302,7 +302,7 @@ foreach my $f ( @ARGV ){
 
 	# TODO: check, that files exist
 	# TODO: get filesizes
-	
+
 	push @tasks, {
 		job	=> $job,
 		odir	=> $odir,
@@ -324,7 +324,7 @@ my $act = {
 my $err = 0;
 my $task;
 
-while(1){ 
+while(1){
 	$task = shift @tasks unless $task;
 	if( $task && ! $task->{start} ){
 		$task->{start} = time;

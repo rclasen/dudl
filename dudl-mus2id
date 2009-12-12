@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -73,11 +73,11 @@ my $query = "SELECT
 	a.album,
 	EXTRACT(year FROM a.publish_date) AS year
 FROM
-	stor_file f 
+	stor_file f
 		INNER JOIN stor_unit u ON f.unit_id = u.id
 		INNER JOIN mus_album a ON f.album_id = a.id
 		INNER JOIN mus_artist ta ON f.artist_id = ta.id
-WHERE 
+WHERE
 	ta.nname != 'UNKNOWN'
 	AND a.album != 'UNSORTED'
 	AND NOT u.autoscan

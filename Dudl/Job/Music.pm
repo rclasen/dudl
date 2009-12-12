@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -26,9 +26,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 			@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -47,12 +47,12 @@ use vars	@EXPORT_VAR;
 sub file_valid {
 	my $self = shift;
 	my $cur = shift || $self->{file};
-	
+
 	my $err = 0;
 	if( ! $cur->{id} ){
 		$self->bother( "no id for file");
 		$err++;
-		
+
 	}
 
 	$self->SUPER::file_valid( $cur ) || $err++;
@@ -63,16 +63,16 @@ sub file_valid {
 sub title_valid {
 	my $self = shift;
 	my $cur = shift || $self->{title};
-	
+
 	my $err = 0;
 	if( ! defined $cur->{segf} ){
 		$self->bother( "missing segment start");
 		#$err++; # TODO: make segments a requirement
-		
+
 	} elsif( ! defined $cur->{segt} ){
 		$self->bother( "missing segment end");
 		#$err++; # TODO: make segments a requirement
-		
+
 	}
 
 	$self->SUPER::title_valid( $cur ) || $err++;

@@ -5,7 +5,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -144,7 +144,7 @@ $where .= "AND not exists ( ". &tquery( "e", @opt_etag ).") " if @opt_etag;
 
 sub tquery {
 	my $d = shift;
-	return 
+	return
 	"SELECT file_id ".
 	"FROM mserv_filetag ft$d ".
 		"INNER JOIN mserv_tag tg$d ".
@@ -154,38 +154,38 @@ sub tquery {
 }
 
 my $query = "
-SELECT 
+SELECT
 	al.id AS al_id,
 	ala.nname AS al_artist,
-	al.album AS al_album, 
+	al.album AS al_album,
 	date_part('year',al.publish_date) AS al_year,
-	fi.id AS fi_id, 
-	fi.album_pos AS fi_pos,  
-	fi.title AS fi_title, 
-	tia.nname AS fi_artist, 
+	fi.id AS fi_id,
+	fi.album_pos AS fi_pos,
+	fi.title AS fi_title,
+	tia.nname AS fi_artist,
 	mserv_tags(fi.id) AS fi_tags,
 	stor_filename(su.collection, su.colnum, fi.dir, fi.fname) AS fi_name,
 	fi.cmnt AS fi_cmnt
-FROM 
-	mus_album al 
+FROM
+	mus_album al
 		INNER JOIN mus_artist ala
-		ON al.artist_id = ala.id 
+		ON al.artist_id = ala.id
 
 		INNER JOIN stor_file fi
-		ON al.id = fi.album_id 
+		ON al.id = fi.album_id
 
 		INNER JOIN mus_artist tia
-		ON fi.artist_id = tia.id 
+		ON fi.artist_id = tia.id
 
 		INNER JOIN stor_unit su
-		ON fi.unit_id = su.id 
-WHERE 
+		ON fi.unit_id = su.id
+WHERE
 	NOT fi.broken
 	AND fi.title NOTNULL
 	AND al.artist_id != 0
 	$where
-ORDER by 
-	ala.nname, 
+ORDER by
+	ala.nname,
 	al.album,
 	fi.album_pos;
 ";
@@ -202,33 +202,33 @@ if( ! $res ){
 
 my (
 	$al_id,
-	$al_artist, 
-	$al_album, 
+	$al_artist,
+	$al_album,
 	$al_year,
-	$fi_id, 
-	$fi_pos, 
-	$fi_title, 
-	$fi_artist, 
+	$fi_id,
+	$fi_pos,
+	$fi_title,
+	$fi_artist,
 	$fi_tags,
-	$fi_name, 
+	$fi_name,
 	$fi_cmnt,
 );
-$sth->bind_columns( \( 
+$sth->bind_columns( \(
 	$al_id,
-	$al_artist, 
-	$al_album, 
+	$al_artist,
+	$al_album,
 	$al_year,
-	$fi_id, 
-	$fi_pos, 
-	$fi_title, 
-	$fi_artist, 
+	$fi_id,
+	$fi_pos,
+	$fi_title,
+	$fi_artist,
 	$fi_tags,
 	$fi_name,
 	$fi_cmnt,
 ) );
 
 my $old_artistd;
-my $old_aid; 
+my $old_aid;
 my $albumd;
 my $job;
 
@@ -250,7 +250,7 @@ while( defined $sth->fetch ){
 		$job->add_album(
 			name	=> $al_album,
 			artist	=> $al_artist,
-			type	=> $al_artist =~ /^(VARIOUS|UNKNOWN)$/ 
+			type	=> $al_artist =~ /^(VARIOUS|UNKNOWN)$/
 				? "sampler" : "album",
 			year	=> $al_year || 1000,
 		);
@@ -262,10 +262,10 @@ while( defined $sth->fetch ){
 
 		$old_aid = $al_id;
 
-	} 
-	
-	$job->add_file( 
-		id	=> $fi_id, 
+	}
+
+	$job->add_file(
+		id	=> $fi_id,
 		mp3	=> "-",
 		broken	=> 0,
 		cmt	=> $fi_cmnt,
@@ -274,9 +274,9 @@ while( defined $sth->fetch ){
 	$job->add_title(
 		id	=> $fi_id,
 		name	=> $fi_title,
-		artist	=> $fi_artist, 
-		num	=> $fi_pos, 
-		genres	=> $fi_tags, 
+		artist	=> $fi_artist,
+		num	=> $fi_pos,
+		genres	=> $fi_tags,
 	);
 
 	my $opath = $dudl->conf("cdpath") . "/". $fi_name;

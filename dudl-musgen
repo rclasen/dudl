@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -212,12 +212,12 @@ my $db = $dudl->db;
 
 my $arch;
 if( $opt_archive ){
-	my $unit = Dudl::StorUnit->load( dudl => $dudl, 
+	my $unit = Dudl::StorUnit->load( dudl => $dudl,
 		where => { id => $unitid } );
 	my $path = $cdpath ."/". $unit->dir ."/";
 	$path .= $dir ."/" if $dir;
 	$path .= $opt_afile;
-	$arch = new Dudl::Job::Archive( naming => $dudl->naming, 
+	$arch = new Dudl::Job::Archive( naming => $dudl->naming,
 		file => $path );
 }
 
@@ -253,10 +253,10 @@ if( ! $res ){
 }
 print STDERR "found $res files\n";
 
-my( $id, $fname, 
-	$id_title, $id_artist, $id_album, $id_tracknum, 
+my( $id, $fname,
+	$id_title, $id_artist, $id_album, $id_tracknum,
 	$title );
-$sth->bind_columns( \( $id, $fname, 
+$sth->bind_columns( \( $id, $fname,
 	$id_title, $id_artist, $id_album, $id_tracknum,
 	$title ) );
 
@@ -268,9 +268,9 @@ while( defined $sth->fetch ){
 	$nr ++;
 	$exp->clear();
 
-	$job->add_file( 
+	$job->add_file(
 		mp3	=> $path,
-		id	=> $id, 
+		id	=> $id,
 	) or die;
 
 	if( defined $title ){
@@ -278,7 +278,7 @@ while( defined $sth->fetch ){
 
 =pod
 		# TODO: fetch music data from stor_file
-		$exp->add_asis( 
+		$exp->add_asis(
 			source		=> "stor_file:$id",
 			artist		=> $,
 			titlenum	=> $ || $nr,
@@ -340,7 +340,7 @@ while( defined $sth->fetch ){
 	$exp->order;
 	my $sug;
 	my $sugnum = 0;
-	while( ( ! $opt_max || $sugnum < $opt_max ) && 
+	while( ( ! $opt_max || $sugnum < $opt_max ) &&
 	    defined ($sug = $exp->get) ){
 
 		next if $sugnum && $sug->{sug_quality} < $opt_minscore;
@@ -350,8 +350,8 @@ while( defined $sth->fetch ){
 			source	=> $sug->{source} ." score: ".
 				$sug->{sug_quality},
 			name	=> $sug->{title},
-			artist	=> $sug->{artist}, 
-			num	=> $sug->{titlenum} || $nr, 
+			artist	=> $sug->{artist},
+			num	=> $sug->{titlenum} || $nr,
 			genres	=> $genre || $sug->{genres} || "",
 			cmt	=> $sug->{cmt} || "",
 		); # ignore retval, user edits this anyways
@@ -360,7 +360,7 @@ while( defined $sth->fetch ){
 
 		$sugnum ++;
 	}
-}	
+}
 $sth->finish;
 
 @_ = sort { $album{name}{$b} <=> $album{name}{$a} } keys %{$album{name}};
@@ -382,7 +382,7 @@ if( $arch ){
 
 $job->write( \*STDOUT );
 
-=pod 
+=pod
 
 =head1 EXAMPLES
 

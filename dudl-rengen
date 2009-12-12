@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -27,7 +27,7 @@ dudl-rengen - generate template job file for dudl-rename.
 
 dudl-rengen picks a list of mp3 files, analyzes them and offers what is
 most likely the correct information for dudl-rename. The output written to
-stdout is apropriate to be fed into dudl-rename. 
+stdout is apropriate to be fed into dudl-rename.
 
 Unfortunatly it is quite hard to guess the correct information from ID3v1,
 ID3v2 Tag and filename. Therefore you are doomed to adjust the jobfile
@@ -67,7 +67,7 @@ use Dudl::Job::Rename;
 
 my $dudl = new Dudl::Config;
 
-=pod 
+=pod
 
 =item B<--max>=I<n>
 
@@ -76,7 +76,7 @@ Maximum number of suggestions to make for each file.
 =cut
 my $opt_max = $dudl->conf("sug_max");
 
-=pod 
+=pod
 
 =item B<--minscore>=I<score>
 
@@ -86,7 +86,7 @@ discarded.
 =cut
 my $opt_minscore = $dudl->conf("sug_score");
 
-=pod 
+=pod
 
 =item B<--id>, B<--noid>
 
@@ -95,7 +95,7 @@ Pick suggestions from ID3 tags.
 =cut
 my $opt_id;
 
-=pod 
+=pod
 
 =item B<--stored>, B<--nostored>
 
@@ -104,19 +104,19 @@ my $opt_id;
 =cut
 my $opt_stored;
 
-=pod 
+=pod
 
 =item B<--regexp>=I<fields>=I<match>
 
 manually supply a regular expression for filename matching. Perl
 Compatible regexps are allowed. See examples for details.
 
-When this option is specified, --id and --stored default to "no". 
+When this option is specified, --id and --stored default to "no".
 
 =cut
 my $opt_regexp;
 
-=pod 
+=pod
 
 =item B<--genres>=I<genres>
 
@@ -130,7 +130,7 @@ my $opt_genres = "";
 
 =item B<--checkdb>
 
-With this option dudl-rename connects to your dudl database to check 
+With this option dudl-rename connects to your dudl database to check
 artist name syntax and duplicate albums.
 
 =cut
@@ -173,7 +173,7 @@ optons:
  --max <n>       maximum number of suggestions per file
  --minscore <n>  minimum score suggestions must have
  --genres <g>    list default genres to use
- --re|regexp <r> use this regexp for suggestions. 
+ --re|regexp <r> use this regexp for suggestions.
  --[no]stored    use stored regexps for suggestions
  --[no]id        use ID tag for suggestions
  --checkdb       contact DB for some checks
@@ -187,7 +187,7 @@ regexp example:
  titles: <artist>.--.<album>/<artist>.--._<num>_<title>.mp3
  regexp: album,artist,titlenum,title=\\.--\\.(.*)/(.*)\\.--\\.(..)_(.*)
 
-use (?:<pattern>) to group without marking results or use ',,' in the 
+use (?:<pattern>) to group without marking results or use ',,' in the
 field list to ignore a match.
 EOF
 	exit 0;
@@ -202,7 +202,7 @@ if( $opt_regexp ){
 	$opt_id = 0 unless defined $opt_id;
 	$opt_stored = 0 unless defined $opt_stored;
 } else {
-	$opt_id = $dudl->conf("sug_id3") unless defined $opt_id; 
+	$opt_id = $dudl->conf("sug_id3") unless defined $opt_id;
 	$opt_stored = $dudl->conf("sug_int") unless defined $opt_stored;
 }
 
@@ -245,7 +245,7 @@ foreach my $f ( @$files ){
 		$sug->add_stor( $f );
 	}
 	if( $regexp ){
-		$sug->add_regexp( $f, $regexp->{re}, 
+		$sug->add_regexp( $f, $regexp->{re},
 			$regexp->{fields}, "cmdline" );
 	}
 
@@ -259,10 +259,10 @@ foreach my $f ( @$files ){
 	my $sugnum = 0;
 	while( (!$opt_max || $sugnum < $opt_max ) &&
 	    defined( $dat = $sug->get ) ){
-		
+
 		next if $sugnum && $dat->{sug_quality} < $opt_minscore;
 
-		$job->add_title( 
+		$job->add_title(
 			source	=> $dat->{source}.
 				" score: ". $dat->{sug_quality},
 			num	=> $opt_num ? $fnum : $dat->{titlenum},
@@ -298,7 +298,7 @@ sub get_artist {
 	my( $db, $artist ) = @_;
 	my $sartist = $db->quote( $artist, 1 ); # TODO: DBI::CHAR );
 
-	my( $rartist )= $db->selectrow_array( 
+	my( $rartist )= $db->selectrow_array(
 		"SELECT ".
                         "nname ".
                 "FROM mus_artist ".
@@ -380,7 +380,7 @@ use this:
  	album,artist,titlenum,title=\\.--\\.(.*)/(.*)\\.--\\.(..)_(.*) \
 	.
 
-use (?:<pattern>) to group without marking results or use ',,' in the 
+use (?:<pattern>) to group without marking results or use ',,' in the
 field list to ignore a match.
 
 =head1 FILES
@@ -421,8 +421,8 @@ used by --stored
 
 =head1 SEE ALSO
 
-I<dudl-rename(1)>, 
-I<dudlrc(5)>, 
+I<dudl-rename(1)>,
+I<dudlrc(5)>,
 I<Dudl::Job::Rename>.
 
 =head1 AUTHOR

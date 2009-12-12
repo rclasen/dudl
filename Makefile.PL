@@ -15,7 +15,7 @@ WriteMakefile(
 	'DBD::Pg'		=> 0,
 	}, # e.g., Module::Name => 1.1
     'PMLIBDIRS'		=> [qw( Dudl )],
-    'EXE_FILES'		=> [qw( 
+    'EXE_FILES'		=> [qw(
 	dudl-dbavcheck
 	dudl-dbmaintenance
 	dudl-dbstatus
@@ -40,10 +40,10 @@ WriteMakefile(
 	dudl-muslinks
 	dudl-musscan
 	dudl-musyearadd
-	dudl-rename 
+	dudl-rename
 	dudl-rengen
 	dudl-storhave
-	dudl-storscan 
+	dudl-storscan
     )],
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT => 'dudl MP3 processing and database scripts',

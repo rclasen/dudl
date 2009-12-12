@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -30,9 +30,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 			@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -123,7 +123,7 @@ sub new {
 	my $class	= ref($proto) || $proto;
 	my $self = {
 		BASE		=> shift,
-		unit_id		=> shift,	
+		unit_id		=> shift,
 		WANTUPD		=> [],	# arrayref
 		WANTGET		=> {},	# hashref
 		};
@@ -218,8 +218,8 @@ sub path {
 		$self->{fname} = $2;
 	}
 
-	return (length($self->{dir}) ? 
-		($self->{dir}."/") : 
+	return (length($self->{dir}) ?
+		($self->{dir}."/") :
 		"" ). $self->{fname};
 }
 
@@ -248,7 +248,7 @@ sub acquire {
 		$self->{fsize} = (stat(_))[7];
 	}
 
-	
+
 	if( $self->{WANTGET}->{info} ){
 		$self->{channels}	= 2;
 		my $info = get_mp3info( $path );
@@ -305,7 +305,7 @@ sub get {
 	my $where	= shift;
 
 	my @cols = keys %table;
-	my $query = 
+	my $query =
 		"SELECT ".
 			join(', ', @cols) ." ".
 		"FROM stor_file ".
@@ -316,7 +316,7 @@ sub get {
 		carp $self->db->errstr ."\nquery: $query\n";
 		return undef;
 	}
-	
+
 	my $ex = $prep->execute;
 	if( ! $ex ){
 		carp $prep->errstr ."\nquery: $query\n";
@@ -388,7 +388,7 @@ sub mksql {
 		next unless exists $table{$f};
 
 		# TODO: hack
-		$sql{$f} = $self->db->quote(encode("iso-8859-1",$self->{$f}), 
+		$sql{$f} = $self->db->quote(encode("iso-8859-1",$self->{$f}),
 			$table{$f}{type});
 	}
 

@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -24,7 +24,7 @@ Dudl::Config - reads system and user settings for dudl applications
 
 =head1 DESCRIPTION
 
-Read system and user settings for dudl applications. 
+Read system and user settings for dudl applications.
 
 =cut
 
@@ -44,9 +44,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 			@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -81,8 +81,8 @@ sub new {
 	my $class	= ref($proto) || $proto;
 	my $self	= {
 		# files
-		RCFILES		=> [ 
-			"/etc/dudl.rc", 
+		RCFILES		=> [
+			"/etc/dudl.rc",
 			&gethome ."/.dudlrc",
 			],
 
@@ -224,7 +224,7 @@ This module uses the following keys:
 
 Dudl::Naming::$naming module to use for constructing file- and directory names.
 
-=back 
+=back
 
 =head1 SEE ALSO
 

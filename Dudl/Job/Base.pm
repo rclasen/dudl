@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -70,9 +70,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 			@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -107,9 +107,9 @@ sub new {
 		};
 
 	bless $self, $class;
-	
+
 	my %arg = @_;
-	
+
 	if( $arg{naming} ){
 		$self->{naming} = $arg{naming};
 	}
@@ -203,7 +203,7 @@ sub file {
 
 	my $alb = $self->album;
 	return unless $alb;
-		
+
 	my $fils = $#{$alb->{files}};
 	if( $self->{cfil} > $fils ){
 		return;
@@ -217,7 +217,7 @@ sub title {
 
 	my $fil = $self->file;
 	return unless $fil;
-		
+
 	my $tits = $#{$fil->{titles}};
 	if( $self->{ctit} > $tits ){
 		return;
@@ -328,7 +328,7 @@ sub read {
 
 		if( $group ne $last_group ){
 			if( $last_group ){
-				$self->group_add( $last_group ) || 
+				$self->group_add( $last_group ) ||
 					$errors++;
 			}
 			$last_group = $group;
@@ -349,7 +349,7 @@ sub read {
 
 sub bother {
 	my $self = shift;
-	
+
 	print STDERR ($self->{fname}||"<unnamed>"),":$.: ", @_, "\n";
 }
 
@@ -389,7 +389,7 @@ sub group_key {
 		}
 		return $self->title_key( $key, $val );
 
-	} 
+	}
 
 	$self->bother( "invalid group");
 	return;
@@ -410,7 +410,7 @@ sub duplicate {
 
 sub album_group {
 	my $self = shift;
-	
+
 	my $cur = $self->{album};
 	if( ! keys %$cur ){
 		return 1;
@@ -425,7 +425,7 @@ sub album_group {
 
 sub file_group {
 	my $self = shift;
-	
+
 	my $cur = $self->{file};
 	if( ! keys %$cur ){
 		return 1;
@@ -441,7 +441,7 @@ sub file_group {
 
 sub title_group {
 	my $self = shift;
-	
+
 	my $cur = $self->{title};
 	if( ! keys %$cur ){
 		return 1;
@@ -464,7 +464,7 @@ sub album_valid {
 	if( ! $cur->{name} ){
 		$self->bother( "missing album name");
 		$err++;
-	
+
 	} elsif( ! $cur->{artist} ){
 		$self->bother( "missing album artist");
 		$err++;
@@ -537,19 +537,19 @@ sub file_key {
 			return 0;
 		}
 		return 1;
-	
+
 	} elsif( $key eq "encoder" ){
 		$cur->{$key} = $val;
 		return 1;
-	
+
 	} elsif( $key eq "broken" ){
 		$cur->{$key} = $val;
 		return 1;
-	
+
 	} elsif( $key eq "cmt" ){
 		$cur->{$key} = $val;
 		return 1;
-	
+
 	}
 
 	$self->bother( "invalid entry for file");
@@ -572,7 +572,7 @@ sub title_valid {
 	if( ! $cur->{num} ){
 		$self->bother( "missing title number");
 		$err++;
-	
+
 	} elsif( ! $cur->{name} ){
 		$self->bother( "missing title name");
 		$err++;
@@ -614,7 +614,7 @@ sub title_key {
 		}
 
 		foreach( @{$self->album->{files}} ){
-			if( exists $_->{titles} && @{$_->{titles}} && 
+			if( exists $_->{titles} && @{$_->{titles}} &&
 			    $_->{titles}->[0]->{num} == $val ){
 				$self->bother( "duplicate titlenum" );
 				return;
@@ -700,11 +700,11 @@ sub write_album {
 
 	print $fh "album_id\t". $alb->{id} ."\n" if $alb->{id};
 	# TODO: one line per allowed album_type
-	print $fh 
+	print $fh
 		"album_artist	", ($alb->{artist} || "") ,"\n",
 		"album_name	", ($alb->{name} || "") ,"\n",
-		"album_type	", ($alb->{type} || "") ,"\n", 
-		"#album_type	", join( " ", 
+		"album_type	", ($alb->{type} || "") ,"\n",
+		"#album_type	", join( " ",
 			$self->{naming}->album_types ),"\n",
 		"album_year	", ($alb->{year} || "") ,"\n";
 }
@@ -715,7 +715,7 @@ sub write_file {
 	my $fil = shift;
 
 	print $fh "file_id \t". ($fil->{id} || 0) ."\n" if $fil->{id};
-	print $fh 
+	print $fh
 		"file_encoder	", ($fil->{encoder} || "") ,"\n",
 		"file_broken	", ($fil->{broken} || 0) ,"\n",
 		"file_cmt	", ($fil->{cmt} || "") ,"\n",
@@ -728,7 +728,7 @@ sub write_title {
 	my $tit = shift;
 
 	print $fh "title_id\t". $tit->{id} ."\n" if $tit->{id};
-	print $fh 
+	print $fh
 		"title_num	", ($tit->{num} || 0) ,"\n",
 		"title_name	", ($tit->{name} || "") ,"\n",
 		"title_artist	", ($tit->{artist} || "") ,"\n",

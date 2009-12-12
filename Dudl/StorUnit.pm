@@ -1,6 +1,6 @@
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -34,11 +34,11 @@ sub load_path {
 	$a->{path} =~ /([^\d\/]+)(\d+)\/*$/
 		or croak "invalid path";
 	$a->{where} = {
-		collection => "'$1'", # TODO: quote properly 
+		collection => "'$1'", # TODO: quote properly
 		colnum => $2,
 	};
 
-	$proto->load( $a ), 
+	$proto->load( $a ),
 }
 
 sub load_step {
@@ -47,10 +47,10 @@ sub load_step {
 
 	croak "missing step argument" unless exists $a->{step};
 	$a->{where} = {
-		step => "'$a->{step}'", # TODO: quote properly 
+		step => "'$a->{step}'", # TODO: quote properly
 	};
 
-	$proto->load( $a ), 
+	$proto->load( $a ),
 }
 
 sub dir {
@@ -58,8 +58,8 @@ sub dir {
 	my $path = shift;
 
 	return sprintf( "%s/%s%04d",
-		$self->{data}{collection}, 
-		$self->{data}{collection}, 
+		$self->{data}{collection},
+		$self->{data}{collection},
 		$self->{data}{colnum} );
 }
 

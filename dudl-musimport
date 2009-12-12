@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -265,7 +265,7 @@ sub save_genres {
 	return unless $num;
 
 	my $query = "SELECT id, name FROM mserv_tag ".
-		"WHERE name IN( ".  join( ",", map { 
+		"WHERE name IN( ".  join( ",", map {
 			$db->quote($_,DBI::SQL_CHAR) ;
 		} keys %genre ) ." )";
 

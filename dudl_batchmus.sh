@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e 
+set -e
 
 : ${BINDIR:=.}
 : ${EDITOR:=vi}
@@ -24,7 +24,7 @@ do_dir() {
 			${BINDIR}/dudl_musgen.pl "$@" > "${LST}" \
 			|| return 1
 		$dummy ${EDITOR} "${LST}"
-		
+
 		invalid=true
 		while $invalid ; do
 			invalid=false
@@ -90,7 +90,7 @@ exec 6< "$dtmp"
 
 # skip header
 read junk <&6
-	
+
 while read tit fil genre unitid dir <&6 ; do
 	if [ $tit -eq 0 ]; then
 		echo "processing $dir" >&2

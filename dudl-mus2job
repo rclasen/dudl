@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -70,7 +70,7 @@ my $db = $dudl->db;
 my $cdpath = $dudl->conf("cdpath");
 my $archive = $dudl->conf("write_jname");
 
-my $sth = $db->prepare(" 
+my $sth = $db->prepare("
 SELECT
 	a.id AS album_id,
 	a.album AS album_name,
@@ -105,7 +105,7 @@ ORDER BY
 	f.album_pos
 ") or die $db->errstr;
 
-my $res = $sth->execute 
+my $res = $sth->execute
 	or die $sth->errstr;
 
 my(
@@ -124,7 +124,7 @@ my(
 	$title_genres,
 );
 
-$sth->bind_columns( \( 
+$sth->bind_columns( \(
 	$album_id,
 	$album_name,
 	$album_artist,
@@ -156,7 +156,7 @@ while( defined $sth->fetch ){
 		$job->add_album(
 			name	=> $album_name,
 			artist	=> $album_artist,
-			type	=> $album_artist =~ /^(VARIOUS|UNKNOWN)$/ 
+			type	=> $album_artist =~ /^(VARIOUS|UNKNOWN)$/
 				? "sampler" : "album",
 			year	=> $album_year,
 		);
@@ -164,8 +164,8 @@ while( defined $sth->fetch ){
 		$albums++;
 	}
 
-	$job->add_file( 
-		id	=> $file_id, 
+	$job->add_file(
+		id	=> $file_id,
 		mp3	=> $file_name,
 		broken	=> $file_broken,
 		cmt	=> $file_cmt,
@@ -174,9 +174,9 @@ while( defined $sth->fetch ){
 	$job->add_title(
 		id	=> $file_id,
 		name	=> $title_name,
-		artist	=> $title_artist, 
-		num	=> $title_num, 
-		genres	=> $title_genres, 
+		artist	=> $title_artist,
+		num	=> $title_num,
+		genres	=> $title_genres,
 	);
 }
 &finish( $odir, $job ) if defined $job;

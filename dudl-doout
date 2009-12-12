@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -134,7 +134,7 @@ sub do_dir {
 		print STDERR "invalid genre: $garg\n";
 		return;
 	}
-	
+
 	foreach my $f ( @jobnames ){
 		if( -f "$arg$f" ){
 			$arg .= $f;
@@ -161,7 +161,7 @@ sub do_dir {
 	-d "$odir/$genre" or mkdir "$odir/$genre", 0777;
 	system("dudl-rename", "--outdir", "$odir/$genre", $ren) == 0
 		or die "rename failed: $!";
-	
+
 	if( ! $opt_delall ){
 		print "hit ENTER to continue";
 		$_ = <STDIN>;

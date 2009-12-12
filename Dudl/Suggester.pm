@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -31,7 +31,7 @@ Dudl::Suggester - find best suggestions for MP3 information
  }
 
 =head1 DESCRIPTION
- 
+
 The Suggestor can get fed with Information about MP3s from several
 sources. Based on what information could be determined from a source a
 suggestion is scored.
@@ -58,9 +58,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 			@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -172,7 +172,7 @@ sub re_fields {
 }
 
 
-=pod 
+=pod
 
 =head1 CONSTRUCTOR
 
@@ -301,13 +301,13 @@ sub add_asis {
 =item add_stor( $fname )
 
 add suggestions based on the filename (including directory) using the
-stored regular expressions. 
+stored regular expressions.
 
 =cut
 sub add_stor {
 	my $self	= shift;
 	my $path	= shift;
-	
+
 	return $self->add_relist( $path, \@regexps );
 }
 
@@ -328,7 +328,7 @@ sub add_id3 {
 
 	if( exists $id3->{ID3v2} ){
 		my $t = $id3->{'ID3v2'};
-		$self->add( 
+		$self->add(
 		source		=> 'ID3v2',
 		artist		=> scalar $t->artist,
 		album		=> scalar $t->album,
@@ -338,7 +338,7 @@ sub add_id3 {
 		);
 	} elsif( exists $id3->{ID3v1} ){
 		my $t = $id3->{'ID3v1'};
-		$self->add( 
+		$self->add(
 		source		=> 'ID3v1',
 		artist		=> scalar $t->artist,
 		album		=> scalar $t->album,
@@ -354,7 +354,7 @@ sub add_id3 {
 =item add_regexp( $fname, $regexp, \@fields [, $source] )
 
 add suggestion based on the filename using the specified regexp. The N'th
-match $N ($1..$n) of the regexp is assigned the field $field[N]. 
+match $N ($1..$n) of the regexp is assigned the field $field[N].
 
 Uhm - this explanation is probably not that clear, but better thann
 nothing, eh?
@@ -401,8 +401,8 @@ sub add_relist {
 	my $regexps	= shift;
 
 	foreach my $re ( @$regexps ){
-		$self->add_regexp( $path, 
-			$re->{re}, 
+		$self->add_regexp( $path,
+			$re->{re},
 			$re->{fields},
 			$re->{source} );
 	}
@@ -420,8 +420,8 @@ order suggestions by score
 sub order {
 	my $self = shift;
 
-	@{$self->{sugs}} = sort { 
-		$b->{sug_quality} <=> $a->{sug_quality} 
+	@{$self->{sugs}} = sort {
+		$b->{sug_quality} <=> $a->{sug_quality}
 	} @{$self->{sugs}};
 
 	$self->{cur} = 0;

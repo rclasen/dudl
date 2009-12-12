@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -32,9 +32,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 		@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -90,8 +90,8 @@ sub db {
 		}
 
 		$self->{DB} = EzDBI->connect( $cmd,
-			$self->conf("db_user"), 
-			$self->conf("db_pass"), { 
+			$self->conf("db_user"),
+			$self->conf("db_pass"), {
 				'AutoCommit' => 0,
 				'RaiseError' => 1,
 				'ShowErrorStatement' => 1,

@@ -8,12 +8,12 @@ $sug->src( new Dudl::Suggester::Stored());
 $sug->src( new Dudl::Suggester::ID3());
 
 foreach my $fname ( @ARGV ){
-	$sug->file( 
+	$sug->file(
 		path	=> $fname,
 	);
 }
 
-my $job = new Dudl::Job::Rename( 
+my $job = new Dudl::Job::Rename(
 	naming => $nam,
 );
 
@@ -40,7 +40,7 @@ $sug->src( new Dudl::Suggester::Job( $archive ));
 my $sth = $db->prepare( "SELECT ..." );
 $sth->bind_columns( \( $id, $path, $id_artist, $id_title, ...));
 while( defined $sth->fetch ){
-	$sug->file( 
+	$sug->file(
 		id	=> $id,
 		path	=> $path,
 		id_artist	=> $id_artist,

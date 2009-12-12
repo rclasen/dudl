@@ -15,24 +15,24 @@ die Datenbank soll enthalten:
 \item[User]
 	Wer hat welchen login und Passwort. Welche Rechte gehören zu einem
 	login.
-\item[Musik] 
+\item[Musik]
 	Welche Titel gehören zu welchem Album eines Künstlers.
-\item[Rating] 
+\item[Rating]
 	In welches Genre sortiert ein User einen Titel. Wie gerne hört er
 	einen Titel. Zusammenstellung von Programmen.
-\item[Storage] 
+\item[Storage]
 	Auf Welchem Medium (CD, MC, MP3, \ldots) ist ein Titel oder Album
 	zu finden - bzw. Welche Alben sind auf einem Medium.
-\item[Player] 
+\item[Player]
 	Auswählen und abspielen von tracks.
-\item[Video] 
+\item[Video]
 	Was ist auf Video Kassetten.
-\item[Verleih] 
+\item[Verleih]
 	Wer hat welches Video oder Musik Träger wann ausgeliehen.
 \end{description}
 
 Die Datenbank soll mindestens über ein Web Interface abfrag- und
-editierbar sein. 
+editierbar sein.
 
 \subsection{Player}
 
@@ -48,8 +48,8 @@ Der Player wird in folgende Einheiten zerteilt:
 
 \begin{description}
 \item[Frontend]
-	Ein Frontend ist für das User interface zuständig. Es kann 
-	über ein eigenes Protokoll mit dem Backend kommunizieren. 
+	Ein Frontend ist für das User interface zuständig. Es kann
+	über ein eigenes Protokoll mit dem Backend kommunizieren.
 
 \item[Player]
 	Der eigentlich Player ist ein Teil des Backends. Er kümmert sich
@@ -72,7 +72,7 @@ Der Player wird in folgende Einheiten zerteilt:
 	geschickt werden. Im Anfangsstadium ist auch direkter Access via
 	NFS + AMD denkbar.
 
-\item[Backend] 
+\item[Backend]
 	Das Backend kapselt die Datanbank. Frontends und Playback Clients
 	verbinden sich mit dem Backend und erhalten über das Backend
 	Daten. Im Idealfall ist das Backend der einzige mit zugriff auf
@@ -110,9 +110,9 @@ geplant sind Frontends für:
 	\item track
 	\item album
 	\end{itemize}
-nach 
+nach
 	\begin{itemize}
-	\item track 
+	\item track
 	\item Interpret
 	\item Album
 	\item Release Datum

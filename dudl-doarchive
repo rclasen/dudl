@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -31,7 +31,7 @@ You've prepared a new unit for you archive in a temporary directory. Now
 you're happy with it and want to add it to your archive. That's what this
 tool is supposed to do.
 
-For proper processing the directories have to be named <collection><num>. 
+For proper processing the directories have to be named <collection><num>.
 
 =head1 OPTIONS
 
@@ -150,7 +150,7 @@ foreach my $dir ( @ARGV ){
 	print "adding dir $dir...\n";
 	my @cmd = $opt_move ? ( "mv" ) : ( "cp", "-pR" );
 	if( 0 != system( @cmd, $dir, $dst ) ){
-		print STDERR "failed to ", 
+		print STDERR "failed to ",
 			($opt_move ? "move" : "copy" ),
 			"dir $dir\n";
 		exit 1;

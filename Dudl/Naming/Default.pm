@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -26,9 +26,9 @@ BEGIN {
 
 	# exported by default:
 	@EXPORT_VAR	= qw();
-	@EXPORT		= ( qw(), 
+	@EXPORT		= ( qw(),
 			@EXPORT_VAR );
-	
+
 	# shortcuts for in demand exports
 	%EXPORT_TAGS	= ( );     # eg: TAG => [ qw!name1 name2! ],
 
@@ -105,7 +105,7 @@ sub new {
 
 sub bother {
 	my $self = shift;
-	
+
 	print STDERR @_, "\n";
 }
 
@@ -127,8 +127,8 @@ sub dir {
 		$name = $alb->{name};
 
 	} elsif( $alb->{type} eq "album" ){
-		$name = sprintf( "%s.--.%s", 
-			$alb->{artist}, 
+		$name = sprintf( "%s.--.%s",
+			$alb->{artist},
 			$alb->{name});
 
 	} else {
@@ -152,26 +152,26 @@ sub fname {
 
 	my $name;
 	if( $alb->{type} eq "sampler" ) {
-		# - a sampler, name it 
-		# <album>/<nr>_<group>.--.<title> or 
+		# - a sampler, name it
+		# <album>/<nr>_<group>.--.<title> or
 		# <album>/<nr>_<title>
 		if( $tit->{artist}){
-			$name = sprintf( "%02d_%s.--.%s", 
-				$tit->{num}, 
-				$tit->{artist}, 
+			$name = sprintf( "%02d_%s.--.%s",
+				$tit->{num},
+				$tit->{artist},
 				$tit->{name} );
 		} else {
-			$name = sprintf( "%02d_%s", 
-				$tit->{num}, 
+			$name = sprintf( "%02d_%s",
+				$tit->{num},
 				$tit->{name} );
 		}
 
 	} elsif( $alb->{type} eq "album" ){
-		# - no sampler, name it 
+		# - no sampler, name it
 		# <group>.--.<album>/<group>.--.<nr>_<title>
-		$name = sprintf( "%s.--.%02d_%s", 
-				$tit->{artist}, 
-				$tit->{num}, 
+		$name = sprintf( "%s.--.%02d_%s",
+				$tit->{artist},
+				$tit->{num},
 				$tit->{name} );
 
 	} else {
@@ -240,7 +240,7 @@ sub album_valid {
 		}
 
 		if( ! ($alb->{artist} =~ /^VARIOUS$/i) ){
-			$self->bother( "album_artist for sampler is ", 
+			$self->bother( "album_artist for sampler is ",
 				"not VARIOUS" );
 			$err++;
 		}
@@ -286,7 +286,7 @@ sub title_valid {
 
 =pod
 
-=item fnormalize( $fname ) 
+=item fnormalize( $fname )
 
 Builds a cleaned up filename from the input. All disallowed chars are
 replaced by a single dot '.'. Multiple dots are merged together.  Call it

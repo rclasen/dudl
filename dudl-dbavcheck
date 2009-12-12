@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -99,14 +99,14 @@ print "\nstep 3: find new files...\n";
 exit 0;
 
 sub check_reapear {
-	my $q = 
+	my $q =
 			"f.id, ".
 			"stor_filename(collection,colnum,dir,fname) AS file ".
 		"FROM stor_file f ".
 			"INNER JOIN stor_unit u ON f.unit_id = u.id ".
 		"WHERE not available";
 	$q .= " AND u.id IN (". join(",",@ARGV) .")" if @ARGV;
-	my $res = $db->select( $q ) 
+	my $res = $db->select( $q )
 		or die $db->errstr;
 
 	my( $id, $fname );
@@ -115,8 +115,8 @@ sub check_reapear {
 	while( $res->fetch ){
 		if( -e "$topdir/$fname" ){
 			print "reapeared($id): $fname\n";
-			if( ! $db->update( "stor_file", 
-				{ available => "true" }, 
+			if( ! $db->update( "stor_file",
+				{ available => "true" },
 				"id = $id" )){
 
 				die $db->errstr;
@@ -145,8 +145,8 @@ sub check_vanish {
 	while( $res->fetch ){
 		if( ! -e "$topdir/$fname" ){
 			print "vanished($id): $fname\n";
-			if( ! $db->update( "stor_file", 
-				{ available => "false" }, 
+			if( ! $db->update( "stor_file",
+				{ available => "false" },
 				"id = $id" )){
 
 				die $db->errstr;
@@ -159,7 +159,7 @@ sub check_vanish {
 
 sub check_autoscan {
 
-	my $q = 
+	my $q =
 			"id, ".
 			"collection, ".
 			"colnum, ".
@@ -186,7 +186,7 @@ sub check_autoscan {
 sub clean_uvanished {
 	my $id = shift;
 
-	if( ! $db->do( 
+	if( ! $db->do(
 		"DELETE FROM stor_file ".
 		"WHERE unit_id = $id AND NOT available" )){
 
@@ -235,7 +235,7 @@ sub get_artist {
 	my $aname = $db->quote(shift, DBI::SQL_CHAR);
 
 	# get one id:
-	my ( $aid ) = $db->selectrow_array( 
+	my ( $aid ) = $db->selectrow_array(
 		"SELECT id ".
 		"FROM mus_artist ".
 		"WHERE nname = $aname ".
@@ -255,7 +255,7 @@ sub get_album {
 	my $aname = shift;
 
 	# get one id:
-	my ( $aid ) = $db->selectrow_array( 
+	my ( $aid ) = $db->selectrow_array(
 		"SELECT id ".
 		"FROM mus_album ".
 		"WHERE album = $aname ".
@@ -268,14 +268,14 @@ sub add_album {
 	my $aname = shift;
 
 	# get new album id ...
-	my ( $aid ) = $db->selectrow_array( 
+	my ( $aid ) = $db->selectrow_array(
 		"SELECT nextval('mus_album_id_seq')" );
 	if( ! $aid ){
 		die $db->errstr;
 	}
 
 	# ... and add new album with this id
-	if( 1 != $db->do( 
+	if( 1 != $db->do(
 		"INSERT INTO mus_album ( ".
 			"id, ".
 			"album, ".
@@ -324,7 +324,7 @@ sub check_files {
 		if( ! $file->acquire( $udir, "$dir/$fname" ) ){
 			die "cannot get file details";
 		}
-		
+
 		my $fid = $file->insert;
 		die unless $fid;
 
@@ -336,7 +336,7 @@ sub check_files {
 		$fname =~ /(.*)(\.mp3)?$/;
 		my $title = $db->quote( lc $1, DBI::SQL_CHAR );
 		$maxpos++;
-		if( 1 != $db->do( 
+		if( 1 != $db->do(
 			"UPDATE stor_file SET ".
 				"album_id = $albid, ".
 				"album_pos = $maxpos, ".

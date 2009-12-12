@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -20,7 +20,7 @@ exit 0;
 
 my $dudl = new Dudl::DB;
 
-my $query = 
+my $query =
 "SELECT ".
 	"f.id, ".
 	"collection, ".
@@ -64,7 +64,7 @@ my(
 	$fname
 );
 
-$sth->bind_columns( \( 
+$sth->bind_columns( \(
 	$id,
 	$col,
 	$colnum,

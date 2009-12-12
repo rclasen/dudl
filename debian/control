@@ -14,8 +14,8 @@ Description: rename MP3 files, set ID tags and strip unwanted headers
  dudl-rename is part of my dudl Music Database. This Package basically
  combines two different tasks:
  .
- guessing information for a mp3 from filename, idtag and what else is 
- available. 
+ guessing information for a mp3 from filename, idtag and what else is
+ available.
  .
  consistently rename mp3s.
 
@@ -29,7 +29,7 @@ Description: Grab audio tracks from CD and encode them to MP3
  grabbing tracks from a CD and fetch titles from FreeDB.
  .
  encode these grabbed tracks to MP3s.
- 
+
 Package: dudl-db
 Architecture: all
 Depends: ${shlibs:Depends}, dudl-rename (>= ${Source-Version}), libmp3-info-perl,

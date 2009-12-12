@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -67,7 +67,7 @@ keep track of his CDs.
 
 =back
 
-The storage database is maintained by I<dudl-storscan>(1), 
+The storage database is maintained by I<dudl-storscan>(1),
 I<dudl-dbavcheck>(1) and your favorite PostgreSQL client.
 
 You can query these tables with I<dudl-storhave>(1).
@@ -173,7 +173,7 @@ list of tracks that were played.
 
 =back
 
-All tables come with a numeric ID. 
+All tables come with a numeric ID.
 
 Unfortunatly the table namimg is quite inconsistent. Once upon a time the
 jukebox was based on "mserv" - a different MP3 jukebox and the tag, user

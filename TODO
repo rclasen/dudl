@@ -5,7 +5,7 @@ dudl-do* automagically run dudl-dbavcheck and friends (limited to once/5min)
 
 maybe include parts from dudl-storscan into dudl-dbavcheck, too
 
-new db-aware dudl-rengen/dudl-rename 
+new db-aware dudl-rengen/dudl-rename
 - to keep file_id and history intact.
 - to edit data from dudld (tags, albumname, artist, ...)
 
@@ -37,7 +37,7 @@ rename:
 
 GUI frontend for rengen
 
-Suggester: 
+Suggester:
 - automatically group files to albums
 - guess freedb ID
 

@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -50,7 +50,7 @@ use Dudl::Config;
 use Dudl::Suggester;
 use Dudl::Job::Encode;
 
-my 
+my
 $VERSION = '0.1.24';
 
 sub usage {
@@ -117,8 +117,8 @@ my $tracks = scalar ($dat->getFrameOffset ());
 
 # FreeDB FAQ, item 2.2:
 # [...]
-#   6. When submitting a sampler or compilation, you should 
-#      include the track-artist in the track-name, using the 
+#   6. When submitting a sampler or compilation, you should
+#      include the track-artist in the track-name, using the
 #      syntax "artist / track-title" and set the CD-artist to "Various"
 
 my $dartist = $dat->getArtist;
@@ -160,7 +160,7 @@ for( my $i = 1; $i <= $tracks; ++$i ){
 		genres		=> $dgenre,
 	);
 	$sug->order;
-	
+
 	my $dat = $sug->get;
 	$job->add_title(
 		num		=> $dat->{titlenum},
@@ -188,10 +188,10 @@ if( ! -e $opt_ofile ){
 if( system( "cdparanoia -d '$opt_device' -w -B" ) ){
 	local *D;
 	opendir( D, "." ) or exit 1;
-	my %mtime = map { 
+	my %mtime = map {
 		$_ => (stat($_))[9];
-	} grep { 
-		/^track.*\.cdda\.wav$/ 
+	} grep {
+		/^track.*\.cdda\.wav$/
 	} readdir(D);
 	closedir(D);
 

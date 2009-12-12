@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -28,7 +28,7 @@ dudl-doren [<opts>] <genre> <dir> ...
 =head1 DESCRIPTION
 
 TODO: man desc
-move dirs from 2test 
+move dirs from 2test
 
 =over 2
 
@@ -125,7 +125,7 @@ for my $arg ( @ARGV ){
 	if( 0 == system("dudl-rename --test '$ren' > /dev/null 2>&1" )){
 		system("dudl-rename --outdir '$odir/$genre' '$ren'") == 0
 			or die "rename failed: $!";
-	
+
 		if( ! $opt_delall ){
 			print "hit ENTER to continue";
 			$_ = <STDIN>;
@@ -134,7 +134,7 @@ for my $arg ( @ARGV ){
 
 		system("rm", "-rf", $dir) == 0
 			or die "rm failed: $!";
-	
+
 	} else {
 		-d "$rdir/$genre" or mkdir "$rdir/$genre", 0777;
 		if( &samedir( "$rdir/$genre", &parentdir($dir)) ){

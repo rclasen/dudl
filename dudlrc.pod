@@ -10,7 +10,7 @@ Configs for all dudl applications.
 
  key = value
 
-Keys consist only of alphanumeric chars and '_'. 
+Keys consist only of alphanumeric chars and '_'.
 
 Everything starting with a hash '#' is ignored. Empty lines are ignored.
 

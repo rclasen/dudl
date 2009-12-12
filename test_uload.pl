@@ -13,8 +13,8 @@ $o->val( volname => "test" );
 $o->val( colnum => 1 );
 my $id = $o->save;
 
-$o = Dudl::StorUnit->load( 
-	dudl => $dudl, 
+$o = Dudl::StorUnit->load(
+	dudl => $dudl,
 	where => { id => $id } );
 
 $dudl->rollback;

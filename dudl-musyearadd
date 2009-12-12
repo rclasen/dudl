@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -46,7 +46,7 @@ dudl-musyearadd - find albums without a publish_date and prompt user to complete
 
 =head1 SYNOPSIS
 
-dudl-musyearadd 
+dudl-musyearadd
 
 =head1 DESCRIPTION
 
@@ -72,7 +72,7 @@ my $query = "SELECT
 	ar.nname AS artist,
 	a.album
 FROM
-	mus_album a INNER JOIN 
+	mus_album a INNER JOIN
 		mus_artist ar ON a.artist_id = ar.id
 WHERE
 	a.publish_date ISNULL

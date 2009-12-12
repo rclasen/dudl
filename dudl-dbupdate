@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -134,7 +134,7 @@ my $opt_dbhost = "";
 =item B<--dbuser>=<username>
 
 username for authenticating to the DB host. This user has to have superuser
-privileges (CREATE DB, access to system catalogs). 
+privileges (CREATE DB, access to system catalogs).
 
 =cut
 
@@ -183,7 +183,7 @@ usage: $0 <opt>
 --dbver                 Just show the Version this script is made for
 --view                  Just view SQL statements, don't access the DB
 --verbose               Be *very* verbose about what this script does.
---check			drop only existing non-data elements. 
+--check                 drop only existing non-data elements.
 --droptrigger           drop "unnamed" constraint trigger
 --dbname=<name>         Database name
 --dbhost=<host>         Database host to connect to.
@@ -199,15 +199,15 @@ if( $needhelp ){
 	exit 1;
 }
 
-$opt_view++ if $opt_dbver; # TODO ugly hack. 
+$opt_view++ if $opt_dbver; # TODO ugly hack.
 # TODO: shouldn't even need to connect to DB for dbver
 
-my $cmd = "dbi:Pg:".  
+my $cmd = "dbi:Pg:".
 	"dbname=template1";
 $cmd .= ";host=". $opt_dbhost if $opt_dbhost;
 
 my $tdb = EzDBI->connect( $cmd,
-	$opt_dbuser, $opt_dbpass, { 
+	$opt_dbuser, $opt_dbpass, {
 		'AutoCommit' => 1,
 		#'RaiseError' => 1,
 		'PrintError' => 0,
@@ -224,7 +224,7 @@ my @chadd;
 my @indices;
 my @recreate;
 
-my( $dbexists ) = $tdb->selectrow_array( 
+my( $dbexists ) = $tdb->selectrow_array(
 	"SELECT count(*) ".
 	"FROM pg_database ".
 	"WHERE datname = '$opt_dbname'" );
@@ -240,12 +240,12 @@ if( ! $dbexists ){
 
 my $db;
 if( $opt_check ){
-	$cmd = "dbi:Pg:".  
+	$cmd = "dbi:Pg:".
 		"dbname=". $opt_dbname;
 	$cmd .= ";host=". $opt_dbhost if $opt_dbhost;
 
 	$db = EzDBI->connect( $cmd,
-		$opt_dbuser, $opt_dbpass, { 
+		$opt_dbuser, $opt_dbpass, {
 			'AutoCommit' => 0,
 			#'RaiseError' => 1,
 			'PrintError' => 0,
@@ -258,7 +258,7 @@ if( $opt_check ){
 		"FROM pg_class ".
 		"WHERE relname = 'dbver' "))[0] ){
 
-		( $dbver ) = $db->selectrow_array( 
+		( $dbver ) = $db->selectrow_array(
 			"SELECT ver ".
 			"FROM dbver ".
 			"WHERE item = 'schema'");
@@ -332,7 +332,7 @@ sub add_sequence {
 }
 
 sub set_table {
-	my( $ver, $name, $cols, $alter ) = @_; 
+	my( $ver, $name, $cols, $alter ) = @_;
 	&mver( $ver );
 	return unless $ver > $dbver;
 	push @chadd, "CREATE TABLE $name (". join(",\n", @$cols ). ")";
@@ -344,7 +344,7 @@ sub chg {
 	my( $ver, $cmd ) = @_;
 	push @chadd, $cmd if $ver > $dbver;
 }
-	
+
 
 sub add_data {
 	my $ver = shift;
@@ -416,14 +416,14 @@ sub add_view {
 $opt_droptrigger++ if $dbver == 0;
 
 if( $db && $opt_droptrigger ){
-	my $sth = $db->prepare( 
+	my $sth = $db->prepare(
 		"SELECT tgname,relname ".
 		"FROM pg_trigger t INNER JOIN pg_class c ON c.oid = t.tgrelid ".
 		"WHERE tgname LIKE 'RI_ConstraintTrigger%' ".
 			"AND NOT EXISTS ( ".
 				"SELECT oid ".
 				"FROM pg_constraint ".
-				"WHERE conname = t.tgconstrname )") 
+				"WHERE conname = t.tgconstrname )")
 		or die $db->errstr;
 	$sth->execute or die $sth->errst;
 
@@ -482,17 +482,17 @@ SELECT
 	r1.relname		AS table_name,
 	t.tgtype		AS trigger_type,
 	t.tgisconstraint	AS is_constr,
-	CASE 
+	CASE
 		WHEN t.tgisconstraint THEN t.tgconstrname
-		ELSE t.tgname	
+		ELSE t.tgname
 		END		AS func_or_constr,
 	t.tgenabled		AS enabled,
 	f.proname		AS trigger_function
-FROM   
-	pg_class	r1, 
-	pg_trigger	t, 
+FROM
+	pg_class	r1,
+	pg_trigger	t,
 	pg_proc		f
-WHERE  
+WHERE
 	r1.oid = t.tgrelid AND
 	t.tgfoid = f.oid
 ");
@@ -513,11 +513,11 @@ SELECT
 	t.tgenabled		AS enabled,
 	f.proname		AS trigger_function,
 	t.tgargs		AS trigger_args
-FROM   
-	pg_class	r1, 
-	pg_trigger	t, 
+FROM
+	pg_class	r1,
+	pg_trigger	t,
 	pg_proc		f
-WHERE  
+WHERE
 	r1.oid = t.tgrelid AND
 	t.tgfoid = f.oid AND
 	t.tgisconstraint
@@ -619,7 +619,7 @@ END;
 
 	##--------------------------
 	# information related to each file
-	
+
 	"unit_id	INTEGER	NOT NULL", # -> ref
 
 	"dir		VARCHAR(255) NOT NULL DEFAULT ''", # directory on this unit
@@ -627,7 +627,7 @@ END;
 	#"ftype		INTEGER	NOT NULL", # TODO: file type?
 	#	0	unknown
 	#	1	mp3
-			 
+
 
 	"fsize		INTEGER",	# File size in byte
 
@@ -647,13 +647,13 @@ END;
 	"id_title	VARCHAR(30)",	# title of track
 	"id_artist	VARCHAR(30)",	# artist of track
 	"id_album	VARCHAR(30)",	# album this track belongs to
-	
-	"id_tracknum	SMALLINT NOT NULL DEFAULT 0", # index on the above album 
+
+	"id_tracknum	SMALLINT NOT NULL DEFAULT 0", # index on the above album
 	"id_comment	VARCHAR(30)",	# additional info
-	
+
 	"id_year	SMALLINT",	# year of release
 	"id_genre	VARCHAR(10)",	# genre of this track
-	
+
 	#----------------------------
 	# MP3 specific data
 
@@ -663,7 +663,7 @@ END;
 	"mpeg_lay	SMALLINT DEFAULT 3",		# mpeg layer within mpeg_ver 1, 2, 3
 	"mpeg_brate	INTEGER",	# encoded with this bitrate
 	"mpeg_mode	SMALLINT",	# mpeg mode ?
-	"vbr		BOOLEAN",	# variable bitrate? 
+	"vbr		BOOLEAN",	# variable bitrate?
 
 
 	#----------------------------
@@ -691,7 +691,7 @@ END;
 	"lastplay	TIMESTAMP NOT NULL DEFAULT '1970-1-1 0:0:0+0'" # mserv: last time of play
 ]);
 
-&alter( 3, 
+&alter( 3,
 	"ALTER TABLE stor_file RENAME COLUMN mpeg_brate TO bitrate",
 	"ALTER TABLE stor_file DROP COLUMN fsum",
 	"ALTER TABLE stor_file DROP COLUMN dsum",
@@ -742,18 +742,18 @@ CHECK( seg_to >= seg_from AND seg_to <= ndur )
 
 &add_constraint( 0, "stor_file", "stor_file__mus", "
 CHECK( (
-	album_id ISNULL AND 
-	album_pos ISNULL AND 
+	album_id ISNULL AND
+	album_pos ISNULL AND
 	title ISNULL AND
 	artist_id = 0
 ) OR (
-	album_id NOTNULL AND 
-	album_pos NOTNULL AND 
+	album_id NOTNULL AND
+	album_pos NOTNULL AND
 	title NOTNULL
 ))
 ");
-			
-			
+
+
 # referential integrity
 &add_constraint( 0, "stor_file", "ri__stor_file__stor_unit","
 FOREIGN KEY ( unit_id )
@@ -820,8 +820,8 @@ END;
 DECLARE
 	file	RECORD;
 BEGIN
-	SELECT INTO file id 
-		FROM stor_file 
+	SELECT INTO file id
+		FROM stor_file
 		WHERE id = new.file_id AND title NOTNULL;
 
 	IF NOT FOUND THEN
@@ -935,7 +935,7 @@ REFERENCES mus_artist(id)
 DECLARE
 	tag RECORD;
 BEGIN
-	SELECT INTO tag id 
+	SELECT INTO tag id
 	FROM mserv_tag
 	WHERE name = lower(\$1);
 
@@ -979,7 +979,7 @@ REFERENCES stor_file( id )
 ");
 
 # check that it's a real file
-&add_trigger( 0, "mserv_filetag__up", "AFTER INSERT OR UPDATE", 
+&add_trigger( 0, "mserv_filetag__up", "AFTER INSERT OR UPDATE",
 	"mserv_filetag", "FOR EACH ROW EXECUTE PROCEDURE mserv_check_file()");
 
 
@@ -989,9 +989,9 @@ DECLARE
 	tag RECORD;
 	tags VARCHAR := '''';
 BEGIN
-	FOR tag IN SELECT name 
-		FROM 
-			mserv_filetag tt 
+	FOR tag IN SELECT name
+		FROM
+			mserv_filetag tt
 				INNER JOIN mserv_tag ta
 				ON tt.tag_id = ta.id
 		WHERE
@@ -1000,7 +1000,7 @@ BEGIN
 			ta.id
 	LOOP
 		IF tags = '''' THEN
-			tags := tag.name; 
+			tags := tag.name;
 		ELSE
 			tags := tags || '','' || tag.name;
 		END IF;
@@ -1016,15 +1016,15 @@ DECLARE
 	tags VARCHAR := '''';
 BEGIN
 	FOR tag IN SELECT tag_id AS id
-		FROM 
-			mserv_filetag tt 
+		FROM
+			mserv_filetag tt
 		WHERE
 			tt.file_id = \$1
 		ORDER BY
 			tt.tag_id
 	LOOP
 		IF tags = '''' THEN
-			tags := tag.id; 
+			tags := tag.id;
 		ELSE
 			tags := tags || '','' || tag.id;
 		END IF;
@@ -1040,7 +1040,7 @@ DECLARE
 	id record;
 BEGIN
 	SELECT INTO id tag_id
-	FROM mserv_filetag 
+	FROM mserv_filetag
 	WHERE file_id = \$1 AND tag_id = \$2;
 
 	IF NOT FOUND THEN
@@ -1083,7 +1083,7 @@ END;
 
 &add_func( 0, "mserv_del_tag( integer, integer )", "boolean", "plpgsql", "
 BEGIN
-	DELETE FROM mserv_filetag 
+	DELETE FROM mserv_filetag
 		WHERE file_id = \$1 AND tag_id = \$2;
 
 	RETURN 1;
@@ -1124,7 +1124,7 @@ SELECT
 	stor_filename( u.collection, u.colnum, t.dir, t.fname )
 				AS filename
 FROM
-	mus_album a 
+	mus_album a
 		INNER JOIN mus_artist aa
 		ON a.artist_id = aa.id
 
@@ -1133,7 +1133,7 @@ FROM
 
 		INNER JOIN mus_artist ta
 		ON t.artist_id = ta.id
-		
+
 		INNER JOIN stor_unit u
 		ON t.unit_id = u.id
 
@@ -1153,7 +1153,7 @@ SELECT
 	aa.nname,
 	a.publish_date
 FROM
-	mus_album a 
+	mus_album a
 		INNER JOIN mus_artist aa
 		ON a.artist_id = aa.id
 ");
@@ -1231,7 +1231,7 @@ REFERENCES mserv_user( id )
 
 &add_trigger( 0, "mserv_queue__up", "AFTER INSERT OR UPDATE",
 	"mserv_queue", "FOR EACH ROW EXECUTE PROCEDURE mserv_check_file()");
- 
+
 
 #----------------------------------------------------------
 #
@@ -1248,7 +1248,7 @@ REFERENCES mserv_user( id )
 	"user_id	INTEGER",	# who queued this track?
 	"completed	BOOL NOT NULL DEFAULT true",
 ]);
-&alter( 2, 
+&alter( 2,
 		"ALTER TABLE mserv_hist ADD COLUMN last BOOL",
 		"ALTER TABLE mserv_hist ALTER COLUMN last SET DEFAULT true",
 		"UPDATE mserv_hist SET last = false WHERE last ISNULL",
@@ -1291,8 +1291,8 @@ REFERENCES mserv_user( id )
 DECLARE
 	file	RECORD;
 BEGIN
-	SELECT INTO file lastplay 
-		FROM stor_file 
+	SELECT INTO file lastplay
+		FROM stor_file
 		WHERE id = new.file_id AND title NOTNULL;
 
 	IF NOT FOUND THEN
@@ -1300,7 +1300,7 @@ BEGIN
 	END IF;
 
 	IF file.lastplay > new.added THEN
-		RAISE NOTICE ''lastplay for file % is newer - no update'', 
+		RAISE NOTICE ''lastplay for file % is newer - no update'',
 			new.file_id;
 		RETURN new;
 	END IF;
@@ -1317,7 +1317,7 @@ END;
 # TODO: run trigger on update, too
 &add_trigger( 0, "mserv_hist__up", " AFTER INSERT",
 	"mserv_hist", "FOR EACH ROW EXECUTE PROCEDURE mserv_hist__up_lastplay()");
- 
+
 
 
 
@@ -1331,10 +1331,10 @@ END;
 
 
 &add_view( 0, "mserv_artist", "
-SELECT 
+SELECT
 	id AS artist_id,
 	nname AS artist_name
-FROM 
+FROM
 	mus_artist a
 ");
 
@@ -1347,7 +1347,7 @@ FROM
 
 
 &add_view( 1, "mserv_album", "
-SELECT 
+SELECT
 	a.id AS album_id,
 	a.publish_date AS album_publish_date,
 	date_part('year', a.publish_date) AS album_publish_year,
@@ -1356,7 +1356,7 @@ SELECT
 	ar.nname AS album_artist_name,
 	a.rgain AS album_rgain,
 	a.rgain_peak AS album_rgain_peak
-FROM 
+FROM
 	mus_album a INNER JOIN mus_artist ar
 		ON a.artist_id = ar.id
 ");
@@ -1368,13 +1368,13 @@ FROM
 #----------------------------------------------------------
 
 &add_view( 0, "mserv_track", "
-SELECT 
+SELECT
 	t.id,
 	t.album_pos,
 	date_part('epoch',t.duration) AS dur,
 	time2unix(t.lastplay) AS lplay,
 	t.title,
-	stor_filename(u.collection,u.colnum,t.dir,t.fname) 
+	stor_filename(u.collection,u.colnum,t.dir,t.fname)
 		AS filename,
 	t.seg_from,
 	t.seg_to,
@@ -1382,15 +1382,15 @@ SELECT
 	t.rgain_peak,
 	a.*,
 	ar.*
-FROM 
-	stor_file t INNER JOIN stor_unit u  
-		ON t.unit_id = u.id 
+FROM
+	stor_file t INNER JOIN stor_unit u
+		ON t.unit_id = u.id
 	INNER JOIN mserv_album a
 		ON t.album_id = a.album_id
 	INNER JOIN mserv_artist ar
 		ON t.artist_id = ar.artist_id
 
-WHERE 
+WHERE
 	title NOTNULL AND
 	NOT t.broken
 ");
@@ -1402,12 +1402,12 @@ WHERE
 #----------------------------------------------------------
 
 &add_view( 0, "mserv_xhist", "
-SELECT 
+SELECT
 	t.*,
-	time2unix(h.added) AS played, 
+	time2unix(h.added) AS played,
 	h.user_id,
 	h.completed
-FROM 
+FROM
 	mserv_track t
 		INNER JOIN mserv_hist h
 		ON h.file_id = t.id
@@ -1421,15 +1421,15 @@ FROM
 
 &add_view( 0, "mserv_dupes", "
 SELECT t.*, h.added
-FROM 
-	( SELECT file_id 
+FROM
+	( SELECT file_id
 		FROM mserv_hist
 		WHERE user_id = 0
 		GROUP BY file_id
-		HAVING count(*) > 1) d 
+		HAVING count(*) > 1) d
 	INNER JOIN mserv_track t
 		ON t.id = d.file_id
-	INNER JOIN (SELECT * 
+	INNER JOIN (SELECT *
 		FROM mserv_hist
 		WHERE user_id = 0 ) h
 		ON h.file_id = d.file_id

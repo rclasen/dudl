@@ -63,13 +63,13 @@ To install this module type the following:
 Database
 ========
 
-a1) keep default ident-based pg_hba.conf 
+a1) keep default ident-based pg_hba.conf
 - add Postgres users for all who are granted access to the DB
  CREATE USER <user>;
 - add them to the dudl group to give them write access to the DB:
  ALTER GROUP dudl ADD USER <user>;
 
-a2) authenticate on DB connect. 
+a2) authenticate on DB connect.
 - change all "local" lines in pg_hba.conf to:
 
 # keep the following line for debian maintenance:

@@ -4,7 +4,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -17,7 +17,7 @@ use Dudl::StorUnit;
 use File::Temp qw( tempfile );
 
 # TODO: optionally use one jobfile for all directories
-# TODO: let user edit all files at once 
+# TODO: let user edit all files at once
 # TODO: multiple units
 # TODO: change flow: first check all jobfiles, then import them in one go
 
@@ -134,7 +134,7 @@ if( $needhelp ){
 	exit 1;
 }
 
-# step1: 
+# step1:
 # build list with directories and let user decide which to process
 
 # TODO: make dudl-musdirs a module and use it directly
@@ -142,7 +142,7 @@ my($tit, $fil, $unitid, $dir);
 my( $tfh, $tfn ) = tempfile;
 open( DFH, "dudl-musdirs '$unit'|" ) or die "open(dudl-musdirs): $!";
 # header:
-$_ = <DFH>; 
+$_ = <DFH>;
 print $tfh $_;
 # rest:
 while(<DFH>){
@@ -206,7 +206,7 @@ sub dodir {
 		if( ! $tfn ){
 			my $tfh;
 			( $tfh, $tfn ) = tempfile;
-			open( GFH, "dudl-musgen '$unitid' '$dir'|" ) 
+			open( GFH, "dudl-musgen '$unitid' '$dir'|" )
 				or die "open(dudl-musgen): $!";
 			while( <GFH> ){
 				print $tfh $_;

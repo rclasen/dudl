@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2008 Rainer Clasen
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms described in the file LICENSE included in this
 # distribution.
@@ -26,7 +26,7 @@ dudl-<component>blah.
 
 On their way to the DB MP3s are acompanied by so called jobfiles. These
 jobfiles are used to record meta information, that might get used for the
-next step. 
+next step.
 
 =over 4
 
@@ -69,7 +69,7 @@ Files are expected to reside in
 <cdpath>/<collection>/<collection><colnum>/<dir(s)>/<fname>
 
 <cdpath> is the top archive directory as set in your config. It should've
-been named unitpath ;-) 
+been named unitpath ;-)
 
 <colnum> is the 4-digit unit number (with leading zeros).
 
